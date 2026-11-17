@@ -48,7 +48,7 @@
               🟢 Connecting to Cloud...
             </span>
           </div>
-          <p class="text-xs text-slate-400">Live Multi-Device Sync, QR Asset Tracking & Work Instructions</p>
+          <p class="text-xs text-slate-400">Live Multi-Device Sync, Quality Tracking, Live Check-Out Timers & History</p>
         </div>
       </div>
       <div class="flex flex-wrap gap-2">
@@ -75,54 +75,90 @@
     </div>
   </header>
 
-  <!-- Scanned QR Code Banner (Appears when opened via QR Scan on any device) -->
-  <div id="scanned-banner" class="hidden max-w-4xl mx-auto mt-6 px-4 no-print">
-    <div class="bg-blue-50 border-2 border-blue-600 rounded-xl p-6 shadow-lg">
-      <div class="flex justify-between items-start">
+  <!-- Scanned QR Code Dedicated Item View (Appears automatically when scanning a QR code) -->
+  <div id="scanned-banner" class="hidden max-w-5xl mx-auto mt-6 px-4 no-print">
+    <div class="bg-white border-4 border-blue-600 rounded-2xl p-6 shadow-2xl">
+      <div class="flex flex-wrap justify-between items-start gap-4 border-b pb-4">
         <div>
-          <span class="bg-blue-600 text-white text-xs font-bold px-2.5 py-1 rounded uppercase tracking-wider">📱 QR Scan Active — Live Cloud Item</span>
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="bg-blue-600 text-white text-xs font-bold px-2.5 py-1 rounded uppercase tracking-wider">📱 QR Scan Active — Exact Item View</span>
+            <span id="scan-status-pill" class="text-xs font-bold px-2.5 py-1 rounded uppercase"></span>
+          </div>
           <h2 id="scan-title" class="text-2xl font-bold text-slate-900 mt-2"></h2>
-          <p id="scan-tag" class="text-sm font-mono text-blue-700 font-semibold"></p>
+          <div class="flex flex-wrap items-center gap-4 mt-1">
+            <p id="scan-tag" class="text-sm font-mono text-blue-700 font-bold"></p>
+            <p id="scan-code" class="text-sm font-mono bg-slate-100 px-2 py-0.5 rounded border text-slate-700 font-semibold"></p>
+          </div>
         </div>
-        <button onclick="closeScanBanner()" class="text-slate-400 hover:text-slate-700 text-2xl font-bold leading-none">&times;</button>
+        <button onclick="closeScanBanner()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold">
+          ✕ Close Scan View
+        </button>
       </div>
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4 bg-white p-4 rounded-lg border border-blue-200">
+
+      <!-- Primary Action Prompt Banner -->
+      <div id="scan-smart-prompt" class="mt-4 p-4 rounded-xl border flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p class="text-xs text-slate-500 uppercase">Plant</p>
-          <p id="scan-plant" class="font-semibold text-slate-800"></p>
+          <h3 id="scan-prompt-title" class="font-bold text-base"></h3>
+          <p id="scan-prompt-desc" class="text-xs mt-0.5"></p>
         </div>
-        <div>
-          <p class="text-xs text-slate-500 uppercase">Category</p>
-          <p id="scan-category" class="font-semibold text-slate-800"></p>
-        </div>
-        <div>
-          <p class="text-xs text-slate-500 uppercase">Storage Location</p>
-          <p id="scan-location" class="font-semibold text-slate-800"></p>
-        </div>
-        <div>
-          <p class="text-xs text-slate-500 uppercase">Live Quantity</p>
-          <p id="scan-qty" class="text-2xl font-bold text-emerald-600"></p>
+        <div class="flex flex-wrap gap-2">
+          <button id="scan-checkout-btn" class="bg-amber-600 hover:bg-amber-500 text-white px-5 py-2.5 rounded-lg font-bold text-sm shadow-md transition">
+            📤 Check Out Item
+          </button>
+          <button id="scan-checkin-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 rounded-lg font-bold text-sm shadow-md transition">
+            📥 Check In Item (Update Quality)
+          </button>
         </div>
       </div>
+
+      <!-- Item Specs Grid -->
+      <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+        <div>
+          <p class="text-[11px] text-slate-500 uppercase font-bold">Plant</p>
+          <p id="scan-plant" class="font-semibold text-slate-800 text-sm mt-0.5"></p>
+        </div>
+        <div>
+          <p class="text-[11px] text-slate-500 uppercase font-bold">Category</p>
+          <p id="scan-category" class="font-semibold text-slate-800 text-sm mt-0.5"></p>
+        </div>
+        <div>
+          <p class="text-[11px] text-slate-500 uppercase font-bold">Home Storage Location</p>
+          <p id="scan-location" class="font-semibold text-slate-800 text-sm mt-0.5"></p>
+        </div>
+        <div>
+          <p class="text-[11px] text-slate-500 uppercase font-bold">Available / Checked Out</p>
+          <p id="scan-qty" class="text-lg font-bold text-emerald-600 mt-0.5"></p>
+        </div>
+        <div>
+          <p class="text-[11px] text-slate-500 uppercase font-bold">Current Quality</p>
+          <div id="scan-quality-badge" class="mt-1"></div>
+        </div>
+      </div>
+
+      <!-- Active Check-Outs with Live Timers -->
+      <div id="scan-active-checkouts-box" class="mt-4 hidden">
+        <h4 class="text-xs font-bold uppercase text-amber-800 mb-2">⏱️ Currently Checked Out (Live Time Tracking)</h4>
+        <div id="scan-active-checkouts-list" class="space-y-2"></div>
+      </div>
+
+      <!-- Notes & Work Instructions -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-        <div class="bg-white p-4 rounded-lg border border-blue-200">
+        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
           <p class="text-xs font-bold text-slate-500 uppercase mb-1">📋 Details & Notes</p>
           <p id="scan-notes" class="text-sm text-slate-700 whitespace-pre-line"></p>
         </div>
-        <div class="bg-white p-4 rounded-lg border border-blue-200">
+        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
           <p class="text-xs font-bold text-slate-500 uppercase mb-1">🛠️ Work Instructions</p>
           <p id="scan-instructions" class="text-sm text-slate-700 whitespace-pre-line"></p>
         </div>
       </div>
-      <div class="mt-4 flex flex-wrap gap-3">
-        <button id="scan-checkin-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded font-semibold text-sm shadow">
-          📥 Check In (+Qty)
+
+      <div class="mt-4 pt-3 border-t flex flex-wrap justify-between items-center gap-2">
+        <button id="scan-history-btn" class="text-xs bg-slate-800 hover:bg-slate-700 text-white px-3.5 py-2 rounded-lg font-semibold">
+          📜 View Full Check-Out History Log
         </button>
-        <button id="scan-checkout-btn" class="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded font-semibold text-sm shadow">
-          📤 Check Out (-Qty)
-        </button>
-        <button id="scan-edit-btn" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded font-semibold text-sm shadow">
-          ✏️ Edit Item Details
+        <button id="scan-edit-btn" class="text-xs bg-blue-100 hover:bg-blue-200 text-blue-800 px-3.5 py-2 rounded-lg font-semibold">
+          ✏️ Edit Item / Change Quality
         </button>
       </div>
     </div>
@@ -133,18 +169,29 @@
 
     <!-- Filters & Search Bar -->
     <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6 flex flex-wrap gap-4 items-end justify-between">
-      <div class="flex flex-wrap gap-4 flex-1">
-        <div class="w-full sm:w-64">
+      <div class="flex flex-wrap gap-3 flex-1">
+        <div class="w-full sm:w-60">
           <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Search Inventory</label>
-          <input type="text" id="search-input" oninput="renderInventory()" placeholder="Search tag, name, location..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <input type="text" id="search-input" oninput="renderInventory()" placeholder="Tag, item code, name, location..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
-        <div class="w-full sm:w-48">
+        <div class="w-full sm:w-44">
           <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Filter by Plant</label>
           <select id="filter-plant" onchange="renderInventory()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             <option value="ALL">All Plants</option>
           </select>
         </div>
-        <div class="w-full sm:w-48">
+        <div class="w-full sm:w-44">
+          <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Filter by Quality</label>
+          <select id="filter-quality" onchange="renderInventory()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="ALL">All Qualities</option>
+            <option value="New">New</option>
+            <option value="Good">Good</option>
+            <option value="Used">Used</option>
+            <option value="Needs Repair">Needs Repair</option>
+            <option value="Broken">Broken</option>
+          </select>
+        </div>
+        <div class="w-full sm:w-44">
           <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Filter by Category</label>
           <input type="text" id="filter-category" oninput="renderInventory()" placeholder="e.g. Fasteners, Motors" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
@@ -154,10 +201,10 @@
           🔄 Sync Now
         </button>
         <button onclick="toggleSelectAll(true)" class="text-xs bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold px-3 py-2 rounded">
-          Select All Visible
+          Select All
         </button>
         <button onclick="toggleSelectAll(false)" class="text-xs bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold px-3 py-2 rounded">
-          Clear Selection
+          Clear
         </button>
       </div>
     </div>
@@ -171,14 +218,13 @@
               <th class="p-3 w-10 text-center">
                 <input type="checkbox" id="master-checkbox" onchange="toggleSelectAll(this.checked)" class="w-4 h-4 accent-blue-600 cursor-pointer" />
               </th>
-              <th class="p-3">Item Tag</th>
+              <th class="p-3">Tag & Item Code</th>
               <th class="p-3">Item Name</th>
-              <th class="p-3">Plant</th>
-              <th class="p-3">Category</th>
-              <th class="p-3">Location</th>
-              <th class="p-3 text-center">Quantity</th>
-              <th class="p-3">Details & Work Instructions</th>
-              <th class="p-3 text-center">Check In / Out</th>
+              <th class="p-3">Plant & Location</th>
+              <th class="p-3">Quality Status</th>
+              <th class="p-3 text-center">In Stock / Out</th>
+              <th class="p-3">Live Check-Out Status</th>
+              <th class="p-3 text-center">Check Out / In</th>
               <th class="p-3 text-right">Actions</th>
             </tr>
           </thead>
@@ -193,6 +239,253 @@
   <!-- Printable QR Area -->
   <div id="print-area" class="hidden"></div>
 
+  <!-- MODAL: Check Out Item (Requires Name, Destination Location, Quantity, Notes) -->
+  <div id="checkout-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print">
+    <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl">
+      <div class="flex justify-between items-center border-b pb-3 mb-3">
+        <h3 class="text-lg font-bold text-slate-900">📤 Check Out Item</h3>
+        <button onclick="closeCheckOutModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
+      </div>
+      <p id="checkout-modal-subtitle" class="text-xs font-mono font-bold text-blue-700 mb-4 bg-blue-50 p-2 rounded border border-blue-200"></p>
+      <form onsubmit="confirmCheckOut(event)" class="space-y-3.5">
+        <input type="hidden" id="checkout-item-id" />
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Your Name (Checked Out By) *</label>
+          <input type="text" id="checkout-user" required placeholder="e.g. John Smith" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Destination Location (Where Item is Going) *</label>
+          <input type="text" id="checkout-destination" required placeholder="e.g. Assembly Line 3, Press Bay 2" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Quantity to Check Out *</label>
+          <input type="number" id="checkout-amount" required min="1" value="1" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-base font-bold" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Additional Notes</label>
+          <textarea id="checkout-note" rows="2" placeholder="Work order #, reason for checkout, or comments..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"></textarea>
+        </div>
+        <div class="flex justify-end space-x-2 pt-3 border-t">
+          <button type="button" onclick="closeCheckOutModal()" class="px-4 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 text-sm font-medium">Cancel</button>
+          <button type="submit" class="px-5 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-sm font-bold shadow">Start Live Check-Out</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Check In Item (Requires Return Quality: New, Good, Used, Needs Repair, Broken) -->
+  <div id="checkin-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print">
+    <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl">
+      <div class="flex justify-between items-center border-b pb-3 mb-3">
+        <h3 class="text-lg font-bold text-slate-900">📥 Check In Item & Rate Quality</h3>
+        <button onclick="closeCheckInModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
+      </div>
+      <p id="checkin-modal-subtitle" class="text-xs font-mono font-bold text-emerald-800 mb-4 bg-emerald-50 p-2 rounded border border-emerald-200"></p>
+      <form onsubmit="confirmCheckIn(event)" class="space-y-3.5">
+        <input type="hidden" id="checkin-item-id" />
+        <div id="checkin-active-select-wrapper">
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Select Active Check-Out Record (or General Return)</label>
+          <select id="checkin-checkout-record" onchange="syncCheckInQtyFromRecord()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-slate-50"></select>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Checked In By (Name) *</label>
+            <input type="text" id="checkin-user" required placeholder="e.g. John Smith" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Quantity Returning *</label>
+            <input type="number" id="checkin-amount" required min="1" value="1" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-bold" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Item Quality Upon Return *</label>
+          <select id="checkin-quality" required class="w-full border-2 border-emerald-500 rounded-lg px-3 py-2 text-sm font-bold">
+            <option value="New">🌟 New</option>
+            <option value="Good">✅ Good</option>
+            <option value="Used">🛠️ Used</option>
+            <option value="Needs Repair">⚠️ Needs Repair</option>
+            <option value="Broken">❌ Broken</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Return Notes / Condition Details</label>
+          <textarea id="checkin-note" rows="2" placeholder="Any wear, damage, or restocking notes..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"></textarea>
+        </div>
+        <div class="flex justify-end space-x-2 pt-3 border-t">
+          <button type="button" onclick="closeCheckInModal()" class="px-4 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 text-sm font-medium">Cancel</button>
+          <button type="submit" class="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold shadow">Complete Check-In</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Add / Edit Inventory Item -->
+  <div id="item-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print">
+    <div class="bg-white rounded-xl max-w-2xl w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b pb-3 mb-4">
+        <h2 id="item-modal-title" class="text-lg font-bold text-slate-900">Add Inventory Item</h2>
+        <button onclick="closeItemModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
+      </div>
+      <form id="item-form" onsubmit="saveItem(event)" class="space-y-4">
+        <input type="hidden" id="edit-item-id" />
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Plant *</label>
+            <select id="item-plant" required onchange="updatePreviewTag()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"></select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Auto Plant Tag</label>
+            <input type="text" id="item-tag-preview" readonly class="w-full bg-slate-100 border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono font-bold text-blue-700" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Item Code / Part # *</label>
+            <input type="text" id="item-code" required placeholder="e.g. MTR-5HP-480" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono uppercase" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Item Name *</label>
+            <input type="text" id="item-name" required placeholder="e.g. Hydraulic Pump" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Category *</label>
+            <input type="text" id="item-category" required placeholder="e.g. Mechanical" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Item Quality *</label>
+            <select id="item-quality" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold">
+              <option value="New">New</option>
+              <option value="Good" selected>Good</option>
+              <option value="Used">Used</option>
+              <option value="Needs Repair">Needs Repair</option>
+              <option value="Broken">Broken</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Available Quantity in Storage *</label>
+            <input type="number" id="item-qty" required min="0" value="1" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-bold" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Home Storage Location *</label>
+            <input type="text" id="item-location" required placeholder="e.g. Aisle 4, Rack B, Bin 12" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Details & Notes</label>
+          <textarea id="item-notes" rows="2" placeholder="Part specs, vendor info, serial numbers, or condition notes..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Work Instructions</label>
+          <textarea id="item-instructions" rows="2" placeholder="Step-by-step handling, safety PPE requirements, or installation instructions..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"></textarea>
+        </div>
+
+        <div class="flex justify-end space-x-3 pt-3 border-t">
+          <button type="button" onclick="closeItemModal()" class="px-4 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 text-sm font-medium">Cancel</button>
+          <button type="submit" class="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold">Save & Sync Item</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Check-Out & Check-In History Log -->
+  <div id="history-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print">
+    <div class="bg-white rounded-xl max-w-4xl w-full p-6 shadow-2xl max-h-[90vh] flex flex-col">
+      <div class="flex justify-between items-start border-b pb-3 mb-4">
+        <div>
+          <span id="history-tag" class="font-mono text-xs font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded"></span>
+          <h3 id="history-title" class="text-lg font-bold text-slate-900 mt-1">Check-Out & Check-In History</h3>
+        </div>
+        <button onclick="closeHistoryModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
+      </div>
+
+      <div class="overflow-y-auto flex-1 space-y-4">
+        <div>
+          <h4 class="text-xs font-bold uppercase text-amber-700 mb-2">⏱️ Active Check-Outs (Currently Out)</h4>
+          <div id="history-active-list" class="space-y-2"></div>
+        </div>
+
+        <div class="border-t pt-4">
+          <h4 class="text-xs font-bold uppercase text-slate-600 mb-2">📜 Complete Historical Log (All Transactions)</h4>
+          <div id="history-log-list" class="space-y-2"></div>
+        </div>
+      </div>
+
+      <div class="flex justify-end pt-3 mt-4 border-t">
+        <button onclick="closeHistoryModal()" class="px-4 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 text-sm font-medium">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Single Item Details & QR View -->
+  <div id="detail-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print">
+    <div class="bg-white rounded-xl max-w-lg w-full p-6 shadow-2xl">
+      <div class="flex justify-between items-start border-b pb-3 mb-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span id="detail-tag" class="font-mono text-xs font-bold bg-blue-100 text-blue-800 px-2 py-1 rounded"></span>
+            <span id="detail-code" class="font-mono text-xs font-semibold bg-slate-100 text-slate-700 px-2 py-1 rounded border"></span>
+          </div>
+          <h3 id="detail-name" class="text-xl font-bold text-slate-900 mt-1"></h3>
+        </div>
+        <button onclick="closeDetailModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
+      </div>
+      <div class="flex flex-col sm:flex-row gap-6 items-center">
+        <div class="flex flex-col items-center">
+          <div id="single-qr-container" class="p-3 border-2 border-slate-800 rounded-lg bg-white"></div>
+          <a id="detail-qr-link" href="#" target="_blank" class="text-[11px] text-blue-600 hover:underline mt-2 font-medium">🔗 Open Exact Item Scan View</a>
+        </div>
+        <div class="space-y-1.5 text-sm flex-1">
+          <p><strong>Plant:</strong> <span id="detail-plant"></span></p>
+          <p><strong>Category:</strong> <span id="detail-category"></span></p>
+          <p><strong>Home Location:</strong> <span id="detail-location"></span></p>
+          <p><strong>Quality:</strong> <span id="detail-quality"></span></p>
+          <p><strong>In Stock Qty:</strong> <span id="detail-qty" class="font-bold text-emerald-600"></span></p>
+        </div>
+      </div>
+      <div class="mt-4 space-y-3 bg-slate-50 p-3 rounded-lg border text-sm">
+        <div>
+          <p class="text-xs font-bold text-slate-500 uppercase">Details & Notes</p>
+          <p id="detail-notes" class="text-slate-700 whitespace-pre-line"></p>
+        </div>
+        <div class="border-t pt-2">
+          <p class="text-xs font-bold text-slate-500 uppercase">Work Instructions</p>
+          <p id="detail-instructions" class="text-slate-700 whitespace-pre-line"></p>
+        </div>
+      </div>
+      <div class="flex justify-between gap-2 mt-4 pt-3 border-t">
+        <button id="detail-open-scan-btn" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold">📱 Open Full Scan View</button>
+        <button onclick="closeDetailModal()" class="px-4 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 text-sm font-medium">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Manage Plants -->
+  <div id="plant-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print">
+    <div class="bg-white rounded-xl max-w-lg w-full p-6 shadow-2xl">
+      <div class="flex justify-between items-center border-b pb-3 mb-4">
+        <h2 class="text-lg font-bold text-slate-900">🏢 Manage Plants (3-Digit Codes)</h2>
+        <button onclick="closePlantModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
+      </div>
+      <form onsubmit="savePlant(event)" class="flex gap-2 mb-4">
+        <input type="hidden" id="edit-plant-old-code" />
+        <input type="text" id="plant-code" required maxlength="3" minlength="3" placeholder="Code (e.g. KEN)" class="w-28 border border-slate-300 rounded-lg px-3 py-2 text-sm uppercase font-mono" />
+        <input type="text" id="plant-name" required placeholder="Plant Name (e.g. Kentwood Plant)" class="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+        <button type="submit" id="plant-submit-btn" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-semibold">Add</button>
+      </form>
+      <div class="max-h-64 overflow-y-auto divide-y divide-slate-200 border rounded-lg" id="plant-list"></div>
+      <div class="flex justify-end pt-4 mt-4 border-t">
+        <button onclick="closePlantModal()" class="px-4 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 text-sm font-medium">Done</button>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL: Cloud Sync Configuration -->
   <div id="cloud-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print">
     <div class="bg-white rounded-xl max-w-lg w-full p-6 shadow-2xl">
@@ -200,9 +493,6 @@
         <h2 class="text-lg font-bold text-slate-900">☁️ Live Firebase Cloud Database</h2>
         <button onclick="closeCloudModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
       </div>
-      <p class="text-xs text-slate-600 mb-3 leading-relaxed">
-        Your app is pre-configured to sync across all devices using your Firebase Realtime Database:
-      </p>
       <form onsubmit="saveCloudConfig(event)" class="space-y-4">
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Active Firebase Database URL</label>
@@ -221,151 +511,6 @@
     </div>
   </div>
 
-  <!-- MODAL: Add / Edit Inventory Item -->
-  <div id="item-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print">
-    <div class="bg-white rounded-xl max-w-2xl w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
-      <div class="flex justify-between items-center border-b pb-3 mb-4">
-        <h2 id="item-modal-title" class="text-lg font-bold text-slate-900">Add Inventory Item</h2>
-        <button onclick="closeItemModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
-      </div>
-      <form id="item-form" onsubmit="saveItem(event)" class="space-y-4">
-        <input type="hidden" id="edit-item-id" />
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Plant *</label>
-            <select id="item-plant" required onchange="updatePreviewTag()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"></select>
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Assigned Item Tag</label>
-            <input type="text" id="item-tag-preview" readonly class="w-full bg-slate-100 border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono font-bold text-blue-700" />
-            <p class="text-[11px] text-slate-400 mt-0.5">Auto-generated from 3-digit Plant Code + Sequence</p>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div class="sm:col-span-1">
-            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Item Name *</label>
-            <input type="text" id="item-name" required placeholder="e.g. Hydraulic Pump" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Category *</label>
-            <input type="text" id="item-category" required placeholder="e.g. Mechanical" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Initial / Current Qty *</label>
-            <input type="number" id="item-qty" required min="0" value="1" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Storage Location *</label>
-          <input type="text" id="item-location" required placeholder="e.g. Aisle 4, Rack B, Bin 12" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Details & Notes</label>
-          <textarea id="item-notes" rows="3" placeholder="Part specs, vendor info, serial numbers, or condition notes..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"></textarea>
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Work Instructions</label>
-          <textarea id="item-instructions" rows="3" placeholder="Step-by-step handling, safety PPE requirements, or installation instructions..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"></textarea>
-        </div>
-
-        <div class="flex justify-end space-x-3 pt-3 border-t">
-          <button type="button" onclick="closeItemModal()" class="px-4 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 text-sm font-medium">Cancel</button>
-          <button type="submit" class="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold">Save & Sync Item</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- MODAL: Manage Plants -->
-  <div id="plant-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print">
-    <div class="bg-white rounded-xl max-w-lg w-full p-6 shadow-2xl">
-      <div class="flex justify-between items-center border-b pb-3 mb-4">
-        <h2 class="text-lg font-bold text-slate-900">🏢 Manage Plants (3-Digit Codes)</h2>
-        <button onclick="closePlantModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
-      </div>
-
-      <form onsubmit="savePlant(event)" class="flex gap-2 mb-4">
-        <input type="hidden" id="edit-plant-old-code" />
-        <input type="text" id="plant-code" required maxlength="3" minlength="3" placeholder="Code (e.g. KEN)" class="w-28 border border-slate-300 rounded-lg px-3 py-2 text-sm uppercase font-mono" />
-        <input type="text" id="plant-name" required placeholder="Plant Name (e.g. Kentwood Plant)" class="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm" />
-        <button type="submit" id="plant-submit-btn" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-semibold">Add</button>
-      </form>
-
-      <div class="max-h-64 overflow-y-auto divide-y divide-slate-200 border rounded-lg" id="plant-list"></div>
-
-      <div class="flex justify-end pt-4 mt-4 border-t">
-        <button onclick="closePlantModal()" class="px-4 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 text-sm font-medium">Done</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL: Check In / Check Out Quantity -->
-  <div id="check-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print">
-    <div class="bg-white rounded-xl max-w-sm w-full p-6 shadow-2xl">
-      <h3 id="check-modal-title" class="text-lg font-bold text-slate-900 mb-1">Check In / Out</h3>
-      <p id="check-modal-subtitle" class="text-xs text-slate-500 mb-4"></p>
-      <form onsubmit="confirmCheckInOut(event)" class="space-y-4">
-        <input type="hidden" id="check-item-id" />
-        <input type="hidden" id="check-mode" />
-        <div>
-          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Quantity to <span id="check-action-label"></span> *</label>
-          <input type="number" id="check-amount" required min="1" value="1" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-lg font-bold" />
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Operator / Note (Optional)</label>
-          <input type="text" id="check-note" placeholder="e.g. Checked out by Line 2 Tech" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
-        </div>
-        <div class="flex justify-end space-x-2 pt-2">
-          <button type="button" onclick="closeCheckModal()" class="px-4 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 text-sm font-medium">Cancel</button>
-          <button type="submit" id="check-submit-btn" class="px-4 py-2 rounded-lg text-white text-sm font-semibold">Confirm</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- MODAL: Single Item Details & QR View -->
-  <div id="detail-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print">
-    <div class="bg-white rounded-xl max-w-lg w-full p-6 shadow-2xl">
-      <div class="flex justify-between items-start border-b pb-3 mb-4">
-        <div>
-          <span id="detail-tag" class="font-mono text-xs font-bold bg-blue-100 text-blue-800 px-2 py-1 rounded"></span>
-          <h3 id="detail-name" class="text-xl font-bold text-slate-900 mt-1"></h3>
-        </div>
-        <button onclick="closeDetailModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
-      </div>
-      <div class="flex flex-col sm:flex-row gap-6 items-center">
-        <div class="flex flex-col items-center">
-          <div id="single-qr-container" class="p-3 border-2 border-slate-800 rounded-lg bg-white"></div>
-          <a id="detail-qr-link" href="#" target="_blank" class="text-[11px] text-blue-600 hover:underline mt-2 font-medium">🔗 Test QR Link Directly</a>
-        </div>
-        <div class="space-y-2 text-sm flex-1">
-          <p><strong>Plant:</strong> <span id="detail-plant"></span></p>
-          <p><strong>Category:</strong> <span id="detail-category"></span></p>
-          <p><strong>Location:</strong> <span id="detail-location"></span></p>
-          <p><strong>Quantity:</strong> <span id="detail-qty" class="font-bold text-emerald-600"></span></p>
-        </div>
-      </div>
-      <div class="mt-4 space-y-3 bg-slate-50 p-3 rounded-lg border text-sm">
-        <div>
-          <p class="text-xs font-bold text-slate-500 uppercase">Details & Notes</p>
-          <p id="detail-notes" class="text-slate-700 whitespace-pre-line"></p>
-        </div>
-        <div class="border-t pt-2">
-          <p class="text-xs font-bold text-slate-500 uppercase">Work Instructions</p>
-          <p id="detail-instructions" class="text-slate-700 whitespace-pre-line"></p>
-        </div>
-      </div>
-      <div class="flex justify-end gap-2 mt-4 pt-3 border-t">
-        <button onclick="closeDetailModal()" class="px-4 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 text-sm font-medium">Close</button>
-      </div>
-    </div>
-  </div>
-
   <script>
     // ============================================================================
     // 1. LIVE FIREBASE & GITHUB CONFIGURATION
@@ -373,12 +518,11 @@
     const DEFAULT_CLOUD_DB_URL = 'https://storagelocator-405e5-default-rtdb.firebaseio.com/';
     const FALLBACK_GITHUB_URL  = 'https://asrieldreemurr2003.github.io/StorageLocater/';
 
-    const STORAGE_KEY_PLANTS = 'PLANT_QR_PLANTS_V3';
-    const STORAGE_KEY_ITEMS  = 'PLANT_QR_ITEMS_V3';
-    const STORAGE_KEY_SEQ    = 'PLANT_QR_SEQ_V3';
-    const STORAGE_KEY_CLOUD  = 'PLANT_QR_CLOUD_URL_V3';
+    const STORAGE_KEY_PLANTS = 'PLANT_QR_PLANTS_V4';
+    const STORAGE_KEY_ITEMS  = 'PLANT_QR_ITEMS_V4';
+    const STORAGE_KEY_SEQ    = 'PLANT_QR_SEQ_V4';
+    const STORAGE_KEY_CLOUD  = 'PLANT_QR_CLOUD_URL_V4';
 
-    // Always default to your Firebase Realtime Database URL
     let cloudDbUrl = localStorage.getItem(STORAGE_KEY_CLOUD) || DEFAULT_CLOUD_DB_URL;
     if (!cloudDbUrl || !cloudDbUrl.includes('firebaseio.com')) {
       cloudDbUrl = DEFAULT_CLOUD_DB_URL;
@@ -395,24 +539,32 @@
       {
         id: '1',
         tag: 'KEN000001',
+        itemCode: 'MTR-5HP-480',
         plantCode: 'KEN',
         name: '5HP Induction Motor',
         category: 'Motors & Drives',
+        quality: 'Good',
         quantity: 4,
         location: 'Aisle 2, Shelf C',
         notes: '480V 3-Phase, NEMA Frame 184T. Keep dry.',
-        instructions: '1. Lockout/Tagout main breaker before install.\n2. Verify shaft alignment within 0.002 in.\n3. Torque mounting bolts to 45 ft-lbs.'
+        instructions: '1. Lockout/Tagout main breaker before install.\n2. Verify shaft alignment within 0.002 in.\n3. Torque mounting bolts to 45 ft-lbs.',
+        activeCheckouts: [],
+        checkoutHistory: []
       },
       {
         id: '2',
         tag: 'DET000001',
+        itemCode: 'FST-M12-100',
         plantCode: 'DET',
         name: 'M12 Hex Flange Bolts (Box of 100)',
         category: 'Fasteners',
+        quality: 'New',
         quantity: 18,
         location: 'Bin Rack 4, Row B',
         notes: 'Grade 10.9 Zinc Flake Coated.',
-        instructions: 'Use calibrated pneumatic torque wrench set to 85 Nm.'
+        instructions: 'Use calibrated pneumatic torque wrench set to 85 Nm.',
+        activeCheckouts: [],
+        checkoutHistory: []
       }
     ];
 
@@ -424,9 +576,56 @@
 
     let selectedItemIds = new Set();
     let activeScannedTag = null;
+    let activeHistoryItemId = null;
+
+    // Ensure backwards compatibility for items created in earlier versions
+    function normalizeItems() {
+      items.forEach((item, index) => {
+        if (!item.itemCode) item.itemCode = `ITM-${String(index + 1).padStart(4, '0')}`;
+        if (!item.quality) item.quality = 'Good';
+        if (!Array.isArray(item.activeCheckouts)) item.activeCheckouts = [];
+        if (!Array.isArray(item.checkoutHistory)) item.checkoutHistory = [];
+      });
+    }
+    normalizeItems();
 
     // ============================================================================
-    // 2. CLOUD SYNC ENGINE (Ensures all devices & QR scans see identical data)
+    // 2. QUALITY BADGE & LIVE DURATION FORMATTERS
+    // ============================================================================
+    function getQualityBadgeHtml(quality) {
+      const q = quality || 'Good';
+      const styles = {
+        'New': 'bg-emerald-100 text-emerald-800 border-emerald-300',
+        'Good': 'bg-blue-100 text-blue-800 border-blue-300',
+        'Used': 'bg-slate-200 text-slate-800 border-slate-300',
+        'Needs Repair': 'bg-amber-100 text-amber-800 border-amber-400',
+        'Broken': 'bg-red-100 text-red-800 border-red-400'
+      };
+      const cls = styles[q] || styles['Good'];
+      return `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold border ${cls}">${escapeHtml(q)}</span>`;
+    }
+
+    function formatElapsedDuration(startMs, endMs = Date.now()) {
+      const diffSec = Math.max(0, Math.floor((endMs - startMs) / 1000));
+      const days = Math.floor(diffSec / 86400);
+      const hrs = Math.floor((diffSec % 86400) / 3600);
+      const mins = Math.floor((diffSec % 3600) / 60);
+      const secs = diffSec % 60;
+      const pad = n => String(n).padStart(2, '0');
+      if (days > 0) return `${days}d ${pad(hrs)}h ${pad(mins)}m ${pad(secs)}s`;
+      return `${pad(hrs)}h ${pad(mins)}m ${pad(secs)}s`;
+    }
+
+    // Live 1-second ticker for all active check-out timers on screen
+    setInterval(() => {
+      document.querySelectorAll('[data-live-timer]').forEach(el => {
+        const start = parseInt(el.getAttribute('data-live-timer'), 10);
+        if (start) el.textContent = formatElapsedDuration(start);
+      });
+    }, 1000);
+
+    // ============================================================================
+    // 3. CLOUD SYNC ENGINE
     // ============================================================================
     function getNormalizedCloudEndpoint() {
       if (!cloudDbUrl) return null;
@@ -448,6 +647,7 @@
     }
 
     async function saveState() {
+      normalizeItems();
       localStorage.setItem(STORAGE_KEY_PLANTS, JSON.stringify(plants));
       localStorage.setItem(STORAGE_KEY_ITEMS, JSON.stringify(items));
       localStorage.setItem(STORAGE_KEY_SEQ, JSON.stringify(plantSequences));
@@ -476,7 +676,7 @@
       } catch (err) {
         console.error('Cloud push error:', err);
         updateSyncBadge('Cloud Sync Error (Check Firebase Rules)', false);
-        if (showAlert) alert('Could not write to Firebase. Make sure your Realtime Database Rules allow read/write (Test Mode).');
+        if (showAlert) alert('Could not write to Firebase. Make sure your Realtime Database Rules allow read/write.');
       }
     }
 
@@ -492,16 +692,17 @@
           plants = data.plants;
           items = data.items || [];
           plantSequences = data.plantSequences || {};
+          normalizeItems();
           localStorage.setItem(STORAGE_KEY_PLANTS, JSON.stringify(plants));
           localStorage.setItem(STORAGE_KEY_ITEMS, JSON.stringify(items));
           localStorage.setItem(STORAGE_KEY_SEQ, JSON.stringify(plantSequences));
 
           populatePlantDropdowns();
           renderInventory();
-          if (activeScannedTag) refreshScannedBanner(activeScannedTag);
+          if (activeScannedTag) refreshScannedBanner(activeScannedTag, false);
+          if (activeHistoryItemId) renderHistoryModalContent(activeHistoryItemId);
           updateSyncBadge('Cloud Synced (Live Across All Devices)', true);
         } else {
-          // First time connecting to a fresh Firebase database: upload initial seed data
           await pushToCloud(false);
         }
       } catch (err) {
@@ -532,7 +733,7 @@
     }
 
     // ============================================================================
-    // 3. QR URL BUILDER & SCAN HANDLER
+    // 4. QR URL BUILDER & SMART SCAN ROUTING
     // ============================================================================
     function getNextTagForPlant(plantCode) {
       const currentMax = plantSequences[plantCode] || 0;
@@ -541,14 +742,10 @@
     }
 
     function buildQRUrl(item) {
-      // If opened from your live GitHub Pages site, dynamically use its exact URL and casing;
-      // Otherwise fallback to FALLBACK_GITHUB_URL
       let baseUrl = FALLBACK_GITHUB_URL;
       if (window.location.protocol.startsWith('http') && window.location.hostname.includes('github.io')) {
         baseUrl = window.location.origin + window.location.pathname;
       }
-
-      // Ultra-compact URL because all devices automatically pull full details from Firebase!
       return `${baseUrl}?tag=${encodeURIComponent(item.tag)}`;
     }
 
@@ -557,45 +754,121 @@
       const scannedTag = params.get('tag');
       const legacyQr = params.get('qr');
 
-      // Always pull the latest data from Firebase first so the scanning phone sees live quantities
       await pullFromCloud(false);
 
       if (scannedTag) {
         activeScannedTag = scannedTag;
-        refreshScannedBanner(scannedTag);
+        refreshScannedBanner(scannedTag, true);
       } else if (legacyQr) {
         try {
           const decoded = JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(legacyQr)))));
           activeScannedTag = decoded.t;
-          refreshScannedBanner(decoded.t);
+          refreshScannedBanner(decoded.t, true);
         } catch (e) {
           console.error('Legacy QR error:', e);
         }
       }
     }
 
-    function refreshScannedBanner(tag) {
+    function openScanViewForItem(itemId) {
+      const item = items.find(i => i.id === itemId);
+      if (!item) return;
+      closeDetailModal();
+      activeScannedTag = item.tag;
+      refreshScannedBanner(item.tag, true);
+    }
+
+    function refreshScannedBanner(tag, autoScroll = false) {
       const match = items.find(i => i.tag === tag);
       if (!match) {
-        alert(`Item with tag "${tag}" was not found in the database (it may have been deleted).`);
+        alert(`Item with tag "${tag}" was not found in the database.`);
         return;
       }
 
       const plantObj = plants.find(p => p.code === match.plantCode);
+      const activeList = match.activeCheckouts || [];
+      const totalCheckedOutQty = activeList.reduce((sum, rec) => sum + (rec.quantity || 1), 0);
+
       document.getElementById('scan-title').textContent = match.name;
-      document.getElementById('scan-tag').textContent = `TAG: ${match.tag}`;
+      document.getElementById('scan-tag').textContent = `PLANT TAG: ${match.tag}`;
+      document.getElementById('scan-code').textContent = `ITEM CODE: ${match.itemCode || 'N/A'}`;
       document.getElementById('scan-plant').textContent = plantObj ? `${plantObj.code} - ${plantObj.name}` : match.plantCode;
       document.getElementById('scan-category').textContent = match.category;
       document.getElementById('scan-location').textContent = match.location;
-      document.getElementById('scan-qty').textContent = match.quantity;
+      document.getElementById('scan-qty').textContent = `${match.quantity} In Stock (${totalCheckedOutQty} Out)`;
+      document.getElementById('scan-quality-badge').innerHTML = getQualityBadgeHtml(match.quality);
       document.getElementById('scan-notes').textContent = match.notes || 'None provided.';
       document.getElementById('scan-instructions').textContent = match.instructions || 'None provided.';
 
-      document.getElementById('scan-checkin-btn').onclick = () => openCheckModal(match.id, 'IN');
-      document.getElementById('scan-checkout-btn').onclick = () => openCheckModal(match.id, 'OUT');
-      document.getElementById('scan-edit-btn').onclick = () => openItemModal(match.id);
+      // Smart Status Pill & Prompt depending on whether units are currently checked out
+      const statusPill = document.getElementById('scan-status-pill');
+      const smartPrompt = document.getElementById('scan-smart-prompt');
+      const promptTitle = document.getElementById('scan-prompt-title');
+      const promptDesc = document.getElementById('scan-prompt-desc');
 
-      document.getElementById('scanned-banner').classList.remove('hidden');
+      if (totalCheckedOutQty > 0) {
+        statusPill.className = 'text-xs font-bold px-2.5 py-1 rounded uppercase bg-amber-100 text-amber-800 border border-amber-400';
+        statusPill.textContent = `⏱️ ${totalCheckedOutQty} Unit(s) Currently Checked Out`;
+        smartPrompt.className = 'mt-4 p-4 rounded-xl border-2 border-emerald-500 bg-emerald-50 flex flex-wrap items-center justify-between gap-4';
+        promptTitle.className = 'font-bold text-base text-emerald-900';
+        promptTitle.textContent = 'Returning this checked-out item?';
+        promptDesc.className = 'text-xs text-emerald-700 mt-0.5';
+        promptDesc.textContent = 'Tap "Check In Item" to log its return quality (New, Good, Used, Needs Repair, or Broken), or check out additional units.';
+      } else {
+        statusPill.className = 'text-xs font-bold px-2.5 py-1 rounded uppercase bg-emerald-100 text-emerald-800 border border-emerald-300';
+        statusPill.textContent = '✅ In Storage & Ready for Check-Out';
+        smartPrompt.className = 'mt-4 p-4 rounded-xl border-2 border-amber-500 bg-amber-50 flex flex-wrap items-center justify-between gap-4';
+        promptTitle.className = 'font-bold text-base text-amber-900';
+        promptTitle.textContent = 'Checking out this item?';
+        promptDesc.className = 'text-xs text-amber-800 mt-0.5';
+        promptDesc.textContent = 'Tap "Check Out Item" to enter your name, destination location, and start the live checkout timer.';
+      }
+
+      // Render Active Check-Outs with live timers inside the scan view
+      const activeBox = document.getElementById('scan-active-checkouts-box');
+      const activeContainer = document.getElementById('scan-active-checkouts-list');
+      activeContainer.innerHTML = '';
+
+      if (activeList.length > 0) {
+        activeBox.classList.remove('hidden');
+        activeList.forEach(rec => {
+          const row = document.createElement('div');
+          row.className = 'bg-amber-50 border border-amber-300 rounded-lg p-3 flex flex-wrap justify-between items-center gap-2 text-xs';
+          row.innerHTML = `
+            <div>
+              <span class="font-bold text-slate-900">👤 ${escapeHtml(rec.userName)}</span>
+              <span class="mx-1 text-slate-400">|</span>
+              <span class="font-semibold text-blue-800">📍 Going to: ${escapeHtml(rec.destination)}</span>
+              <span class="mx-1 text-slate-400">|</span>
+              <span class="font-bold">Qty: ${rec.quantity}</span>
+              ${rec.notes ? `<div class="text-slate-600 mt-0.5">Note: ${escapeHtml(rec.notes)}</div>` : ''}
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="text-right">
+                <div class="text-[10px] uppercase text-slate-500 font-bold">Live Elapsed Time</div>
+                <div class="font-mono font-bold text-amber-700 text-sm" data-live-timer="${rec.checkedOutAt}">${formatElapsedDuration(rec.checkedOutAt)}</div>
+              </div>
+              <button onclick="openCheckInModal('${match.id}', '${rec.checkoutId}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded font-bold">
+                📥 Check In This
+              </button>
+            </div>
+          `;
+          activeContainer.appendChild(row);
+        });
+      } else {
+        activeBox.classList.add('hidden');
+      }
+
+      document.getElementById('scan-checkout-btn').onclick = () => openCheckOutModal(match.id);
+      document.getElementById('scan-checkin-btn').onclick = () => openCheckInModal(match.id);
+      document.getElementById('scan-edit-btn').onclick = () => openItemModal(match.id);
+      document.getElementById('scan-history-btn').onclick = () => openHistoryModal(match.id);
+
+      const banner = document.getElementById('scanned-banner');
+      banner.classList.remove('hidden');
+      if (autoScroll) {
+        banner.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     }
 
     function closeScanBanner() {
@@ -605,7 +878,314 @@
     }
 
     // ============================================================================
-    // 4. INVENTORY & PLANT CRUD OPERATIONS
+    // 5. CHECK-OUT & CHECK-IN WORKFLOWS (WITH QUALITY & LIVE HISTORY)
+    // ============================================================================
+    function openCheckOutModal(itemId) {
+      const item = items.find(i => i.id === itemId);
+      if (!item) return;
+
+      document.getElementById('checkout-item-id').value = item.id;
+      document.getElementById('checkout-user').value = '';
+      document.getElementById('checkout-destination').value = '';
+      document.getElementById('checkout-amount').value = 1;
+      document.getElementById('checkout-amount').max = Math.max(1, item.quantity);
+      document.getElementById('checkout-note').value = '';
+      document.getElementById('checkout-modal-subtitle').textContent =
+        `${item.tag} (${item.itemCode}) — ${item.name} | Available Qty: ${item.quantity}`;
+
+      const modal = document.getElementById('checkout-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeCheckOutModal() {
+      const modal = document.getElementById('checkout-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    async function confirmCheckOut(e) {
+      e.preventDefault();
+      const itemId = document.getElementById('checkout-item-id').value;
+      const userName = document.getElementById('checkout-user').value.trim();
+      const destination = document.getElementById('checkout-destination').value.trim();
+      const amount = parseInt(document.getElementById('checkout-amount').value, 10) || 1;
+      const notes = document.getElementById('checkout-note').value.trim();
+
+      const item = items.find(i => i.id === itemId);
+      if (!item) return;
+
+      if (amount > item.quantity) {
+        alert(`Cannot check out ${amount}. Only ${item.quantity} available in storage.`);
+        return;
+      }
+
+      const now = Date.now();
+      const checkoutId = 'co-' + now;
+
+      item.quantity -= amount;
+      item.activeCheckouts.push({
+        checkoutId,
+        userName,
+        destination,
+        quantity: amount,
+        notes,
+        checkedOutAt: now
+      });
+
+      item.checkoutHistory.unshift({
+        id: 'hist-' + now,
+        checkoutId,
+        type: 'CHECK_OUT',
+        userName,
+        destination,
+        quantity: amount,
+        notes,
+        qualityAtEvent: item.quality,
+        timestamp: now,
+        status: 'ACTIVE'
+      });
+
+      closeCheckOutModal();
+      renderInventory();
+      if (activeScannedTag) refreshScannedBanner(activeScannedTag, false);
+      await saveState();
+    }
+
+    function openCheckInModal(itemId, preselectedCheckoutId = null) {
+      const item = items.find(i => i.id === itemId);
+      if (!item) return;
+
+      document.getElementById('checkin-item-id').value = item.id;
+      document.getElementById('checkin-user').value = '';
+      document.getElementById('checkin-amount').value = 1;
+      document.getElementById('checkin-quality').value = item.quality || 'Good';
+      document.getElementById('checkin-note').value = '';
+
+      const activeSelect = document.getElementById('checkin-checkout-record');
+      activeSelect.innerHTML = '';
+
+      if (item.activeCheckouts && item.activeCheckouts.length > 0) {
+        item.activeCheckouts.forEach(rec => {
+          const opt = document.createElement('option');
+          opt.value = rec.checkoutId;
+          opt.textContent = `${rec.userName} -> ${rec.destination} (Qty: ${rec.quantity}, Out: ${formatElapsedDuration(rec.checkedOutAt)})`;
+          activeSelect.appendChild(opt);
+        });
+        const generalOpt = document.createElement('option');
+        generalOpt.value = 'GENERAL';
+        generalOpt.textContent = 'General Stock Return / Restock (+Qty)';
+        activeSelect.appendChild(generalOpt);
+
+        if (preselectedCheckoutId) {
+          activeSelect.value = preselectedCheckoutId;
+        }
+        syncCheckInQtyFromRecord();
+      } else {
+        const generalOpt = document.createElement('option');
+        generalOpt.value = 'GENERAL';
+        generalOpt.textContent = 'General Stock Return / Restock (+Qty)';
+        activeSelect.appendChild(generalOpt);
+      }
+
+      document.getElementById('checkin-modal-subtitle').textContent =
+        `${item.tag} (${item.itemCode}) — ${item.name} | Current Quality: ${item.quality}`;
+
+      const modal = document.getElementById('checkin-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function syncCheckInQtyFromRecord() {
+      const itemId = document.getElementById('checkin-item-id').value;
+      const selectedCheckoutId = document.getElementById('checkin-checkout-record').value;
+      const item = items.find(i => i.id === itemId);
+      if (!item || selectedCheckoutId === 'GENERAL') return;
+
+      const rec = item.activeCheckouts.find(r => r.checkoutId === selectedCheckoutId);
+      if (rec) {
+        document.getElementById('checkin-user').value = rec.userName;
+        document.getElementById('checkin-amount').value = rec.quantity;
+      }
+    }
+
+    function closeCheckInModal() {
+      const modal = document.getElementById('checkin-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    async function confirmCheckIn(e) {
+      e.preventDefault();
+      const itemId = document.getElementById('checkin-item-id').value;
+      const selectedCheckoutId = document.getElementById('checkin-checkout-record').value;
+      const returnedBy = document.getElementById('checkin-user').value.trim();
+      const amount = parseInt(document.getElementById('checkin-amount').value, 10) || 1;
+      const quality = document.getElementById('checkin-quality').value;
+      const notes = document.getElementById('checkin-note').value.trim();
+
+      const item = items.find(i => i.id === itemId);
+      if (!item) return;
+
+      const now = Date.now();
+      let durationMs = null;
+      let originDestination = 'Storage Restock';
+
+      if (selectedCheckoutId && selectedCheckoutId !== 'GENERAL') {
+        const idx = item.activeCheckouts.findIndex(r => r.checkoutId === selectedCheckoutId);
+        if (idx > -1) {
+          const activeRec = item.activeCheckouts[idx];
+          durationMs = now - activeRec.checkedOutAt;
+          originDestination = activeRec.destination;
+
+          if (amount >= activeRec.quantity) {
+            item.activeCheckouts.splice(idx, 1);
+          } else {
+            activeRec.quantity -= amount;
+          }
+
+          // Update matching history entry status
+          const histMatch = item.checkoutHistory.find(h => h.checkoutId === selectedCheckoutId);
+          if (histMatch) {
+            histMatch.status = 'RETURNED';
+            histMatch.returnedAt = now;
+            histMatch.returnedBy = returnedBy;
+            histMatch.returnQuality = quality;
+            histMatch.returnNotes = notes;
+            histMatch.durationMs = durationMs;
+          }
+        }
+      }
+
+      item.quantity += amount;
+      item.quality = quality;
+
+      item.checkoutHistory.unshift({
+        id: 'hist-in-' + now,
+        checkoutId: selectedCheckoutId,
+        type: 'CHECK_IN',
+        userName: returnedBy,
+        destination: originDestination,
+        quantity: amount,
+        notes,
+        qualityAtEvent: quality,
+        durationMs,
+        timestamp: now,
+        status: 'COMPLETED'
+      });
+
+      closeCheckInModal();
+      renderInventory();
+      if (activeScannedTag) refreshScannedBanner(activeScannedTag, false);
+      await saveState();
+    }
+
+    // Quick inline quality change from table dropdown
+    async function quickChangeQuality(itemId, newQuality) {
+      const item = items.find(i => i.id === itemId);
+      if (!item) return;
+      item.quality = newQuality;
+      renderInventory();
+      if (activeScannedTag) refreshScannedBanner(activeScannedTag, false);
+      await saveState();
+    }
+
+    // ============================================================================
+    // 6. HISTORY MODAL
+    // ============================================================================
+    function openHistoryModal(itemId) {
+      activeHistoryItemId = itemId;
+      renderHistoryModalContent(itemId);
+      const modal = document.getElementById('history-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function renderHistoryModalContent(itemId) {
+      const item = items.find(i => i.id === itemId);
+      if (!item) return;
+
+      document.getElementById('history-tag').textContent = `${item.tag} | Code: ${item.itemCode}`;
+      document.getElementById('history-title').textContent = `${item.name} — Live Check-Out & History Log`;
+
+      const activeContainer = document.getElementById('history-active-list');
+      const logContainer = document.getElementById('history-log-list');
+      activeContainer.innerHTML = '';
+      logContainer.innerHTML = '';
+
+      if (!item.activeCheckouts || item.activeCheckouts.length === 0) {
+        activeContainer.innerHTML = `<p class="text-xs text-slate-400 italic">No units are currently checked out.</p>`;
+      } else {
+        item.activeCheckouts.forEach(rec => {
+          const div = document.createElement('div');
+          div.className = 'p-3 bg-amber-50 border border-amber-300 rounded-lg flex flex-wrap justify-between items-center gap-2 text-xs';
+          div.innerHTML = `
+            <div>
+              <span class="font-bold text-slate-900">👤 ${escapeHtml(rec.userName)}</span>
+              <span class="mx-1.5 text-slate-400">•</span>
+              <span class="font-semibold text-blue-800">📍 Destination: ${escapeHtml(rec.destination)}</span>
+              <span class="mx-1.5 text-slate-400">•</span>
+              <span class="font-bold">Qty: ${rec.quantity}</span>
+              <div class="text-slate-500 mt-0.5">Checked Out: ${new Date(rec.checkedOutAt).toLocaleString()} ${rec.notes ? `| Note: ${escapeHtml(rec.notes)}` : ''}</div>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="font-mono font-bold text-amber-800 bg-amber-200/70 px-2.5 py-1 rounded" data-live-timer="${rec.checkedOutAt}">
+                ${formatElapsedDuration(rec.checkedOutAt)}
+              </span>
+              <button onclick="closeHistoryModal(); openCheckInModal('${item.id}', '${rec.checkoutId}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded font-bold">
+                Check In
+              </button>
+            </div>
+          `;
+          activeContainer.appendChild(div);
+        });
+      }
+
+      if (!item.checkoutHistory || item.checkoutHistory.length === 0) {
+        logContainer.innerHTML = `<p class="text-xs text-slate-400 italic">No check-out or check-in history recorded yet.</p>`;
+      } else {
+        item.checkoutHistory.forEach(entry => {
+          const isOut = entry.type === 'CHECK_OUT';
+          const badge = isOut
+            ? `<span class="bg-amber-100 text-amber-800 border border-amber-300 font-bold px-2 py-0.5 rounded text-[11px]">📤 CHECK OUT</span>`
+            : `<span class="bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold px-2 py-0.5 rounded text-[11px]">📥 CHECK IN</span>`;
+
+          const durationText = entry.durationMs
+            ? `<span class="font-mono text-xs text-slate-600 bg-slate-200 px-2 py-0.5 rounded">Total Time Out: ${formatElapsedDuration(0, entry.durationMs)}</span>`
+            : '';
+
+          const row = document.createElement('div');
+          row.className = 'p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs flex flex-wrap justify-between items-start gap-2';
+          row.innerHTML = `
+            <div class="space-y-1">
+              <div class="flex items-center gap-2 flex-wrap">
+                ${badge}
+                <span class="font-bold text-slate-900">👤 ${escapeHtml(entry.userName || 'Unknown')}</span>
+                <span class="text-slate-600">📍 Location: <strong>${escapeHtml(entry.destination || 'Storage')}</strong></span>
+                <span class="font-bold text-slate-800">Qty: ${entry.quantity}</span>
+                ${getQualityBadgeHtml(entry.qualityAtEvent)}
+                ${durationText}
+              </div>
+              ${entry.notes ? `<p class="text-slate-600">Note: ${escapeHtml(entry.notes)}</p>` : ''}
+            </div>
+            <div class="text-right text-[11px] text-slate-500 font-mono">
+              ${new Date(entry.timestamp).toLocaleString()}
+            </div>
+          `;
+          logContainer.appendChild(row);
+        });
+      }
+    }
+
+    function closeHistoryModal() {
+      activeHistoryItemId = null;
+      const modal = document.getElementById('history-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    // ============================================================================
+    // 7. INVENTORY TABLE & ITEM CRUD
     // ============================================================================
     function populatePlantDropdowns() {
       const filterSelect = document.getElementById('filter-plant');
@@ -627,34 +1207,57 @@
       const tbody = document.getElementById('inventory-tbody');
       const search = document.getElementById('search-input').value.toLowerCase();
       const plantFilter = document.getElementById('filter-plant').value;
+      const qualityFilter = document.getElementById('filter-quality').value;
       const catFilter = document.getElementById('filter-category').value.toLowerCase();
 
       tbody.innerHTML = '';
 
       const filtered = items.filter(item => {
         const matchesPlant = plantFilter === 'ALL' || item.plantCode === plantFilter;
+        const matchesQuality = qualityFilter === 'ALL' || item.quality === qualityFilter;
         const matchesCat = !catFilter || item.category.toLowerCase().includes(catFilter);
         const matchesSearch = !search ||
           item.tag.toLowerCase().includes(search) ||
+          (item.itemCode && item.itemCode.toLowerCase().includes(search)) ||
           item.name.toLowerCase().includes(search) ||
           item.location.toLowerCase().includes(search) ||
           (item.notes && item.notes.toLowerCase().includes(search));
-        return matchesPlant && matchesCat && matchesSearch;
+        return matchesPlant && matchesQuality && matchesCat && matchesSearch;
       });
 
       if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="10" class="p-8 text-center text-slate-400">No matching inventory items found. Items remain in the system until explicitly deleted.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9" class="p-8 text-center text-slate-400">No matching inventory items found. Items remain in the system until explicitly deleted.</td></tr>`;
         updateSelectedCounter();
         return;
       }
 
       filtered.forEach(item => {
-        const plantObj = plants.find(p => p.code === item.plantCode);
-        const plantLabel = plantObj ? `${plantObj.code} (${plantObj.name})` : item.plantCode;
         const isChecked = selectedItemIds.has(item.id) ? 'checked' : '';
+        const activeList = item.activeCheckouts || [];
+        const totalOut = activeList.reduce((sum, r) => sum + (r.quantity || 1), 0);
+
         const qtyBadgeClass = item.quantity === 0
           ? 'bg-red-100 text-red-700 border border-red-300'
           : 'bg-emerald-100 text-emerald-800 border border-emerald-300';
+
+        let liveCheckoutHtml = `<span class="text-xs text-slate-400">All in storage</span>`;
+        if (activeList.length > 0) {
+          const latest = activeList[0];
+          liveCheckoutHtml = `
+            <div class="text-xs bg-amber-50 border border-amber-300 rounded p-1.5">
+              <div class="font-bold text-amber-900">👤 ${escapeHtml(latest.userName)} → 📍 ${escapeHtml(latest.destination)}</div>
+              <div class="flex items-center justify-between mt-0.5">
+                <span class="text-[11px] text-amber-700">Qty: ${latest.quantity}${activeList.length > 1 ? ` (+${activeList.length - 1} more)` : ''}</span>
+                <span class="font-mono font-bold text-amber-800 text-[11px]" data-live-timer="${latest.checkedOutAt}">${formatElapsedDuration(latest.checkedOutAt)}</span>
+              </div>
+            </div>
+          `;
+        }
+
+        const qualities = ['New', 'Good', 'Used', 'Needs Repair', 'Broken'];
+        const qualityOptionsHtml = qualities.map(q =>
+          `<option value="${q}" ${item.quality === q ? 'selected' : ''}>${q}</option>`
+        ).join('');
 
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-slate-50 transition';
@@ -662,38 +1265,46 @@
           <td class="p-3 text-center">
             <input type="checkbox" ${isChecked} onchange="toggleItemSelect('${item.id}', this.checked)" class="w-4 h-4 accent-blue-600 cursor-pointer" />
           </td>
-          <td class="p-3 font-mono font-bold text-blue-700">
-            <button onclick="openDetailModal('${item.id}')" class="hover:underline flex items-center gap-1" title="View QR & Details">
-              <span>🔍</span> ${escapeHtml(item.tag)}
+          <td class="p-3">
+            <button onclick="openScanViewForItem('${item.id}')" class="font-mono font-bold text-blue-700 hover:underline flex items-center gap-1" title="Open Exact Item View">
+              <span>📱</span> ${escapeHtml(item.tag)}
             </button>
+            <div class="text-xs font-mono text-slate-500 mt-0.5">Code: <strong>${escapeHtml(item.itemCode)}</strong></div>
           </td>
-          <td class="p-3 font-semibold text-slate-900">${escapeHtml(item.name)}</td>
-          <td class="p-3 text-slate-600">${escapeHtml(plantLabel)}</td>
-          <td class="p-3"><span class="bg-slate-100 border border-slate-300 px-2 py-0.5 rounded text-xs">${escapeHtml(item.category)}</span></td>
-          <td class="p-3 text-slate-700">${escapeHtml(item.location)}</td>
+          <td class="p-3">
+            <div class="font-semibold text-slate-900">${escapeHtml(item.name)}</div>
+            <span class="bg-slate-100 border border-slate-300 px-1.5 py-0.5 rounded text-[11px] text-slate-600">${escapeHtml(item.category)}</span>
+          </td>
+          <td class="p-3">
+            <div class="text-xs font-bold text-slate-700">🏢 ${escapeHtml(item.plantCode)}</div>
+            <div class="text-xs text-slate-600">📍 ${escapeHtml(item.location)}</div>
+          </td>
+          <td class="p-3">
+            <div class="mb-1">${getQualityBadgeHtml(item.quality)}</div>
+            <select onchange="quickChangeQuality('${item.id}', this.value)" class="text-[11px] border border-slate-300 rounded px-1.5 py-0.5 bg-white text-slate-700 cursor-pointer">
+              ${qualityOptionsHtml}
+            </select>
+          </td>
           <td class="p-3 text-center">
             <span class="px-2.5 py-1 rounded-full text-xs font-bold ${qtyBadgeClass}">
-              ${item.quantity}
+              ${item.quantity} In
             </span>
+            ${totalOut > 0 ? `<div class="text-[11px] font-bold text-amber-700 mt-1">${totalOut} Out</div>` : ''}
           </td>
-          <td class="p-3 max-w-xs">
-            <div class="text-xs text-slate-600 truncate" title="${escapeHtml(item.notes || '')}">
-              <strong>Notes:</strong> ${escapeHtml(item.notes || '—')}
-            </div>
-            <div class="text-xs text-slate-600 truncate mt-0.5" title="${escapeHtml(item.instructions || '')}">
-              <strong>Work Inst:</strong> ${escapeHtml(item.instructions || '—')}
-            </div>
+          <td class="p-3 min-w-[200px]">
+            ${liveCheckoutHtml}
           </td>
           <td class="p-3 text-center whitespace-nowrap">
-            <button onclick="openCheckModal('${item.id}', 'IN')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded text-xs font-semibold mr-1">
-              + In
+            <button onclick="openCheckOutModal('${item.id}')" class="bg-amber-600 hover:bg-amber-500 text-white px-2.5 py-1 rounded text-xs font-bold mr-1" title="Check Out Item">
+              📤 Out
             </button>
-            <button onclick="openCheckModal('${item.id}', 'OUT')" class="bg-amber-600 hover:bg-amber-500 text-white px-2.5 py-1 rounded text-xs font-semibold">
-              - Out
+            <button onclick="openCheckInModal('${item.id}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded text-xs font-bold" title="Check In & Rate Quality">
+              📥 In
             </button>
           </td>
           <td class="p-3 text-right whitespace-nowrap space-x-1">
-            <button onclick="openDetailModal('${item.id}')" class="text-xs bg-slate-200 hover:bg-slate-300 px-2 py-1 rounded font-medium">QR / View</button>
+            <button onclick="openHistoryModal('${item.id}')" class="text-xs bg-slate-800 hover:bg-slate-700 text-white px-2 py-1 rounded font-medium" title="View Check-Out History">📜 History (${(item.checkoutHistory || []).length})</button>
+            <button onclick="openDetailModal('${item.id}')" class="text-xs bg-slate-200 hover:bg-slate-300 px-2 py-1 rounded font-medium">QR</button>
             <button onclick="openItemModal('${item.id}')" class="text-xs bg-blue-100 hover:bg-blue-200 text-blue-800 px-2 py-1 rounded font-medium">Edit</button>
             <button onclick="deleteItem('${item.id}')" class="text-xs bg-red-100 hover:bg-red-200 text-red-700 px-2 py-1 rounded font-medium">Delete</button>
           </td>
@@ -717,8 +1328,10 @@
         document.getElementById('edit-item-id').value = item.id;
         document.getElementById('item-plant').value = item.plantCode;
         document.getElementById('item-tag-preview').value = item.tag;
+        document.getElementById('item-code').value = item.itemCode || '';
         document.getElementById('item-name').value = item.name;
         document.getElementById('item-category').value = item.category;
+        document.getElementById('item-quality').value = item.quality || 'Good';
         document.getElementById('item-qty').value = item.quantity;
         document.getElementById('item-location').value = item.location;
         document.getElementById('item-notes').value = item.notes || '';
@@ -726,6 +1339,7 @@
       } else {
         title.textContent = 'Add New Inventory Item';
         document.getElementById('edit-item-id').value = '';
+        document.getElementById('item-quality').value = 'New';
         updatePreviewTag();
       }
 
@@ -758,8 +1372,10 @@
       e.preventDefault();
       const editId = document.getElementById('edit-item-id').value;
       const plantCode = document.getElementById('item-plant').value;
+      const itemCode = document.getElementById('item-code').value.trim().toUpperCase();
       const name = document.getElementById('item-name').value.trim();
       const category = document.getElementById('item-category').value.trim();
+      const quality = document.getElementById('item-quality').value;
       const quantity = parseInt(document.getElementById('item-qty').value, 10) || 0;
       const location = document.getElementById('item-location').value.trim();
       const notes = document.getElementById('item-notes').value.trim();
@@ -773,7 +1389,19 @@
             plantSequences[plantCode] = (plantSequences[plantCode] || 0) + 1;
             tag = `${plantCode}${String(plantSequences[plantCode]).padStart(6, '0')}`;
           }
-          items[idx] = { ...items[idx], plantCode, tag, name, category, quantity, location, notes, instructions };
+          items[idx] = {
+            ...items[idx],
+            plantCode,
+            tag,
+            itemCode,
+            name,
+            category,
+            quality,
+            quantity,
+            location,
+            notes,
+            instructions
+          };
         }
       } else {
         plantSequences[plantCode] = (plantSequences[plantCode] || 0) + 1;
@@ -781,19 +1409,23 @@
         items.push({
           id: Date.now().toString(),
           tag,
+          itemCode,
           plantCode,
           name,
           category,
+          quality,
           quantity,
           location,
           notes,
-          instructions
+          instructions,
+          activeCheckouts: [],
+          checkoutHistory: []
         });
       }
 
       closeItemModal();
       renderInventory();
-      if (activeScannedTag) refreshScannedBanner(activeScannedTag);
+      if (activeScannedTag) refreshScannedBanner(activeScannedTag, false);
       await saveState();
     }
 
@@ -806,73 +1438,6 @@
         renderInventory();
         await saveState();
       }
-    }
-
-    function openCheckModal(itemId, mode) {
-      const item = items.find(i => i.id === itemId);
-      if (!item) return;
-      document.getElementById('check-item-id').value = item.id;
-      document.getElementById('check-mode').value = mode;
-      document.getElementById('check-amount').value = 1;
-      document.getElementById('check-note').value = '';
-
-      const title = document.getElementById('check-modal-title');
-      const subtitle = document.getElementById('check-modal-subtitle');
-      const actionLabel = document.getElementById('check-action-label');
-      const submitBtn = document.getElementById('check-submit-btn');
-
-      subtitle.textContent = `${item.tag} — ${item.name} (Current Qty: ${item.quantity})`;
-
-      if (mode === 'IN') {
-        title.textContent = '📥 Check In Item';
-        actionLabel.textContent = 'Check In (+)';
-        submitBtn.className = 'px-4 py-2 rounded-lg text-white text-sm font-semibold bg-emerald-600 hover:bg-emerald-500';
-        submitBtn.textContent = 'Confirm Check-In';
-      } else {
-        title.textContent = '📤 Check Out Item';
-        actionLabel.textContent = 'Check Out (-)';
-        submitBtn.className = 'px-4 py-2 rounded-lg text-white text-sm font-semibold bg-amber-600 hover:bg-amber-500';
-        submitBtn.textContent = 'Confirm Check-Out';
-      }
-
-      const modal = document.getElementById('check-modal');
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-    }
-
-    function closeCheckModal() {
-      const modal = document.getElementById('check-modal');
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
-    }
-
-    async function confirmCheckInOut(e) {
-      e.preventDefault();
-      const itemId = document.getElementById('check-item-id').value;
-      const mode = document.getElementById('check-mode').value;
-      const amount = parseInt(document.getElementById('check-amount').value, 10) || 0;
-      const note = document.getElementById('check-note').value.trim();
-
-      const item = items.find(i => i.id === itemId);
-      if (!item || amount <= 0) return;
-
-      if (mode === 'OUT' && amount > item.quantity) {
-        alert(`Cannot check out ${amount}. Only ${item.quantity} currently in stock.`);
-        return;
-      }
-
-      item.quantity = mode === 'IN' ? item.quantity + amount : item.quantity - amount;
-
-      if (note) {
-        const timestamp = new Date().toLocaleDateString();
-        const logLine = `[${timestamp} ${mode} ${amount}]: ${note}`;
-        item.notes = item.notes ? `${item.notes}\n${logLine}` : logLine;
-      }
-
-      closeCheckModal();
-      renderInventory();
-      if (activeScannedTag) refreshScannedBanner(activeScannedTag);
-      await saveState();
     }
 
     // --- PLANT MANAGEMENT ---
@@ -990,16 +1555,19 @@
 
       const plantObj = plants.find(p => p.code === item.plantCode);
       document.getElementById('detail-tag').textContent = item.tag;
+      document.getElementById('detail-code').textContent = `Code: ${item.itemCode}`;
       document.getElementById('detail-name').textContent = item.name;
       document.getElementById('detail-plant').textContent = plantObj ? `${plantObj.code} - ${plantObj.name}` : item.plantCode;
       document.getElementById('detail-category').textContent = item.category;
       document.getElementById('detail-location').textContent = item.location;
+      document.getElementById('detail-quality').innerHTML = getQualityBadgeHtml(item.quality);
       document.getElementById('detail-qty').textContent = item.quantity;
       document.getElementById('detail-notes').textContent = item.notes || 'None provided.';
       document.getElementById('detail-instructions').textContent = item.instructions || 'None provided.';
 
       const qrUrl = buildQRUrl(item);
       document.getElementById('detail-qr-link').href = qrUrl;
+      document.getElementById('detail-open-scan-btn').onclick = () => openScanViewForItem(item.id);
 
       const qrContainer = document.getElementById('single-qr-container');
       qrContainer.innerHTML = '';
@@ -1034,17 +1602,20 @@
 
       const search = document.getElementById('search-input').value.toLowerCase();
       const plantFilter = document.getElementById('filter-plant').value;
+      const qualityFilter = document.getElementById('filter-quality').value;
       const catFilter = document.getElementById('filter-category').value.toLowerCase();
 
       items.forEach(item => {
         const matchesPlant = plantFilter === 'ALL' || item.plantCode === plantFilter;
+        const matchesQuality = qualityFilter === 'ALL' || item.quality === qualityFilter;
         const matchesCat = !catFilter || item.category.toLowerCase().includes(catFilter);
         const matchesSearch = !search ||
           item.tag.toLowerCase().includes(search) ||
+          (item.itemCode && item.itemCode.toLowerCase().includes(search)) ||
           item.name.toLowerCase().includes(search) ||
           item.location.toLowerCase().includes(search);
 
-        if (matchesPlant && matchesCat && matchesSearch) {
+        if (matchesPlant && matchesQuality && matchesCat && matchesSearch) {
           if (checked) selectedItemIds.add(item.id);
           else selectedItemIds.delete(item.id);
         }
@@ -1076,6 +1647,7 @@
 
         card.innerHTML = `
           <div style="font-family: monospace; font-weight: bold; font-size: 16px; color: #1e3a8a;">${escapeHtml(item.tag)}</div>
+          <div style="font-family: monospace; font-size: 11px; color: #334155;">Code: ${escapeHtml(item.itemCode)}</div>
           <div style="font-weight: bold; font-size: 14px; margin-top: 2px;">${escapeHtml(item.name)}</div>
           <div style="font-size: 11px; color: #475569;">Plant: ${escapeHtml(item.plantCode)} | Loc: ${escapeHtml(item.location)}</div>
         `;
@@ -1084,7 +1656,7 @@
         const footer = document.createElement('div');
         footer.style.fontSize = '10px';
         footer.style.color = '#64748b';
-        footer.textContent = `Cat: ${item.category}`;
+        footer.textContent = `Cat: ${item.category} | Quality: ${item.quality}`;
         card.appendChild(footer);
 
         printArea.appendChild(card);
@@ -1124,6 +1696,7 @@
             plants = imported.plants;
             items = imported.items;
             plantSequences = imported.plantSequences || {};
+            normalizeItems();
             populatePlantDropdowns();
             renderInventory();
             await saveState();
@@ -1149,7 +1722,6 @@
       populatePlantDropdowns();
       renderInventory();
       await checkUrlForScannedQR();
-      // Keep all open screens automatically synchronized every 6 seconds
       setInterval(() => {
         if (cloudDbUrl && document.visibilityState === 'visible') {
           pullFromCloud(false);
