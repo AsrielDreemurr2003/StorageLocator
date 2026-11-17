@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>StorageLocater - Individual Unit QR Inventory</title>
+  <title>StorageLocater - Category & Unit QR Inventory</title>
   <!-- Tailwind CSS for styling -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- QRCode.js for generating scannable QR codes -->
@@ -43,12 +43,12 @@
         <span class="text-2xl">🏭</span>
         <div>
           <div class="flex items-center gap-2 flex-wrap">
-            <h1 class="text-xl font-bold tracking-wide">StorageLocater Inventory</h1>
+            <h1 class="text-xl font-bold tracking-wide cursor-pointer" onclick="resetToOverview()">StorageLocater Inventory</h1>
             <span id="sync-badge" onclick="openCloudModal()" class="cursor-pointer text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">
               🟢 Connecting to Cloud...
             </span>
           </div>
-          <p class="text-xs text-slate-400">Individual Unit QR Codes, Live Check-Out Timers, Quality & Full History</p>
+          <p class="text-xs text-slate-400">Product Category Overview, Individual Unit QR Codes & Live Timers</p>
         </div>
       </div>
       <div class="flex flex-wrap gap-2">
@@ -91,7 +91,7 @@
           </div>
         </div>
         <button onclick="closeScanBanner()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold">
-          ✕ Return to Full Inventory List
+          ✕ Return to Inventory Display
         </button>
       </div>
 
@@ -173,19 +173,19 @@
   <main class="max-w-7xl mx-auto px-4 py-6 no-print">
 
     <!-- Filters & Search Bar -->
-    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6 flex flex-wrap gap-4 items-end justify-between">
+    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-4 flex flex-wrap gap-4 items-end justify-between">
       <div class="flex flex-wrap gap-3 flex-1">
         <div class="w-full sm:w-60">
-          <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Search Individual Units</label>
-          <input type="text" id="search-input" oninput="renderInventory()" placeholder="Tag, item code, name, location..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Search Categories, Types or Units</label>
+          <input type="text" id="search-input" oninput="renderInventory()" placeholder="Search category, item name, tag, code..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
-        <div class="w-full sm:w-40">
+        <div class="w-full sm:w-44">
           <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Filter by Plant</label>
           <select id="filter-plant" onchange="renderInventory()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             <option value="ALL">All Plants</option>
           </select>
         </div>
-        <div class="w-full sm:w-40">
+        <div class="w-full sm:w-44">
           <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Filter by Quality</label>
           <select id="filter-quality" onchange="renderInventory()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             <option value="ALL">All Qualities</option>
@@ -196,57 +196,102 @@
             <option value="Broken">Broken</option>
           </select>
         </div>
-        <div class="w-full sm:w-40">
-          <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Filter by Status</label>
+        <div class="w-full sm:w-44">
+          <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Filter by Availability</label>
           <select id="filter-status" onchange="renderInventory()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             <option value="ALL">All Units</option>
-            <option value="IN_STORAGE">In Storage</option>
+            <option value="IN_STORAGE">Available In Storage</option>
             <option value="CHECKED_OUT">Checked Out</option>
           </select>
-        </div>
-        <div class="w-full sm:w-40">
-          <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Filter by Category</label>
-          <input type="text" id="filter-category" oninput="renderInventory()" placeholder="e.g. Fasteners, Motors" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
       </div>
       <div class="flex items-center space-x-2">
         <button onclick="pullFromCloud(true)" class="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 font-semibold px-3 py-2 rounded">
           🔄 Sync Now
         </button>
-        <button onclick="toggleSelectAll(true)" class="text-xs bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold px-3 py-2 rounded">
-          Select All
-        </button>
-        <button onclick="toggleSelectAll(false)" class="text-xs bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold px-3 py-2 rounded">
-          Clear
-        </button>
       </div>
     </div>
 
-    <!-- Inventory Table -->
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-      <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
-          <thead>
-            <tr class="bg-slate-800 text-white text-xs uppercase tracking-wider">
-              <th class="p-3 w-10 text-center">
-                <input type="checkbox" id="master-checkbox" onchange="toggleSelectAll(this.checked)" class="w-4 h-4 accent-blue-600 cursor-pointer" />
-              </th>
-              <th class="p-3">Plant Tag & Unique Item Code</th>
-              <th class="p-3">Item Name & Category</th>
-              <th class="p-3">Plant & Home Location</th>
-              <th class="p-3">Quality Status</th>
-              <th class="p-3 text-center">Availability</th>
-              <th class="p-3">Live Check-Out Timer & Holder</th>
-              <th class="p-3 text-center">Check Out / In</th>
-              <th class="p-3 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="inventory-tbody" class="divide-y divide-slate-200 text-sm">
-            <!-- Populated by JavaScript -->
-          </tbody>
-        </table>
+    <!-- View Mode Navigation & Category Pills Bar -->
+    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6">
+      <div class="flex flex-wrap items-center justify-between gap-3 border-b pb-3 mb-3">
+        <div class="flex items-center gap-2 flex-wrap" id="breadcrumb-bar">
+          <!-- Populated dynamically -->
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="btn-view-overview" onclick="resetToOverview()" class="text-xs px-3 py-1.5 rounded-lg font-bold transition">
+            📦 Item Types & Categories
+          </button>
+          <button id="btn-view-all-units" onclick="openAllUnitsView()" class="text-xs px-3 py-1.5 rounded-lg font-bold transition">
+            📋 All Individual Units
+          </button>
+        </div>
+      </div>
+
+      <!-- Clickable Product Categories Bar -->
+      <div>
+        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Click a Product Category to View Available Items:</p>
+        <div id="category-pills-container" class="flex flex-wrap gap-2">
+          <!-- Populated dynamically -->
+        </div>
       </div>
     </div>
+
+    <!-- OVERVIEW DISPLAY: Grouped Product Types & Categories -->
+    <div id="overview-section" class="space-y-6">
+      <div id="product-types-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <!-- Populated by JavaScript -->
+      </div>
+    </div>
+
+    <!-- DRILL-DOWN DISPLAY: Individual Serialized Units Table -->
+    <div id="units-section" class="hidden">
+      <div class="bg-slate-800 text-white px-4 py-3 rounded-t-xl flex flex-wrap justify-between items-center gap-3">
+        <div class="flex items-center gap-3">
+          <button onclick="resetToOverview()" class="bg-slate-700 hover:bg-slate-600 text-xs font-bold px-3 py-1.5 rounded-lg transition">
+            ← Back to Item Types
+          </button>
+          <div>
+            <h3 id="units-section-title" class="font-bold text-base">Individual Units</h3>
+            <p id="units-section-subtitle" class="text-xs text-slate-300"></p>
+          </div>
+        </div>
+        <div class="flex items-center space-x-2">
+          <button onclick="toggleSelectAll(true)" class="text-xs bg-slate-700 hover:bg-slate-600 text-white font-semibold px-3 py-1.5 rounded">
+            Select All Visible
+          </button>
+          <button onclick="toggleSelectAll(false)" class="text-xs bg-slate-700 hover:bg-slate-600 text-white font-semibold px-3 py-1.5 rounded">
+            Clear Selection
+          </button>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-b-xl shadow-sm border border-t-0 border-slate-200 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-100 text-slate-700 border-b border-slate-200 text-xs uppercase tracking-wider">
+                <th class="p-3 w-10 text-center">
+                  <input type="checkbox" id="master-checkbox" onchange="toggleSelectAll(this.checked)" class="w-4 h-4 accent-blue-600 cursor-pointer" />
+                </th>
+                <th class="p-3">Plant Tag & Unique Item Code</th>
+                <th class="p-3">Item Name & Category</th>
+                <th class="p-3">Plant & Home Location</th>
+                <th class="p-3">Quality Status</th>
+                <th class="p-3 text-center">Availability</th>
+                <th class="p-3">Live Check-Out Timer & Holder</th>
+                <th class="p-3 text-center">Check Out / In</th>
+                <th class="p-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="inventory-tbody" class="divide-y divide-slate-200 text-sm">
+              <!-- Populated by JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
   </main>
 
   <!-- Printable QR Area -->
@@ -318,7 +363,7 @@
     </div>
   </div>
 
-  <!-- MODAL: Add / Edit Inventory Item (Supports Batch Generating Individual Units) -->
+  <!-- MODAL: Add / Edit Inventory Item (Base Item Code is Now Optional) -->
   <div id="item-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print">
     <div class="bg-white rounded-xl max-w-2xl w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b pb-3 mb-4">
@@ -339,8 +384,9 @@
             <p class="text-[10px] text-slate-500 mt-0.5">Each unit gets its own Item Code & QR Code</p>
           </div>
           <div>
-            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Base Item Code / Part # *</label>
-            <input type="text" id="item-code" required oninput="updatePreviewTag()" placeholder="e.g. MTR-5HP" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono uppercase" />
+            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Base Item Code (Optional)</label>
+            <input type="text" id="item-code" oninput="updatePreviewTag()" placeholder="Leave blank to auto-generate" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono uppercase" />
+            <p class="text-[10px] text-slate-400 mt-0.5">Auto-generates if left blank</p>
           </div>
         </div>
 
@@ -361,11 +407,11 @@
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
             <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Item Name *</label>
-            <input type="text" id="item-name" required placeholder="e.g. Hydraulic Pump" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+            <input type="text" id="item-name" required oninput="updatePreviewTag()" placeholder="e.g. Hydraulic Pump" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Category *</label>
-            <input type="text" id="item-category" required placeholder="e.g. Mechanical" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+            <input type="text" id="item-category" required oninput="updatePreviewTag()" placeholder="e.g. Mechanical" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Initial Quality *</label>
@@ -526,10 +572,10 @@
     const DEFAULT_CLOUD_DB_URL = 'https://storagelocator-405e5-default-rtdb.firebaseio.com/';
     const FALLBACK_GITHUB_URL  = 'https://asrieldreemurr2003.github.io/StorageLocater/';
 
-    const STORAGE_KEY_PLANTS = 'PLANT_QR_PLANTS_V5';
-    const STORAGE_KEY_ITEMS  = 'PLANT_QR_ITEMS_V5';
-    const STORAGE_KEY_SEQ    = 'PLANT_QR_SEQ_V5';
-    const STORAGE_KEY_CLOUD  = 'PLANT_QR_CLOUD_URL_V5';
+    const STORAGE_KEY_PLANTS = 'PLANT_QR_PLANTS_V6';
+    const STORAGE_KEY_ITEMS  = 'PLANT_QR_ITEMS_V6';
+    const STORAGE_KEY_SEQ    = 'PLANT_QR_SEQ_V6';
+    const STORAGE_KEY_CLOUD  = 'PLANT_QR_CLOUD_URL_V6';
 
     let cloudDbUrl = localStorage.getItem(STORAGE_KEY_CLOUD) || DEFAULT_CLOUD_DB_URL;
     if (!cloudDbUrl || !cloudDbUrl.includes('firebaseio.com')) {
@@ -586,14 +632,18 @@
     let activeScannedTag = null;
     let activeHistoryItemId = null;
 
+    // Navigation View State:
+    // viewMode: 'OVERVIEW' (shows Item Types grouped by Category) or 'UNITS' (shows individual units table)
+    let viewMode = 'OVERVIEW';
+    let selectedCategory = null; // null = All Categories
+    let selectedProductName = null; // null = All Products in Category
+
     function normalizeItems() {
       items.forEach((item, index) => {
         if (!item.itemCode) item.itemCode = `UNIT-${String(index + 1).padStart(3, '0')}`;
         if (!item.quality) item.quality = 'Good';
         if (!Array.isArray(item.activeCheckouts)) item.activeCheckouts = [];
         if (!Array.isArray(item.checkoutHistory)) item.checkoutHistory = [];
-        // Each record represents 1 individual serialized unit:
-        // quantity is 1 when in storage, 0 when checked out
         item.quantity = item.activeCheckouts.length > 0 ? 0 : 1;
       });
     }
@@ -626,7 +676,6 @@
       return `${pad(hrs)}h ${pad(mins)}m ${pad(secs)}s`;
     }
 
-    // Live 1-second ticker for all active check-out timers on screen
     setInterval(() => {
       document.querySelectorAll('[data-live-timer]').forEach(el => {
         const start = parseInt(el.getAttribute('data-live-timer'), 10);
@@ -1151,8 +1200,37 @@
     }
 
     // ============================================================================
-    // 7. INVENTORY TABLE & BATCH SERIALIZED ITEM CREATION
+    // 7. CATEGORY & PRODUCT TYPE OVERVIEW + DRILL-DOWN NAVIGATION
     // ============================================================================
+    function resetToOverview() {
+      viewMode = 'OVERVIEW';
+      selectedCategory = null;
+      selectedProductName = null;
+      renderInventory();
+    }
+
+    function selectCategoryView(categoryName) {
+      selectedCategory = categoryName;
+      selectedProductName = null;
+      // Clicking a category shows all individual items available in that product category
+      viewMode = 'UNITS';
+      renderInventory();
+    }
+
+    function selectProductTypeView(categoryName, productName) {
+      selectedCategory = categoryName;
+      selectedProductName = productName;
+      viewMode = 'UNITS';
+      renderInventory();
+    }
+
+    function openAllUnitsView() {
+      selectedCategory = null;
+      selectedProductName = null;
+      viewMode = 'UNITS';
+      renderInventory();
+    }
+
     function populatePlantDropdowns() {
       const filterSelect = document.getElementById('filter-plant');
       const modalSelect = document.getElementById('item-plant');
@@ -1169,36 +1247,261 @@
       filterSelect.value = currentFilter;
     }
 
-    function renderInventory() {
-      const tbody = document.getElementById('inventory-tbody');
+    function getFilteredItems() {
       const search = document.getElementById('search-input').value.toLowerCase();
       const plantFilter = document.getElementById('filter-plant').value;
       const qualityFilter = document.getElementById('filter-quality').value;
       const statusFilter = document.getElementById('filter-status').value;
-      const catFilter = document.getElementById('filter-category').value.toLowerCase();
 
-      tbody.innerHTML = '';
-
-      const filtered = items.filter(item => {
+      return items.filter(item => {
         const isCheckedOut = item.activeCheckouts && item.activeCheckouts.length > 0;
         const matchesPlant = plantFilter === 'ALL' || item.plantCode === plantFilter;
         const matchesQuality = qualityFilter === 'ALL' || item.quality === qualityFilter;
         const matchesStatus = statusFilter === 'ALL' ||
           (statusFilter === 'CHECKED_OUT' && isCheckedOut) ||
           (statusFilter === 'IN_STORAGE' && !isCheckedOut);
-        const matchesCat = !catFilter || item.category.toLowerCase().includes(catFilter);
         const matchesSearch = !search ||
           item.tag.toLowerCase().includes(search) ||
           (item.itemCode && item.itemCode.toLowerCase().includes(search)) ||
           item.name.toLowerCase().includes(search) ||
+          item.category.toLowerCase().includes(search) ||
           item.location.toLowerCase().includes(search) ||
           (item.notes && item.notes.toLowerCase().includes(search));
-        return matchesPlant && matchesQuality && matchesStatus && matchesCat && matchesSearch;
+        return matchesPlant && matchesQuality && matchesStatus && matchesSearch;
+      });
+    }
+
+    function renderNavigationAndCategoryPills(baseFiltered) {
+      // Update View Mode Toggle Buttons
+      const btnOverview = document.getElementById('btn-view-overview');
+      const btnAllUnits = document.getElementById('btn-view-all-units');
+      if (viewMode === 'OVERVIEW') {
+        btnOverview.className = 'text-xs px-3 py-1.5 rounded-lg font-bold bg-blue-600 text-white shadow-sm';
+        btnAllUnits.className = 'text-xs px-3 py-1.5 rounded-lg font-bold bg-slate-100 hover:bg-slate-200 text-slate-700';
+      } else {
+        btnOverview.className = 'text-xs px-3 py-1.5 rounded-lg font-bold bg-slate-100 hover:bg-slate-200 text-slate-700';
+        btnAllUnits.className = 'text-xs px-3 py-1.5 rounded-lg font-bold bg-blue-600 text-white shadow-sm';
+      }
+
+      // Render Breadcrumb Bar
+      const breadcrumbBar = document.getElementById('breadcrumb-bar');
+      let crumbsHtml = `<button onclick="resetToOverview()" class="text-xs font-bold text-blue-700 hover:underline flex items-center gap-1">🏠 All Product Types</button>`;
+      if (selectedCategory) {
+        crumbsHtml += `<span class="text-slate-400 text-xs">/</span>`;
+        crumbsHtml += `<button onclick="selectCategoryView('${escapeJsStr(selectedCategory)}')" class="text-xs font-bold text-slate-800 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded">${escapeHtml(selectedCategory)}</button>`;
+      }
+      if (selectedProductName) {
+        crumbsHtml += `<span class="text-slate-400 text-xs">/</span>`;
+        crumbsHtml += `<span class="text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">${escapeHtml(selectedProductName)}</span>`;
+      }
+      breadcrumbBar.innerHTML = crumbsHtml;
+
+      // Aggregate Category Counts
+      const categoryMap = new Map();
+      baseFiltered.forEach(item => {
+        const cat = item.category || 'Uncategorized';
+        if (!categoryMap.has(cat)) {
+          categoryMap.set(cat, { total: 0, available: 0, checkedOut: 0 });
+        }
+        const stat = categoryMap.get(cat);
+        stat.total++;
+        if (item.activeCheckouts && item.activeCheckouts.length > 0) {
+          stat.checkedOut++;
+        } else {
+          stat.available++;
+        }
       });
 
+      const pillsContainer = document.getElementById('category-pills-container');
+      pillsContainer.innerHTML = '';
+
+      // "All Categories" pill
+      const totalAvailableAll = baseFiltered.filter(i => !i.activeCheckouts || i.activeCheckouts.length === 0).length;
+      const allActiveClass = (!selectedCategory && viewMode === 'OVERVIEW')
+        ? 'bg-slate-900 text-white border-slate-900'
+        : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300';
+
+      pillsContainer.innerHTML += `
+        <button onclick="resetToOverview()" class="px-3 py-1.5 rounded-lg border text-xs font-bold transition flex items-center gap-2 ${allActiveClass}">
+          <span>All Categories</span>
+          <span class="px-1.5 py-0.5 rounded bg-emerald-500 text-white text-[10px]">${totalAvailableAll} Avail / ${baseFiltered.length} Total</span>
+        </button>
+      `;
+
+      Array.from(categoryMap.entries()).sort((a, b) => a[0].localeCompare(b[0])).forEach(([catName, stat]) => {
+        const isSelected = selectedCategory === catName;
+        const btnClass = isSelected
+          ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+          : 'bg-white hover:bg-blue-50 text-slate-800 border-slate-300';
+        const badgeClass = isSelected
+          ? 'bg-white text-blue-800'
+          : (stat.available > 0 ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-red-100 text-red-700 border border-red-300');
+
+        pillsContainer.innerHTML += `
+          <button onclick="selectCategoryView('${escapeJsStr(catName)}')" class="px-3.5 py-1.5 rounded-lg border text-xs font-bold transition flex items-center gap-2 ${btnClass}">
+            <span>📂 ${escapeHtml(catName)}</span>
+            <span class="px-2 py-0.5 rounded-full text-[11px] font-bold ${badgeClass}">
+              ${stat.available} Available
+            </span>
+          </button>
+        `;
+      });
+    }
+
+    function renderInventory() {
+      const baseFiltered = getFilteredItems();
+      renderNavigationAndCategoryPills(baseFiltered);
+
+      const overviewSection = document.getElementById('overview-section');
+      const unitsSection = document.getElementById('units-section');
+
+      if (viewMode === 'OVERVIEW') {
+        overviewSection.classList.remove('hidden');
+        unitsSection.classList.add('hidden');
+        renderOverviewCards(baseFiltered);
+      } else {
+        overviewSection.classList.add('hidden');
+        unitsSection.classList.remove('hidden');
+        renderUnitsTable(baseFiltered);
+      }
+
+      updateSelectedCounter();
+    }
+
+    // Renders the main display showing Types of Items grouped with live Availability counts
+    function renderOverviewCards(baseFiltered) {
+      const grid = document.getElementById('product-types-grid');
+      grid.innerHTML = '';
+
+      const filteredByCat = selectedCategory
+        ? baseFiltered.filter(i => (i.category || 'Uncategorized') === selectedCategory)
+        : baseFiltered;
+
+      if (filteredByCat.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full bg-white rounded-xl p-10 text-center border border-slate-200 text-slate-400">
+            No matching item types found. Click "➕ Add New Item(s)" to add inventory.
+          </div>
+        `;
+        return;
+      }
+
+      // Group individual units by Category + Item Name (Product Type)
+      const productGroups = new Map();
+      filteredByCat.forEach(item => {
+        const key = `${(item.category || 'Uncategorized').toLowerCase()}||${item.name.toLowerCase()}`;
+        if (!productGroups.has(key)) {
+          productGroups.set(key, {
+            name: item.name,
+            category: item.category || 'Uncategorized',
+            total: 0,
+            available: 0,
+            checkedOut: 0,
+            plants: new Set(),
+            locations: new Set(),
+            unitIds: []
+          });
+        }
+        const grp = productGroups.get(key);
+        grp.total++;
+        grp.unitIds.push(item.id);
+        grp.plants.add(item.plantCode);
+        if (item.location) grp.locations.add(item.location);
+        if (item.activeCheckouts && item.activeCheckouts.length > 0) {
+          grp.checkedOut++;
+        } else {
+          grp.available++;
+        }
+      });
+
+      Array.from(productGroups.values()).forEach(grp => {
+        const availColor = grp.available > 0
+          ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
+          : 'bg-red-50 border-red-300 text-red-700';
+
+        const card = document.createElement('div');
+        card.className = 'bg-white rounded-xl shadow-sm hover:shadow-md border border-slate-200 p-5 flex flex-col justify-between transition';
+        card.innerHTML = `
+          <div>
+            <div class="flex justify-between items-start gap-2">
+              <button onclick="selectCategoryView('${escapeJsStr(grp.category)}')" class="text-[11px] font-bold uppercase tracking-wider bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 px-2.5 py-1 rounded transition" title="Click to view all items in this category">
+                📂 ${escapeHtml(grp.category)}
+              </button>
+              <span class="text-xs font-mono text-slate-500">🏢 ${Array.from(grp.plants).join(', ')}</span>
+            </div>
+
+            <h3 onclick="selectProductTypeView('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}')" class="text-lg font-bold text-slate-900 mt-3 hover:text-blue-600 cursor-pointer">
+              ${escapeHtml(grp.name)}
+            </h3>
+            <p class="text-xs text-slate-500 mt-1 truncate">📍 Locations: ${escapeHtml(Array.from(grp.locations).join(', '))}</p>
+
+            <!-- Availability Counter Box -->
+            <div class="grid grid-cols-3 gap-2 mt-4 p-3 rounded-xl border ${availColor}">
+              <div class="text-center">
+                <div class="text-2xl font-extrabold">${grp.available}</div>
+                <div class="text-[10px] font-bold uppercase tracking-wide">Available</div>
+              </div>
+              <div class="text-center border-x border-current/20">
+                <div class="text-2xl font-bold text-amber-700">${grp.checkedOut}</div>
+                <div class="text-[10px] font-bold uppercase tracking-wide text-amber-800">Checked Out</div>
+              </div>
+              <div class="text-center">
+                <div class="text-2xl font-bold text-slate-700">${grp.total}</div>
+                <div class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Total Units</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4 pt-3 border-t flex justify-between items-center gap-2">
+            <button onclick="selectProductTypeView('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}')" class="flex-1 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2 px-3 rounded-lg transition">
+              🔍 View ${grp.total} Unit(s) & QR Codes →
+            </button>
+            <button onclick="selectGroupForPrinting('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}')" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-xs font-bold py-2 px-3 rounded-lg transition" title="Select all units of this item type for QR printing">
+              🖨️ Select All
+            </button>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function selectGroupForPrinting(categoryName, productName) {
+      items.forEach(item => {
+        if ((item.category || 'Uncategorized') === categoryName && item.name === productName) {
+          selectedItemIds.add(item.id);
+        }
+      });
+      updateSelectedCounter();
+      selectProductTypeView(categoryName, productName);
+    }
+
+    function renderUnitsTable(baseFiltered) {
+      const tbody = document.getElementById('inventory-tbody');
+      tbody.innerHTML = '';
+
+      const filtered = baseFiltered.filter(item => {
+        const matchesCat = !selectedCategory || (item.category || 'Uncategorized') === selectedCategory;
+        const matchesProd = !selectedProductName || item.name === selectedProductName;
+        return matchesCat && matchesProd;
+      });
+
+      const availableCount = filtered.filter(i => !i.activeCheckouts || i.activeCheckouts.length === 0).length;
+      const checkedOutCount = filtered.length - availableCount;
+
+      const titleEl = document.getElementById('units-section-title');
+      const subtitleEl = document.getElementById('units-section-subtitle');
+
+      if (selectedProductName) {
+        titleEl.textContent = `${selectedProductName} (${selectedCategory})`;
+      } else if (selectedCategory) {
+        titleEl.textContent = `Category: ${selectedCategory}`;
+      } else {
+        titleEl.textContent = `All Individual Inventory Units`;
+      }
+      subtitleEl.textContent = `${availableCount} Available in Storage • ${checkedOutCount} Checked Out • ${filtered.length} Total Unit(s)`;
+
       if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="9" class="p-8 text-center text-slate-400">No matching inventory units found. Units remain in the system until explicitly deleted.</td></tr>`;
-        updateSelectedCounter();
+        tbody.innerHTML = `<tr><td colspan="9" class="p-8 text-center text-slate-400">No matching units found in this view.</td></tr>`;
         return;
       }
 
@@ -1209,7 +1512,7 @@
 
         const statusBadge = isCheckedOut
           ? `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300">Checked Out</span>`
-          : `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">In Storage</span>`;
+          : `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">Available</span>`;
 
         let liveCheckoutHtml = `<span class="text-xs text-slate-400">In Home Storage</span>`;
         if (isCheckedOut) {
@@ -1248,7 +1551,9 @@
           </td>
           <td class="p-3">
             <div class="font-semibold text-slate-900">${escapeHtml(item.name)}</div>
-            <span class="bg-slate-100 border border-slate-300 px-1.5 py-0.5 rounded text-[11px] text-slate-600">${escapeHtml(item.category)}</span>
+            <button onclick="selectCategoryView('${escapeJsStr(item.category)}')" class="bg-blue-50 hover:bg-blue-100 border border-blue-200 px-1.5 py-0.5 rounded text-[11px] text-blue-700 font-semibold mt-0.5">
+              📂 ${escapeHtml(item.category)}
+            </button>
           </td>
           <td class="p-3">
             <div class="text-xs font-bold text-slate-700">🏢 ${escapeHtml(item.plantCode)}</div>
@@ -1279,10 +1584,11 @@
         `;
         tbody.appendChild(tr);
       });
-
-      updateSelectedCounter();
     }
 
+    // ============================================================================
+    // 8. ADD / EDIT ITEM MODAL (WITH OPTIONAL AUTO-GENERATED ITEM CODE)
+    // ============================================================================
     function openItemModal(itemId = null) {
       populatePlantDropdowns();
       const modal = document.getElementById('item-modal');
@@ -1317,6 +1623,9 @@
         document.getElementById('edit-item-id').value = '';
         document.getElementById('item-batch-count').value = 1;
         document.getElementById('item-quality').value = 'New';
+        if (selectedCategory) {
+          document.getElementById('item-category').value = selectedCategory;
+        }
         updatePreviewTag();
       }
 
@@ -1324,11 +1633,23 @@
       modal.classList.add('flex');
     }
 
-    // Helper to generate unique sequential Item Codes when creating multiple units
-    function buildBatchItemCodes(baseCodeRaw, count) {
-      const base = (baseCodeRaw || 'ITEM').trim().toUpperCase();
-      if (count <= 1) {
-        // If only 1 unit is being added and the code isn't taken, use it directly; if taken, append next number
+    // Builds an automatic prefix if Base Item Code is left blank
+    function getEffectiveBaseCode(baseCodeRaw, plantCode, category, itemName) {
+      const cleanBase = (baseCodeRaw || '').trim().toUpperCase();
+      if (cleanBase) return cleanBase;
+
+      const catPrefix = (category || itemName || 'ITM')
+        .replace(/[^a-zA-Z0-9]/g, '')
+        .substring(0, 3)
+        .toUpperCase() || 'ITM';
+      return `${plantCode || 'PLT'}-${catPrefix}`;
+    }
+
+    function buildBatchItemCodes(baseCodeRaw, count, plantCode, category, itemName) {
+      const hasCustomBase = Boolean((baseCodeRaw || '').trim());
+      const base = getEffectiveBaseCode(baseCodeRaw, plantCode, category, itemName);
+
+      if (count <= 1 && hasCustomBase) {
         const exists = items.some(i => (i.itemCode || '').toUpperCase() === base);
         if (!exists) return [base];
       }
@@ -1350,7 +1671,9 @@
     function updatePreviewTag() {
       const editId = document.getElementById('edit-item-id').value;
       const selectedPlant = document.getElementById('item-plant').value;
-      const baseCode = document.getElementById('item-code').value.trim().toUpperCase() || 'PART';
+      const rawBaseCode = document.getElementById('item-code').value;
+      const category = document.getElementById('item-category').value;
+      const itemName = document.getElementById('item-name').value;
       const count = Math.max(1, Math.min(200, parseInt(document.getElementById('item-batch-count').value, 10) || 1));
 
       if (!selectedPlant) return;
@@ -1365,7 +1688,7 @@
             ? existing.tag
             : `${selectedPlant}${String((plantSequences[selectedPlant] || 0) + 1).padStart(6, '0')}`;
           tagPreviewEl.textContent = previewTag;
-          codePreviewEl.textContent = baseCode;
+          codePreviewEl.textContent = (rawBaseCode || '').trim().toUpperCase() || existing.itemCode;
           return;
         }
       }
@@ -1375,7 +1698,7 @@
       const firstTag = `${selectedPlant}${String(startSeq).padStart(6, '0')}`;
       const lastTag = `${selectedPlant}${String(endSeq).padStart(6, '0')}`;
 
-      const generatedCodes = buildBatchItemCodes(baseCode, count);
+      const generatedCodes = buildBatchItemCodes(rawBaseCode, count, selectedPlant, category, itemName);
 
       if (count === 1) {
         tagPreviewEl.textContent = firstTag;
@@ -1396,7 +1719,7 @@
       e.preventDefault();
       const editId = document.getElementById('edit-item-id').value;
       const plantCode = document.getElementById('item-plant').value;
-      const baseCode = document.getElementById('item-code').value.trim().toUpperCase();
+      const rawBaseCode = document.getElementById('item-code').value;
       const count = Math.max(1, Math.min(200, parseInt(document.getElementById('item-batch-count').value, 10) || 1));
       const name = document.getElementById('item-name').value.trim();
       const category = document.getElementById('item-category').value.trim();
@@ -1413,11 +1736,14 @@
             plantSequences[plantCode] = (plantSequences[plantCode] || 0) + 1;
             tag = `${plantCode}${String(plantSequences[plantCode]).padStart(6, '0')}`;
           }
+          const finalCode = (rawBaseCode || '').trim().toUpperCase() ||
+            buildBatchItemCodes('', 1, plantCode, category, name)[0];
+
           items[idx] = {
             ...items[idx],
             plantCode,
             tag,
-            itemCode: baseCode,
+            itemCode: finalCode,
             name,
             category,
             quality,
@@ -1427,8 +1753,7 @@
           };
         }
       } else {
-        // Generate N separate inventory records — each with its own unique Plant Tag, Item Code, and QR Page!
-        const batchCodes = buildBatchItemCodes(baseCode, count);
+        const batchCodes = buildBatchItemCodes(rawBaseCode, count, plantCode, category, name);
         const now = Date.now();
 
         for (let i = 0; i < count; i++) {
@@ -1452,7 +1777,6 @@
             checkoutHistory: []
           });
 
-          // Automatically select newly created items so the user can print their QR codes right away if desired
           selectedItemIds.add(newId);
         }
       }
@@ -1638,27 +1962,11 @@
       const master = document.getElementById('master-checkbox');
       if (master) master.checked = checked;
 
-      const search = document.getElementById('search-input').value.toLowerCase();
-      const plantFilter = document.getElementById('filter-plant').value;
-      const qualityFilter = document.getElementById('filter-quality').value;
-      const statusFilter = document.getElementById('filter-status').value;
-      const catFilter = document.getElementById('filter-category').value.toLowerCase();
-
-      items.forEach(item => {
-        const isCheckedOut = item.activeCheckouts && item.activeCheckouts.length > 0;
-        const matchesPlant = plantFilter === 'ALL' || item.plantCode === plantFilter;
-        const matchesQuality = qualityFilter === 'ALL' || item.quality === qualityFilter;
-        const matchesStatus = statusFilter === 'ALL' ||
-          (statusFilter === 'CHECKED_OUT' && isCheckedOut) ||
-          (statusFilter === 'IN_STORAGE' && !isCheckedOut);
-        const matchesCat = !catFilter || item.category.toLowerCase().includes(catFilter);
-        const matchesSearch = !search ||
-          item.tag.toLowerCase().includes(search) ||
-          (item.itemCode && item.itemCode.toLowerCase().includes(search)) ||
-          item.name.toLowerCase().includes(search) ||
-          item.location.toLowerCase().includes(search);
-
-        if (matchesPlant && matchesQuality && matchesStatus && matchesCat && matchesSearch) {
+      const baseFiltered = getFilteredItems();
+      baseFiltered.forEach(item => {
+        const matchesCat = !selectedCategory || (item.category || 'Uncategorized') === selectedCategory;
+        const matchesProd = !selectedProductName || item.name === selectedProductName;
+        if (matchesCat && matchesProd) {
           if (checked) selectedItemIds.add(item.id);
           else selectedItemIds.delete(item.id);
         }
@@ -1672,7 +1980,7 @@
 
     function printSelectedQRCodes() {
       if (selectedItemIds.size === 0) {
-        alert('Please select at least one unit checkbox to print QR labels.');
+        alert('Please select at least one unit (or click "🖨️ Select All" on an item card) to print QR labels.');
         return;
       }
 
@@ -1753,11 +2061,15 @@
     }
 
     function escapeHtml(str) {
-      return String(str)
+      return String(str || '')
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;');
+    }
+
+    function escapeJsStr(str) {
+      return String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
     }
 
     // --- INITIALIZE & AUTO-POLL CLOUD EVERY 6 SECONDS ---
