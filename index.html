@@ -48,7 +48,7 @@
               🟢 Connecting to Cloud...
             </span>
           </div>
-          <p class="text-xs text-slate-400">Product Category Overview, Individual Unit QR Codes & Live Timers</p>
+          <p class="text-xs text-slate-400">Product Category Overview, 4-Digit Unit Codes & Live QR Tracking</p>
         </div>
       </div>
       <div class="flex flex-wrap gap-2">
@@ -59,7 +59,7 @@
           🏢 Manage Plants
         </button>
         <button onclick="openItemModal()" class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded text-sm font-semibold transition">
-          ➕ Add New Item(s)
+          ➕ Add New Item Type
         </button>
         <button onclick="printSelectedQRCodes()" class="bg-emerald-600 hover:bg-emerald-500 px-4 py-2 rounded text-sm font-semibold transition">
           🖨️ Print Selected QR (<span id="selected-count">0</span>)
@@ -256,7 +256,10 @@
             <p id="units-section-subtitle" class="text-xs text-slate-300"></p>
           </div>
         </div>
-        <div class="flex items-center space-x-2">
+        <div class="flex flex-wrap items-center gap-2">
+          <button id="units-add-more-btn" class="hidden text-xs bg-blue-600 hover:bg-blue-500 text-white font-bold px-3 py-1.5 rounded shadow">
+            ➕ Add More Units to This Type
+          </button>
           <button onclick="toggleSelectAll(true)" class="text-xs bg-slate-700 hover:bg-slate-600 text-white font-semibold px-3 py-1.5 rounded">
             Select All Visible
           </button>
@@ -274,7 +277,7 @@
                 <th class="p-3 w-10 text-center">
                   <input type="checkbox" id="master-checkbox" onchange="toggleSelectAll(this.checked)" class="w-4 h-4 accent-blue-600 cursor-pointer" />
                 </th>
-                <th class="p-3">Plant Tag & Unique Item Code</th>
+                <th class="p-3">Plant Tag & 4-Digit Item Code</th>
                 <th class="p-3">Item Name & Category</th>
                 <th class="p-3">Plant & Home Location</th>
                 <th class="p-3">Quality Status</th>
@@ -363,7 +366,7 @@
     </div>
   </div>
 
-  <!-- MODAL: Add / Edit Inventory Item (Base Item Code is Now Optional) -->
+  <!-- MODAL: Add / Edit Inventory Item (Supports Adding More to Existing Types + 4-Digit Codes) -->
   <div id="item-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print">
     <div class="bg-white rounded-xl max-w-2xl w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b pb-3 mb-4">
@@ -379,18 +382,18 @@
             <select id="item-plant" required onchange="updatePreviewTag()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"></select>
           </div>
           <div id="batch-count-wrapper">
-            <label class="block text-xs font-bold text-blue-700 uppercase mb-1">Number of Units to Create *</label>
-            <input type="number" id="item-batch-count" required min="1" max="200" value="1" oninput="updatePreviewTag()" class="w-full border-2 border-blue-500 bg-blue-50/40 rounded-lg px-3 py-2 text-sm font-bold text-slate-900" />
-            <p class="text-[10px] text-slate-500 mt-0.5">Each unit gets its own Item Code & QR Code</p>
+            <label class="block text-xs font-bold text-blue-700 uppercase mb-1">Number of Units to Add *</label>
+            <input type="number" id="item-batch-count" required min="1" max="500" value="1" oninput="updatePreviewTag()" class="w-full border-2 border-blue-500 bg-blue-50/40 rounded-lg px-3 py-2 text-sm font-bold text-slate-900" />
+            <p class="text-[10px] text-slate-500 mt-0.5">Each unit gets a 4-digit Item Code & QR</p>
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Base Item Code (Optional)</label>
             <input type="text" id="item-code" oninput="updatePreviewTag()" placeholder="Leave blank to auto-generate" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono uppercase" />
-            <p class="text-[10px] text-slate-400 mt-0.5">Auto-generates if left blank</p>
+            <p class="text-[10px] text-slate-400 mt-0.5">Appends 4-digit sequence (e.g. -0001)</p>
           </div>
         </div>
 
-        <!-- Live Preview of Generated Tags & Item Codes -->
+        <!-- Live Preview of Generated Tags & 4-Digit Item Codes -->
         <div class="bg-slate-100 border border-slate-300 rounded-lg p-3">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
             <div>
@@ -398,7 +401,7 @@
               <span id="item-tag-preview" class="font-mono font-bold text-blue-700 text-sm"></span>
             </div>
             <div>
-              <span class="font-bold text-slate-500 uppercase block">Assigned Individual Item Code(s):</span>
+              <span class="font-bold text-slate-500 uppercase block">Assigned 4-Digit Item Code(s):</span>
               <span id="item-code-preview" class="font-mono font-bold text-emerald-700 text-sm"></span>
             </div>
           </div>
@@ -572,10 +575,10 @@
     const DEFAULT_CLOUD_DB_URL = 'https://storagelocator-405e5-default-rtdb.firebaseio.com/';
     const FALLBACK_GITHUB_URL  = 'https://asrieldreemurr2003.github.io/StorageLocater/';
 
-    const STORAGE_KEY_PLANTS = 'PLANT_QR_PLANTS_V6';
-    const STORAGE_KEY_ITEMS  = 'PLANT_QR_ITEMS_V6';
-    const STORAGE_KEY_SEQ    = 'PLANT_QR_SEQ_V6';
-    const STORAGE_KEY_CLOUD  = 'PLANT_QR_CLOUD_URL_V6';
+    const STORAGE_KEY_PLANTS = 'PLANT_QR_PLANTS_V7';
+    const STORAGE_KEY_ITEMS  = 'PLANT_QR_ITEMS_V7';
+    const STORAGE_KEY_SEQ    = 'PLANT_QR_SEQ_V7';
+    const STORAGE_KEY_CLOUD  = 'PLANT_QR_CLOUD_URL_V7';
 
     let cloudDbUrl = localStorage.getItem(STORAGE_KEY_CLOUD) || DEFAULT_CLOUD_DB_URL;
     if (!cloudDbUrl || !cloudDbUrl.includes('firebaseio.com')) {
@@ -593,7 +596,7 @@
       {
         id: '1',
         tag: 'KEN000001',
-        itemCode: 'MTR-5HP-001',
+        itemCode: 'MTR-5HP-0001',
         plantCode: 'KEN',
         name: '5HP Induction Motor',
         category: 'Motors & Drives',
@@ -608,7 +611,7 @@
       {
         id: '2',
         tag: 'DET000001',
-        itemCode: 'TRQ-WRN-001',
+        itemCode: 'TRQ-WRN-0001',
         plantCode: 'DET',
         name: 'Pneumatic Torque Wrench',
         category: 'Tools',
@@ -632,15 +635,19 @@
     let activeScannedTag = null;
     let activeHistoryItemId = null;
 
-    // Navigation View State:
-    // viewMode: 'OVERVIEW' (shows Item Types grouped by Category) or 'UNITS' (shows individual units table)
+    // Navigation View State
     let viewMode = 'OVERVIEW';
-    let selectedCategory = null; // null = All Categories
-    let selectedProductName = null; // null = All Products in Category
+    let selectedCategory = null;
+    let selectedProductName = null;
 
+    // Ensure all items have 4-digit item codes (auto-upgrades any older 3-digit codes like -001 to -0001)
     function normalizeItems() {
       items.forEach((item, index) => {
-        if (!item.itemCode) item.itemCode = `UNIT-${String(index + 1).padStart(3, '0')}`;
+        if (!item.itemCode) {
+          item.itemCode = `UNIT-${String(index + 1).padStart(4, '0')}`;
+        } else {
+          item.itemCode = item.itemCode.replace(/-(\d{1,3})$/, (_, digits) => `-${digits.padStart(4, '0')}`);
+        }
         if (!item.quality) item.quality = 'Good';
         if (!Array.isArray(item.activeCheckouts)) item.activeCheckouts = [];
         if (!Array.isArray(item.checkoutHistory)) item.checkoutHistory = [];
@@ -648,6 +655,12 @@
       });
     }
     normalizeItems();
+
+    // Helper to extract the base prefix from an existing item code (strips trailing -0001)
+    function extractBaseCodeFromItemCode(code) {
+      if (!code) return '';
+      return String(code).replace(/-\d{3,6}$/, '');
+    }
 
     // ============================================================================
     // 2. QUALITY BADGE & LIVE DURATION FORMATTERS
@@ -1212,7 +1225,6 @@
     function selectCategoryView(categoryName) {
       selectedCategory = categoryName;
       selectedProductName = null;
-      // Clicking a category shows all individual items available in that product category
       viewMode = 'UNITS';
       renderInventory();
     }
@@ -1229,6 +1241,44 @@
       selectedProductName = null;
       viewMode = 'UNITS';
       renderInventory();
+    }
+
+    // Opens the Add Modal pre-populated with an existing Product Type so inventory can grow easily
+    function openAddMoreForProductType(categoryName, productName) {
+      const templateItem = items.find(i =>
+        (i.category || 'Uncategorized') === categoryName && i.name === productName
+      );
+      if (!templateItem) {
+        openItemModal();
+        return;
+      }
+
+      populatePlantDropdowns();
+      const modal = document.getElementById('item-modal');
+      const title = document.getElementById('item-modal-title');
+      const batchWrapper = document.getElementById('batch-count-wrapper');
+      const saveBtn = document.getElementById('item-save-btn');
+      document.getElementById('item-form').reset();
+
+      title.textContent = `➕ Add More Units to "${templateItem.name}"`;
+      batchWrapper.classList.remove('hidden');
+      saveBtn.textContent = 'Add Units & Generate 4-Digit QR Codes';
+
+      document.getElementById('edit-item-id').value = '';
+      document.getElementById('item-plant').value = templateItem.plantCode;
+      document.getElementById('item-batch-count').value = 1;
+      document.getElementById('item-code').value = extractBaseCodeFromItemCode(templateItem.itemCode);
+      document.getElementById('item-name').value = templateItem.name;
+      document.getElementById('item-category').value = templateItem.category;
+      document.getElementById('item-quality').value = 'New';
+      document.getElementById('item-location').value = templateItem.location || '';
+      document.getElementById('item-notes').value = templateItem.notes || '';
+      document.getElementById('item-instructions').value = templateItem.instructions || '';
+
+      updatePreviewTag();
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
     }
 
     function populatePlantDropdowns() {
@@ -1272,7 +1322,6 @@
     }
 
     function renderNavigationAndCategoryPills(baseFiltered) {
-      // Update View Mode Toggle Buttons
       const btnOverview = document.getElementById('btn-view-overview');
       const btnAllUnits = document.getElementById('btn-view-all-units');
       if (viewMode === 'OVERVIEW') {
@@ -1283,7 +1332,6 @@
         btnAllUnits.className = 'text-xs px-3 py-1.5 rounded-lg font-bold bg-blue-600 text-white shadow-sm';
       }
 
-      // Render Breadcrumb Bar
       const breadcrumbBar = document.getElementById('breadcrumb-bar');
       let crumbsHtml = `<button onclick="resetToOverview()" class="text-xs font-bold text-blue-700 hover:underline flex items-center gap-1">🏠 All Product Types</button>`;
       if (selectedCategory) {
@@ -1296,7 +1344,6 @@
       }
       breadcrumbBar.innerHTML = crumbsHtml;
 
-      // Aggregate Category Counts
       const categoryMap = new Map();
       baseFiltered.forEach(item => {
         const cat = item.category || 'Uncategorized';
@@ -1315,7 +1362,6 @@
       const pillsContainer = document.getElementById('category-pills-container');
       pillsContainer.innerHTML = '';
 
-      // "All Categories" pill
       const totalAvailableAll = baseFiltered.filter(i => !i.activeCheckouts || i.activeCheckouts.length === 0).length;
       const allActiveClass = (!selectedCategory && viewMode === 'OVERVIEW')
         ? 'bg-slate-900 text-white border-slate-900'
@@ -1368,7 +1414,6 @@
       updateSelectedCounter();
     }
 
-    // Renders the main display showing Types of Items grouped with live Availability counts
     function renderOverviewCards(baseFiltered) {
       const grid = document.getElementById('product-types-grid');
       grid.innerHTML = '';
@@ -1380,13 +1425,12 @@
       if (filteredByCat.length === 0) {
         grid.innerHTML = `
           <div class="col-span-full bg-white rounded-xl p-10 text-center border border-slate-200 text-slate-400">
-            No matching item types found. Click "➕ Add New Item(s)" to add inventory.
+            No matching item types found. Click "➕ Add New Item Type" to add inventory.
           </div>
         `;
         return;
       }
 
-      // Group individual units by Category + Item Name (Product Type)
       const productGroups = new Map();
       filteredByCat.forEach(item => {
         const key = `${(item.category || 'Uncategorized').toLowerCase()}||${item.name.toLowerCase()}`;
@@ -1399,12 +1443,11 @@
             checkedOut: 0,
             plants: new Set(),
             locations: new Set(),
-            unitIds: []
+            sampleCode: extractBaseCodeFromItemCode(item.itemCode)
           });
         }
         const grp = productGroups.get(key);
         grp.total++;
-        grp.unitIds.push(item.id);
         grp.plants.add(item.plantCode);
         if (item.location) grp.locations.add(item.location);
         if (item.activeCheckouts && item.activeCheckouts.length > 0) {
@@ -1433,7 +1476,8 @@
             <h3 onclick="selectProductTypeView('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}')" class="text-lg font-bold text-slate-900 mt-3 hover:text-blue-600 cursor-pointer">
               ${escapeHtml(grp.name)}
             </h3>
-            <p class="text-xs text-slate-500 mt-1 truncate">📍 Locations: ${escapeHtml(Array.from(grp.locations).join(', '))}</p>
+            <p class="text-xs text-slate-500 mt-0.5 truncate">📍 Locations: ${escapeHtml(Array.from(grp.locations).join(', '))}</p>
+            <p class="text-[11px] font-mono text-slate-400 mt-0.5">Code Series: ${escapeHtml(grp.sampleCode)}-XXXX</p>
 
             <!-- Availability Counter Box -->
             <div class="grid grid-cols-3 gap-2 mt-4 p-3 rounded-xl border ${availColor}">
@@ -1452,12 +1496,15 @@
             </div>
           </div>
 
-          <div class="mt-4 pt-3 border-t flex justify-between items-center gap-2">
+          <div class="mt-4 pt-3 border-t flex flex-wrap justify-between items-center gap-2">
             <button onclick="selectProductTypeView('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}')" class="flex-1 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2 px-3 rounded-lg transition">
-              🔍 View ${grp.total} Unit(s) & QR Codes →
+              🔍 View ${grp.total} Unit(s)
             </button>
-            <button onclick="selectGroupForPrinting('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}')" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-xs font-bold py-2 px-3 rounded-lg transition" title="Select all units of this item type for QR printing">
-              🖨️ Select All
+            <button onclick="openAddMoreForProductType('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}')" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2 px-3 rounded-lg transition shadow-sm" title="Add more units to this product type">
+              ➕ Add Units
+            </button>
+            <button onclick="selectGroupForPrinting('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}')" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-xs font-bold py-2 px-2.5 rounded-lg transition" title="Select all units of this item type for QR printing">
+              🖨️
             </button>
           </div>
         `;
@@ -1490,13 +1537,18 @@
 
       const titleEl = document.getElementById('units-section-title');
       const subtitleEl = document.getElementById('units-section-subtitle');
+      const addMoreBtn = document.getElementById('units-add-more-btn');
 
       if (selectedProductName) {
         titleEl.textContent = `${selectedProductName} (${selectedCategory})`;
+        addMoreBtn.classList.remove('hidden');
+        addMoreBtn.onclick = () => openAddMoreForProductType(selectedCategory, selectedProductName);
       } else if (selectedCategory) {
         titleEl.textContent = `Category: ${selectedCategory}`;
+        addMoreBtn.classList.add('hidden');
       } else {
         titleEl.textContent = `All Individual Inventory Units`;
+        addMoreBtn.classList.add('hidden');
       }
       subtitleEl.textContent = `${availableCount} Available in Storage • ${checkedOutCount} Checked Out • ${filtered.length} Total Unit(s)`;
 
@@ -1551,9 +1603,14 @@
           </td>
           <td class="p-3">
             <div class="font-semibold text-slate-900">${escapeHtml(item.name)}</div>
-            <button onclick="selectCategoryView('${escapeJsStr(item.category)}')" class="bg-blue-50 hover:bg-blue-100 border border-blue-200 px-1.5 py-0.5 rounded text-[11px] text-blue-700 font-semibold mt-0.5">
-              📂 ${escapeHtml(item.category)}
-            </button>
+            <div class="flex items-center gap-1 mt-0.5">
+              <button onclick="selectCategoryView('${escapeJsStr(item.category)}')" class="bg-blue-50 hover:bg-blue-100 border border-blue-200 px-1.5 py-0.5 rounded text-[11px] text-blue-700 font-semibold">
+                📂 ${escapeHtml(item.category)}
+              </button>
+              <button onclick="openAddMoreForProductType('${escapeJsStr(item.category)}', '${escapeJsStr(item.name)}')" class="bg-slate-100 hover:bg-blue-100 border border-slate-300 px-1.5 py-0.5 rounded text-[10px] text-slate-700 font-bold" title="Add more units of this item type">
+                + Add More
+              </button>
+            </div>
           </td>
           <td class="p-3">
             <div class="text-xs font-bold text-slate-700">🏢 ${escapeHtml(item.plantCode)}</div>
@@ -1587,7 +1644,7 @@
     }
 
     // ============================================================================
-    // 8. ADD / EDIT ITEM MODAL (WITH OPTIONAL AUTO-GENERATED ITEM CODE)
+    // 8. ADD / EDIT ITEM MODAL (WITH 4-DIGIT SEQUENTIAL ITEM CODES)
     // ============================================================================
     function openItemModal(itemId = null) {
       populatePlantDropdowns();
@@ -1616,7 +1673,7 @@
         document.getElementById('item-instructions').value = item.instructions || '';
         updatePreviewTag();
       } else {
-        title.textContent = 'Add New Inventory Item(s) — Individual QR Per Unit';
+        title.textContent = 'Add New Inventory Item(s) — 4-Digit Unit Codes';
         batchWrapper.classList.remove('hidden');
         saveBtn.textContent = 'Create Unit(s) & Generate QR Codes';
 
@@ -1633,10 +1690,20 @@
       modal.classList.add('flex');
     }
 
-    // Builds an automatic prefix if Base Item Code is left blank
     function getEffectiveBaseCode(baseCodeRaw, plantCode, category, itemName) {
-      const cleanBase = (baseCodeRaw || '').trim().toUpperCase();
+      const cleanBase = extractBaseCodeFromItemCode((baseCodeRaw || '').trim().toUpperCase());
       if (cleanBase) return cleanBase;
+
+      // If an item with the same name & category already exists, reuse its base code prefix automatically
+      if (itemName) {
+        const existingMatch = items.find(i =>
+          i.name.toLowerCase() === itemName.trim().toLowerCase() &&
+          (!category || i.category.toLowerCase() === category.trim().toLowerCase())
+        );
+        if (existingMatch && existingMatch.itemCode) {
+          return extractBaseCodeFromItemCode(existingMatch.itemCode);
+        }
+      }
 
       const catPrefix = (category || itemName || 'ITM')
         .replace(/[^a-zA-Z0-9]/g, '')
@@ -1645,22 +1712,17 @@
       return `${plantCode || 'PLT'}-${catPrefix}`;
     }
 
+    // Generates 4-digit sequential Item Codes (e.g. MTR-5HP-0001, MTR-5HP-0002)
     function buildBatchItemCodes(baseCodeRaw, count, plantCode, category, itemName) {
-      const hasCustomBase = Boolean((baseCodeRaw || '').trim());
       const base = getEffectiveBaseCode(baseCodeRaw, plantCode, category, itemName);
-
-      if (count <= 1 && hasCustomBase) {
-        const exists = items.some(i => (i.itemCode || '').toUpperCase() === base);
-        if (!exists) return [base];
-      }
 
       const codes = [];
       let nextIndex = 1;
       for (let i = 0; i < count; i++) {
-        let candidate = `${base}-${String(nextIndex).padStart(3, '0')}`;
+        let candidate = `${base}-${String(nextIndex).padStart(4, '0')}`;
         while (items.some(it => (it.itemCode || '').toUpperCase() === candidate) || codes.includes(candidate)) {
           nextIndex++;
-          candidate = `${base}-${String(nextIndex).padStart(3, '0')}`;
+          candidate = `${base}-${String(nextIndex).padStart(4, '0')}`;
         }
         codes.push(candidate);
         nextIndex++;
@@ -1674,7 +1736,7 @@
       const rawBaseCode = document.getElementById('item-code').value;
       const category = document.getElementById('item-category').value;
       const itemName = document.getElementById('item-name').value;
-      const count = Math.max(1, Math.min(200, parseInt(document.getElementById('item-batch-count').value, 10) || 1));
+      const count = Math.max(1, Math.min(500, parseInt(document.getElementById('item-batch-count').value, 10) || 1));
 
       if (!selectedPlant) return;
 
@@ -1720,7 +1782,7 @@
       const editId = document.getElementById('edit-item-id').value;
       const plantCode = document.getElementById('item-plant').value;
       const rawBaseCode = document.getElementById('item-code').value;
-      const count = Math.max(1, Math.min(200, parseInt(document.getElementById('item-batch-count').value, 10) || 1));
+      const count = Math.max(1, Math.min(500, parseInt(document.getElementById('item-batch-count').value, 10) || 1));
       const name = document.getElementById('item-name').value.trim();
       const category = document.getElementById('item-category').value.trim();
       const quality = document.getElementById('item-quality').value;
@@ -1980,7 +2042,7 @@
 
     function printSelectedQRCodes() {
       if (selectedItemIds.size === 0) {
-        alert('Please select at least one unit (or click "🖨️ Select All" on an item card) to print QR labels.');
+        alert('Please select at least one unit (or click the 🖨️ button on an item card) to print QR labels.');
         return;
       }
 
