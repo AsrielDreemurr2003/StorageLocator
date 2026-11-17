@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>StorageLocater - Multi-Plant QR Inventory</title>
+  <title>StorageLocater - Live Cloud QR Inventory</title>
   <!-- Tailwind CSS for styling -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- QRCode.js for generating scannable QR codes -->
@@ -42,11 +42,19 @@
       <div class="flex items-center space-x-3">
         <span class="text-2xl">🏭</span>
         <div>
-          <h1 class="text-xl font-bold tracking-wide">StorageLocater Inventory</h1>
-          <p class="text-xs text-slate-400">Multi-Plant QR Asset Tracking, Check-In/Out & Work Instructions</p>
+          <div class="flex items-center gap-2 flex-wrap">
+            <h1 class="text-xl font-bold tracking-wide">StorageLocater Inventory</h1>
+            <span id="sync-badge" onclick="openCloudModal()" class="cursor-pointer text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">
+              🟢 Connecting to Cloud...
+            </span>
+          </div>
+          <p class="text-xs text-slate-400">Live Multi-Device Sync, QR Asset Tracking & Work Instructions</p>
         </div>
       </div>
       <div class="flex flex-wrap gap-2">
+        <button onclick="openCloudModal()" class="bg-indigo-600 hover:bg-indigo-500 px-3 py-2 rounded text-sm font-medium transition">
+          ☁️ Cloud Status
+        </button>
         <button onclick="openPlantModal()" class="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded text-sm font-medium transition">
           🏢 Manage Plants
         </button>
@@ -56,10 +64,10 @@
         <button onclick="printSelectedQRCodes()" class="bg-emerald-600 hover:bg-emerald-500 px-4 py-2 rounded text-sm font-semibold transition">
           🖨️ Print Selected QR (<span id="selected-count">0</span>)
         </button>
-        <button onclick="exportData()" class="bg-amber-600 hover:bg-amber-500 px-3 py-2 rounded text-sm font-medium transition" title="Download backup JSON">
+        <button onclick="exportData()" class="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded text-sm font-medium transition" title="Download backup JSON">
           💾 Export
         </button>
-        <label class="bg-amber-700 hover:bg-amber-600 px-3 py-2 rounded text-sm font-medium transition cursor-pointer" title="Restore backup JSON">
+        <label class="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded text-sm font-medium transition cursor-pointer" title="Restore backup JSON">
           📂 Import
           <input type="file" id="import-file" class="hidden" accept=".json" onchange="importData(event)" />
         </label>
@@ -69,14 +77,14 @@
 
   <!-- Scanned QR Code Banner (Appears when opened via QR Scan on any device) -->
   <div id="scanned-banner" class="hidden max-w-4xl mx-auto mt-6 px-4 no-print">
-    <div class="bg-blue-50 border-2 border-blue-500 rounded-xl p-6 shadow-lg">
+    <div class="bg-blue-50 border-2 border-blue-600 rounded-xl p-6 shadow-lg">
       <div class="flex justify-between items-start">
         <div>
-          <span class="bg-blue-600 text-white text-xs font-bold px-2.5 py-1 rounded uppercase tracking-wider">📱 QR Scan Detected</span>
+          <span class="bg-blue-600 text-white text-xs font-bold px-2.5 py-1 rounded uppercase tracking-wider">📱 QR Scan Active — Live Cloud Item</span>
           <h2 id="scan-title" class="text-2xl font-bold text-slate-900 mt-2"></h2>
           <p id="scan-tag" class="text-sm font-mono text-blue-700 font-semibold"></p>
         </div>
-        <button onclick="closeScanBanner()" class="text-slate-400 hover:text-slate-700 text-xl font-bold">&times;</button>
+        <button onclick="closeScanBanner()" class="text-slate-400 hover:text-slate-700 text-2xl font-bold leading-none">&times;</button>
       </div>
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4 bg-white p-4 rounded-lg border border-blue-200">
         <div>
@@ -92,8 +100,8 @@
           <p id="scan-location" class="font-semibold text-slate-800"></p>
         </div>
         <div>
-          <p class="text-xs text-slate-500 uppercase">Current Quantity</p>
-          <p id="scan-qty" class="text-xl font-bold text-emerald-600"></p>
+          <p class="text-xs text-slate-500 uppercase">Live Quantity</p>
+          <p id="scan-qty" class="text-2xl font-bold text-emerald-600"></p>
         </div>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
@@ -107,11 +115,14 @@
         </div>
       </div>
       <div class="mt-4 flex flex-wrap gap-3">
-        <button id="scan-checkin-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded font-semibold text-sm">
+        <button id="scan-checkin-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded font-semibold text-sm shadow">
           📥 Check In (+Qty)
         </button>
-        <button id="scan-checkout-btn" class="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded font-semibold text-sm">
+        <button id="scan-checkout-btn" class="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded font-semibold text-sm shadow">
           📤 Check Out (-Qty)
+        </button>
+        <button id="scan-edit-btn" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded font-semibold text-sm shadow">
+          ✏️ Edit Item Details
         </button>
       </div>
     </div>
@@ -139,6 +150,9 @@
         </div>
       </div>
       <div class="flex items-center space-x-2">
+        <button onclick="pullFromCloud(true)" class="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 font-semibold px-3 py-2 rounded">
+          🔄 Sync Now
+        </button>
         <button onclick="toggleSelectAll(true)" class="text-xs bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold px-3 py-2 rounded">
           Select All Visible
         </button>
@@ -176,8 +190,36 @@
     </div>
   </main>
 
-  <!-- Printable QR Area (Only visible during printing) -->
+  <!-- Printable QR Area -->
   <div id="print-area" class="hidden"></div>
+
+  <!-- MODAL: Cloud Sync Configuration -->
+  <div id="cloud-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print">
+    <div class="bg-white rounded-xl max-w-lg w-full p-6 shadow-2xl">
+      <div class="flex justify-between items-center border-b pb-3 mb-4">
+        <h2 class="text-lg font-bold text-slate-900">☁️ Live Firebase Cloud Database</h2>
+        <button onclick="closeCloudModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
+      </div>
+      <p class="text-xs text-slate-600 mb-3 leading-relaxed">
+        Your app is pre-configured to sync across all devices using your Firebase Realtime Database:
+      </p>
+      <form onsubmit="saveCloudConfig(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Active Firebase Database URL</label>
+          <input type="url" id="cloud-url-input" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono bg-slate-50" />
+        </div>
+        <div class="flex justify-between items-center pt-3 border-t">
+          <button type="button" onclick="pushToCloud(true)" class="text-xs bg-emerald-100 hover:bg-emerald-200 text-emerald-800 px-3 py-2 rounded font-semibold">
+            ⬆️ Force Upload Local Data to Cloud
+          </button>
+          <div class="space-x-2">
+            <button type="button" onclick="closeCloudModal()" class="px-4 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 text-sm font-medium">Close</button>
+            <button type="submit" class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold">Save & Sync</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- MODAL: Add / Edit Inventory Item -->
   <div id="item-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print">
@@ -192,9 +234,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Plant *</label>
-            <select id="item-plant" required onchange="updatePreviewTag()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
-              <!-- Populated dynamically -->
-            </select>
+            <select id="item-plant" required onchange="updatePreviewTag()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"></select>
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Assigned Item Tag</label>
@@ -235,7 +275,7 @@
 
         <div class="flex justify-end space-x-3 pt-3 border-t">
           <button type="button" onclick="closeItemModal()" class="px-4 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 text-sm font-medium">Cancel</button>
-          <button type="submit" class="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold">Save Item</button>
+          <button type="submit" class="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold">Save & Sync Item</button>
         </div>
       </form>
     </div>
@@ -256,9 +296,7 @@
         <button type="submit" id="plant-submit-btn" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-semibold">Add</button>
       </form>
 
-      <div class="max-h-64 overflow-y-auto divide-y divide-slate-200 border rounded-lg" id="plant-list">
-        <!-- Populated dynamically -->
-      </div>
+      <div class="max-h-64 overflow-y-auto divide-y divide-slate-200 border rounded-lg" id="plant-list"></div>
 
       <div class="flex justify-end pt-4 mt-4 border-t">
         <button onclick="closePlantModal()" class="px-4 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 text-sm font-medium">Done</button>
@@ -329,14 +367,23 @@
   </div>
 
   <script>
-    // --- GITHUB PAGES CONFIGURATION ---
-    // Explicitly configured for AsrielDreemurr2003 / StorageLocater
-    const GITHUB_PAGES_URL = 'https://AsrielDreemurr2003.github.io/StorageLocater/';
+    // ============================================================================
+    // 1. LIVE FIREBASE & GITHUB CONFIGURATION
+    // ============================================================================
+    const DEFAULT_CLOUD_DB_URL = 'https://storagelocator-405e5-default-rtdb.firebaseio.com/';
+    const FALLBACK_GITHUB_URL  = 'https://asrieldreemurr2003.github.io/StorageLocater/';
 
-    // --- STATE MANAGEMENT ---
-    const STORAGE_KEY_PLANTS = 'PLANT_QR_PLANTS_V1';
-    const STORAGE_KEY_ITEMS  = 'PLANT_QR_ITEMS_V1';
-    const STORAGE_KEY_SEQ    = 'PLANT_QR_SEQ_V1';
+    const STORAGE_KEY_PLANTS = 'PLANT_QR_PLANTS_V3';
+    const STORAGE_KEY_ITEMS  = 'PLANT_QR_ITEMS_V3';
+    const STORAGE_KEY_SEQ    = 'PLANT_QR_SEQ_V3';
+    const STORAGE_KEY_CLOUD  = 'PLANT_QR_CLOUD_URL_V3';
+
+    // Always default to your Firebase Realtime Database URL
+    let cloudDbUrl = localStorage.getItem(STORAGE_KEY_CLOUD) || DEFAULT_CLOUD_DB_URL;
+    if (!cloudDbUrl || !cloudDbUrl.includes('firebaseio.com')) {
+      cloudDbUrl = DEFAULT_CLOUD_DB_URL;
+      localStorage.setItem(STORAGE_KEY_CLOUD, cloudDbUrl);
+    }
 
     let plants = JSON.parse(localStorage.getItem(STORAGE_KEY_PLANTS)) || [
       { code: 'KEN', name: 'Kentwood Plant' },
@@ -376,99 +423,190 @@
     };
 
     let selectedItemIds = new Set();
+    let activeScannedTag = null;
 
-    function saveState() {
+    // ============================================================================
+    // 2. CLOUD SYNC ENGINE (Ensures all devices & QR scans see identical data)
+    // ============================================================================
+    function getNormalizedCloudEndpoint() {
+      if (!cloudDbUrl) return null;
+      let clean = cloudDbUrl.trim();
+      if (!clean.endsWith('/')) clean += '/';
+      return `${clean}storagelocater_state.json`;
+    }
+
+    function updateSyncBadge(statusText, isCloudActive) {
+      const badge = document.getElementById('sync-badge');
+      if (!badge) return;
+      if (isCloudActive) {
+        badge.className = 'cursor-pointer text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/40';
+        badge.textContent = `🟢 ${statusText}`;
+      } else {
+        badge.className = 'cursor-pointer text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/40';
+        badge.textContent = `⚠️ ${statusText}`;
+      }
+    }
+
+    async function saveState() {
       localStorage.setItem(STORAGE_KEY_PLANTS, JSON.stringify(plants));
       localStorage.setItem(STORAGE_KEY_ITEMS, JSON.stringify(items));
       localStorage.setItem(STORAGE_KEY_SEQ, JSON.stringify(plantSequences));
+      await pushToCloud(false);
     }
 
-    // --- GENERATE 3-DIGIT PLANT TAG (e.g. KEN000001) ---
+    async function pushToCloud(showAlert = false) {
+      const endpoint = getNormalizedCloudEndpoint();
+      if (!endpoint) return;
+      try {
+        updateSyncBadge('Syncing to Cloud...', true);
+        const payload = {
+          plants,
+          items,
+          plantSequences,
+          updatedAt: Date.now()
+        };
+        const res = await fetch(endpoint, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        updateSyncBadge('Cloud Synced (Live Across All Devices)', true);
+        if (showAlert) alert('Successfully synced inventory to Firebase Cloud!');
+      } catch (err) {
+        console.error('Cloud push error:', err);
+        updateSyncBadge('Cloud Sync Error (Check Firebase Rules)', false);
+        if (showAlert) alert('Could not write to Firebase. Make sure your Realtime Database Rules allow read/write (Test Mode).');
+      }
+    }
+
+    async function pullFromCloud(isManual = false) {
+      const endpoint = getNormalizedCloudEndpoint();
+      if (!endpoint) return;
+      try {
+        const res = await fetch(endpoint);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+
+        if (data && data.plants) {
+          plants = data.plants;
+          items = data.items || [];
+          plantSequences = data.plantSequences || {};
+          localStorage.setItem(STORAGE_KEY_PLANTS, JSON.stringify(plants));
+          localStorage.setItem(STORAGE_KEY_ITEMS, JSON.stringify(items));
+          localStorage.setItem(STORAGE_KEY_SEQ, JSON.stringify(plantSequences));
+
+          populatePlantDropdowns();
+          renderInventory();
+          if (activeScannedTag) refreshScannedBanner(activeScannedTag);
+          updateSyncBadge('Cloud Synced (Live Across All Devices)', true);
+        } else {
+          // First time connecting to a fresh Firebase database: upload initial seed data
+          await pushToCloud(false);
+        }
+      } catch (err) {
+        console.error('Cloud pull error:', err);
+        updateSyncBadge('Cloud Sync Error (Check Firebase Rules)', false);
+      }
+    }
+
+    function openCloudModal() {
+      document.getElementById('cloud-url-input').value = cloudDbUrl || DEFAULT_CLOUD_DB_URL;
+      const modal = document.getElementById('cloud-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeCloudModal() {
+      const modal = document.getElementById('cloud-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    async function saveCloudConfig(e) {
+      e.preventDefault();
+      cloudDbUrl = document.getElementById('cloud-url-input').value.trim();
+      localStorage.setItem(STORAGE_KEY_CLOUD, cloudDbUrl);
+      closeCloudModal();
+      await pullFromCloud(true);
+    }
+
+    // ============================================================================
+    // 3. QR URL BUILDER & SCAN HANDLER
+    // ============================================================================
     function getNextTagForPlant(plantCode) {
       const currentMax = plantSequences[plantCode] || 0;
       const nextNum = currentMax + 1;
       return `${plantCode}${String(nextNum).padStart(6, '0')}`;
     }
 
-    // --- QR URL BUILDER (Pointing directly to AsrielDreemurr2003/StorageLocater) ---
     function buildQRUrl(item) {
-      // If hosted on a live http/https website (like GitHub Pages), use its exact URL;
-      // If running inside OneCompiler, local file, or preview iframe, use the official GitHub Pages URL.
-      let baseUrl = GITHUB_PAGES_URL;
-      if (window.location.hostname.includes('github.io')) {
+      // If opened from your live GitHub Pages site, dynamically use its exact URL and casing;
+      // Otherwise fallback to FALLBACK_GITHUB_URL
+      let baseUrl = FALLBACK_GITHUB_URL;
+      if (window.location.protocol.startsWith('http') && window.location.hostname.includes('github.io')) {
         baseUrl = window.location.origin + window.location.pathname;
       }
 
-      // Keep payload compact so the QR code has large, easy-to-scan squares for phone cameras
-      const payload = {
-        t: item.tag,
-        p: item.plantCode,
-        n: item.name,
-        c: item.category,
-        q: item.quantity,
-        l: item.location,
-        d: (item.notes || '').substring(0, 160),
-        w: (item.instructions || '').substring(0, 160)
-      };
-
-      const jsonStr = JSON.stringify(payload);
-      const base64 = btoa(unescape(encodeURIComponent(jsonStr)));
-      return `${baseUrl}?qr=${encodeURIComponent(base64)}`;
+      // Ultra-compact URL because all devices automatically pull full details from Firebase!
+      return `${baseUrl}?tag=${encodeURIComponent(item.tag)}`;
     }
 
-    // --- CHECK IF OPENED VIA QR SCAN ---
-    function checkUrlForScannedQR() {
+    async function checkUrlForScannedQR() {
       const params = new URLSearchParams(window.location.search);
-      const qrData = params.get('qr');
-      if (!qrData) return;
+      const scannedTag = params.get('tag');
+      const legacyQr = params.get('qr');
 
-      try {
-        const jsonStr = decodeURIComponent(escape(atob(decodeURIComponent(qrData))));
-        const decoded = JSON.parse(jsonStr);
+      // Always pull the latest data from Firebase first so the scanning phone sees live quantities
+      await pullFromCloud(false);
 
-        let localMatch = items.find(i => i.tag === decoded.t);
-        if (!localMatch) {
-          localMatch = {
-            id: 'scan-' + Date.now(),
-            tag: decoded.t || 'UNKNOWN',
-            plantCode: decoded.p || 'KEN',
-            name: decoded.n || 'Scanned Item',
-            category: decoded.c || 'General',
-            quantity: typeof decoded.q === 'number' ? decoded.q : 1,
-            location: decoded.l || 'Unassigned',
-            notes: decoded.d || '',
-            instructions: decoded.w || ''
-          };
-          items.push(localMatch);
-          saveState();
-          renderInventory();
+      if (scannedTag) {
+        activeScannedTag = scannedTag;
+        refreshScannedBanner(scannedTag);
+      } else if (legacyQr) {
+        try {
+          const decoded = JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(legacyQr)))));
+          activeScannedTag = decoded.t;
+          refreshScannedBanner(decoded.t);
+        } catch (e) {
+          console.error('Legacy QR error:', e);
         }
-
-        const plantObj = plants.find(p => p.code === localMatch.plantCode);
-        document.getElementById('scan-title').textContent = localMatch.name;
-        document.getElementById('scan-tag').textContent = `TAG: ${localMatch.tag}`;
-        document.getElementById('scan-plant').textContent = plantObj ? `${plantObj.code} - ${plantObj.name}` : localMatch.plantCode;
-        document.getElementById('scan-category').textContent = localMatch.category;
-        document.getElementById('scan-location').textContent = localMatch.location;
-        document.getElementById('scan-qty').textContent = localMatch.quantity;
-        document.getElementById('scan-notes').textContent = localMatch.notes || 'None provided.';
-        document.getElementById('scan-instructions').textContent = localMatch.instructions || 'None provided.';
-
-        document.getElementById('scan-checkin-btn').onclick = () => openCheckModal(localMatch.id, 'IN');
-        document.getElementById('scan-checkout-btn').onclick = () => openCheckModal(localMatch.id, 'OUT');
-
-        document.getElementById('scanned-banner').classList.remove('hidden');
-      } catch (e) {
-        console.error('Invalid QR parameter:', e);
       }
     }
 
+    function refreshScannedBanner(tag) {
+      const match = items.find(i => i.tag === tag);
+      if (!match) {
+        alert(`Item with tag "${tag}" was not found in the database (it may have been deleted).`);
+        return;
+      }
+
+      const plantObj = plants.find(p => p.code === match.plantCode);
+      document.getElementById('scan-title').textContent = match.name;
+      document.getElementById('scan-tag').textContent = `TAG: ${match.tag}`;
+      document.getElementById('scan-plant').textContent = plantObj ? `${plantObj.code} - ${plantObj.name}` : match.plantCode;
+      document.getElementById('scan-category').textContent = match.category;
+      document.getElementById('scan-location').textContent = match.location;
+      document.getElementById('scan-qty').textContent = match.quantity;
+      document.getElementById('scan-notes').textContent = match.notes || 'None provided.';
+      document.getElementById('scan-instructions').textContent = match.instructions || 'None provided.';
+
+      document.getElementById('scan-checkin-btn').onclick = () => openCheckModal(match.id, 'IN');
+      document.getElementById('scan-checkout-btn').onclick = () => openCheckModal(match.id, 'OUT');
+      document.getElementById('scan-edit-btn').onclick = () => openItemModal(match.id);
+
+      document.getElementById('scanned-banner').classList.remove('hidden');
+    }
+
     function closeScanBanner() {
+      activeScannedTag = null;
       document.getElementById('scanned-banner').classList.add('hidden');
       window.history.replaceState({}, document.title, window.location.pathname);
     }
 
-    // --- RENDER FUNCTIONS ---
+    // ============================================================================
+    // 4. INVENTORY & PLANT CRUD OPERATIONS
+    // ============================================================================
     function populatePlantDropdowns() {
       const filterSelect = document.getElementById('filter-plant');
       const modalSelect = document.getElementById('item-plant');
@@ -505,7 +643,7 @@
       });
 
       if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="10" class="p-8 text-center text-slate-400">No matching inventory items found. Note: Items remain in the system until explicitly deleted, even at 0 quantity.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="10" class="p-8 text-center text-slate-400">No matching inventory items found. Items remain in the system until explicitly deleted.</td></tr>`;
         updateSelectedCounter();
         return;
       }
@@ -547,10 +685,10 @@
             </div>
           </td>
           <td class="p-3 text-center whitespace-nowrap">
-            <button onclick="openCheckModal('${item.id}', 'IN')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded text-xs font-semibold mr-1" title="Check In (+)">
+            <button onclick="openCheckModal('${item.id}', 'IN')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded text-xs font-semibold mr-1">
               + In
             </button>
-            <button onclick="openCheckModal('${item.id}', 'OUT')" class="bg-amber-600 hover:bg-amber-500 text-white px-2.5 py-1 rounded text-xs font-semibold" title="Check Out (-)">
+            <button onclick="openCheckModal('${item.id}', 'OUT')" class="bg-amber-600 hover:bg-amber-500 text-white px-2.5 py-1 rounded text-xs font-semibold">
               - Out
             </button>
           </td>
@@ -566,7 +704,6 @@
       updateSelectedCounter();
     }
 
-    // --- ITEM MODAL (ADD / EDIT / DELETE) ---
     function openItemModal(itemId = null) {
       populatePlantDropdowns();
       const modal = document.getElementById('item-modal');
@@ -617,7 +754,7 @@
       modal.classList.remove('flex');
     }
 
-    function saveItem(e) {
+    async function saveItem(e) {
       e.preventDefault();
       const editId = document.getElementById('edit-item-id').value;
       const plantCode = document.getElementById('item-plant').value;
@@ -654,23 +791,23 @@
         });
       }
 
-      saveState();
-      renderInventory();
       closeItemModal();
+      renderInventory();
+      if (activeScannedTag) refreshScannedBanner(activeScannedTag);
+      await saveState();
     }
 
-    function deleteItem(itemId) {
+    async function deleteItem(itemId) {
       const item = items.find(i => i.id === itemId);
       if (!item) return;
-      if (confirm(`Are you sure you want to permanently delete "${item.name}" (${item.tag}) from the system?`)) {
+      if (confirm(`Are you sure you want to permanently delete "${item.name}" (${item.tag}) from all devices?`)) {
         items = items.filter(i => i.id !== itemId);
         selectedItemIds.delete(itemId);
-        saveState();
         renderInventory();
+        await saveState();
       }
     }
 
-    // --- CHECK IN / CHECK OUT MODAL ---
     function openCheckModal(itemId, mode) {
       const item = items.find(i => i.id === itemId);
       if (!item) return;
@@ -709,7 +846,7 @@
       modal.classList.remove('flex');
     }
 
-    function confirmCheckInOut(e) {
+    async function confirmCheckInOut(e) {
       e.preventDefault();
       const itemId = document.getElementById('check-item-id').value;
       const mode = document.getElementById('check-mode').value;
@@ -732,18 +869,13 @@
         item.notes = item.notes ? `${item.notes}\n${logLine}` : logLine;
       }
 
-      saveState();
-      renderInventory();
-
-      const scanQty = document.getElementById('scan-qty');
-      if (scanQty) scanQty.textContent = item.quantity;
-      const scanNotes = document.getElementById('scan-notes');
-      if (scanNotes) scanNotes.textContent = item.notes || 'None provided.';
-
       closeCheckModal();
+      renderInventory();
+      if (activeScannedTag) refreshScannedBanner(activeScannedTag);
+      await saveState();
     }
 
-    // --- PLANT MANAGEMENT (ADD / EDIT / REMOVE) ---
+    // --- PLANT MANAGEMENT ---
     function openPlantModal() {
       renderPlantList();
       const modal = document.getElementById('plant-modal');
@@ -792,7 +924,7 @@
       document.getElementById('plant-submit-btn').textContent = 'Update';
     }
 
-    function savePlant(e) {
+    async function savePlant(e) {
       e.preventDefault();
       const oldCode = document.getElementById('edit-plant-old-code').value;
       const code = document.getElementById('plant-code').value.trim().toUpperCase();
@@ -831,24 +963,24 @@
       document.getElementById('plant-name').value = '';
       document.getElementById('plant-submit-btn').textContent = 'Add';
 
-      saveState();
       populatePlantDropdowns();
       renderPlantList();
       renderInventory();
+      await saveState();
     }
 
-    function deletePlant(code) {
+    async function deletePlant(code) {
       const associated = items.filter(i => i.plantCode === code).length;
       if (associated > 0) {
-        if (!confirm(`Warning: ${associated} item(s) are assigned to plant ${code}. Remove plant anyway? (Items will remain until deleted).`)) {
+        if (!confirm(`Warning: ${associated} item(s) are assigned to plant ${code}. Remove plant anyway?`)) {
           return;
         }
       }
       plants = plants.filter(p => p.code !== code);
-      saveState();
       populatePlantDropdowns();
       renderPlantList();
       renderInventory();
+      await saveState();
     }
 
     // --- DETAIL & SINGLE QR MODAL ---
@@ -875,7 +1007,7 @@
         text: qrUrl,
         width: 150,
         height: 150,
-        correctLevel: QRCode.CorrectLevel.L
+        correctLevel: QRCode.CorrectLevel.M
       });
 
       const modal = document.getElementById('detail-modal');
@@ -961,7 +1093,7 @@
           text: buildQRUrl(item),
           width: 135,
           height: 135,
-          correctLevel: QRCode.CorrectLevel.L
+          correctLevel: QRCode.CorrectLevel.M
         });
       });
 
@@ -985,17 +1117,17 @@
       const file = event.target.files[0];
       if (!file) return;
       const reader = new FileReader();
-      reader.onload = function(e) {
+      reader.onload = async function(e) {
         try {
           const imported = JSON.parse(e.target.result);
           if (imported.plants && imported.items) {
             plants = imported.plants;
             items = imported.items;
             plantSequences = imported.plantSequences || {};
-            saveState();
             populatePlantDropdowns();
             renderInventory();
-            alert('Inventory database imported successfully!');
+            await saveState();
+            alert('Inventory database imported and synced to Firebase!');
           }
         } catch (err) {
           alert('Invalid backup file format.');
@@ -1012,10 +1144,20 @@
         .replace(/"/g, '&quot;');
     }
 
-    // --- INITIALIZE APP ---
-    populatePlantDropdowns();
-    renderInventory();
-    checkUrlForScannedQR();
+    // --- INITIALIZE & AUTO-POLL CLOUD EVERY 6 SECONDS ---
+    async function initApp() {
+      populatePlantDropdowns();
+      renderInventory();
+      await checkUrlForScannedQR();
+      // Keep all open screens automatically synchronized every 6 seconds
+      setInterval(() => {
+        if (cloudDbUrl && document.visibilityState === 'visible') {
+          pullFromCloud(false);
+        }
+      }, 6000);
+    }
+
+    initApp();
   </script>
 </body>
 </html>
