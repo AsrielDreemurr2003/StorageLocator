@@ -51,7 +51,7 @@
           <p class="text-xs text-slate-400">Product Category Overview, 4-Digit Unit Codes & Live QR Tracking</p>
         </div>
       </div>
-      <div class="flex flex-wrap gap-2">
+      <div class="flex flex-wrap items-center gap-2">
         <button onclick="openCloudModal()" class="bg-indigo-600 hover:bg-indigo-500 px-3 py-2 rounded text-sm font-medium transition">
           ☁️ Cloud Status
         </button>
@@ -61,9 +61,17 @@
         <button onclick="openItemModal()" class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded text-sm font-semibold transition">
           ➕ Add New Item Type
         </button>
-        <button onclick="printSelectedQRCodes()" class="bg-emerald-600 hover:bg-emerald-500 px-4 py-2 rounded text-sm font-semibold transition">
-          🖨️ Print Selected QR (<span id="selected-count">0</span>)
-        </button>
+
+        <!-- Print & Global Unselect All QR Controls -->
+        <div class="flex items-center bg-slate-800 p-1 rounded-lg border border-slate-700 gap-1">
+          <button onclick="printSelectedQRCodes()" class="bg-emerald-600 hover:bg-emerald-500 px-3.5 py-1.5 rounded text-sm font-semibold transition">
+            🖨️ Print Selected QR (<span id="selected-count">0</span>)
+          </button>
+          <button id="global-unselect-btn" onclick="clearAllSelectedQRCodes()" disabled class="bg-rose-600 hover:bg-rose-500 disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed text-white px-3 py-1.5 rounded text-xs font-bold transition" title="Unselect all QR codes across all categories and plants">
+            ✕ Unselect All QR
+          </button>
+        </div>
+
         <button onclick="exportData()" class="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded text-sm font-medium transition" title="Download backup JSON">
           💾 Export
         </button>
@@ -218,12 +226,15 @@
         <div class="flex items-center gap-2 flex-wrap" id="breadcrumb-bar">
           <!-- Populated dynamically -->
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2">
           <button id="btn-view-overview" onclick="resetToOverview()" class="text-xs px-3 py-1.5 rounded-lg font-bold transition">
             📦 Item Types & Categories
           </button>
           <button id="btn-view-all-units" onclick="openAllUnitsView()" class="text-xs px-3 py-1.5 rounded-lg font-bold transition">
             📋 All Individual Units
+          </button>
+          <button id="bar-unselect-all-btn" onclick="clearAllSelectedQRCodes()" class="hidden text-xs bg-rose-100 hover:bg-rose-200 text-rose-800 border border-rose-300 px-3 py-1.5 rounded-lg font-bold transition">
+            ✕ Unselect All QR (<span id="bar-selected-count">0</span>)
           </button>
         </div>
       </div>
@@ -261,10 +272,13 @@
             ➕ Add More Units to This Type
           </button>
           <button onclick="toggleSelectAll(true)" class="text-xs bg-slate-700 hover:bg-slate-600 text-white font-semibold px-3 py-1.5 rounded">
-            Select All Visible
+            Select Visible
           </button>
           <button onclick="toggleSelectAll(false)" class="text-xs bg-slate-700 hover:bg-slate-600 text-white font-semibold px-3 py-1.5 rounded">
-            Clear Selection
+            Unselect Visible
+          </button>
+          <button onclick="clearAllSelectedQRCodes()" class="text-xs bg-rose-600 hover:bg-rose-500 text-white font-bold px-3 py-1.5 rounded shadow-sm">
+            ✕ Unselect All QR
           </button>
         </div>
       </div>
@@ -656,7 +670,6 @@
     }
     normalizeItems();
 
-    // Helper to extract the base prefix from an existing item code (strips trailing -0001)
     function extractBaseCodeFromItemCode(code) {
       if (!code) return '';
       return String(code).replace(/-\d{3,6}$/, '');
@@ -1243,7 +1256,6 @@
       renderInventory();
     }
 
-    // Opens the Add Modal pre-populated with an existing Product Type so inventory can grow easily
     function openAddMoreForProductType(categoryName, productName) {
       const templateItem = items.find(i =>
         (i.category || 'Uncategorized') === categoryName && i.name === productName
@@ -1441,6 +1453,7 @@
             total: 0,
             available: 0,
             checkedOut: 0,
+            selectedForPrint: 0,
             plants: new Set(),
             locations: new Set(),
             sampleCode: extractBaseCodeFromItemCode(item.itemCode)
@@ -1448,6 +1461,7 @@
         }
         const grp = productGroups.get(key);
         grp.total++;
+        if (selectedItemIds.has(item.id)) grp.selectedForPrint++;
         grp.plants.add(item.plantCode);
         if (item.location) grp.locations.add(item.location);
         if (item.activeCheckouts && item.activeCheckouts.length > 0) {
@@ -1461,6 +1475,15 @@
         const availColor = grp.available > 0
           ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
           : 'bg-red-50 border-red-300 text-red-700';
+
+        const allGroupSelected = grp.selectedForPrint === grp.total && grp.total > 0;
+        const printToggleBtn = allGroupSelected
+          ? `<button onclick="toggleGroupForPrinting('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}', false)" class="bg-rose-100 hover:bg-rose-200 text-rose-800 border border-rose-300 text-xs font-bold py-2 px-2.5 rounded-lg transition" title="Unselect all units of this item type from printing">
+               ✕ Unselect (${grp.selectedForPrint})
+             </button>`
+          : `<button onclick="toggleGroupForPrinting('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}', true)" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 border border-emerald-300 text-xs font-bold py-2 px-2.5 rounded-lg transition" title="Select all units of this item type for QR printing">
+               🖨️ ${grp.selectedForPrint > 0 ? `(${grp.selectedForPrint}/${grp.total})` : 'Select QR'}
+             </button>`;
 
         const card = document.createElement('div');
         card.className = 'bg-white rounded-xl shadow-sm hover:shadow-md border border-slate-200 p-5 flex flex-col justify-between transition';
@@ -1503,23 +1526,21 @@
             <button onclick="openAddMoreForProductType('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}')" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2 px-3 rounded-lg transition shadow-sm" title="Add more units to this product type">
               ➕ Add Units
             </button>
-            <button onclick="selectGroupForPrinting('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}')" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-xs font-bold py-2 px-2.5 rounded-lg transition" title="Select all units of this item type for QR printing">
-              🖨️
-            </button>
+            ${printToggleBtn}
           </div>
         `;
         grid.appendChild(card);
       });
     }
 
-    function selectGroupForPrinting(categoryName, productName) {
+    function toggleGroupForPrinting(categoryName, productName, shouldSelect) {
       items.forEach(item => {
         if ((item.category || 'Uncategorized') === categoryName && item.name === productName) {
-          selectedItemIds.add(item.id);
+          if (shouldSelect) selectedItemIds.add(item.id);
+          else selectedItemIds.delete(item.id);
         }
       });
-      updateSelectedCounter();
-      selectProductTypeView(categoryName, productName);
+      renderInventory();
     }
 
     function renderUnitsTable(baseFiltered) {
@@ -1551,6 +1572,11 @@
         addMoreBtn.classList.add('hidden');
       }
       subtitleEl.textContent = `${availableCount} Available in Storage • ${checkedOutCount} Checked Out • ${filtered.length} Total Unit(s)`;
+
+      const masterCheckbox = document.getElementById('master-checkbox');
+      if (masterCheckbox) {
+        masterCheckbox.checked = filtered.length > 0 && filtered.every(i => selectedItemIds.has(i.id));
+      }
 
       if (filtered.length === 0) {
         tbody.innerHTML = `<tr><td colspan="9" class="p-8 text-center text-slate-400">No matching units found in this view.</td></tr>`;
@@ -1694,7 +1720,6 @@
       const cleanBase = extractBaseCodeFromItemCode((baseCodeRaw || '').trim().toUpperCase());
       if (cleanBase) return cleanBase;
 
-      // If an item with the same name & category already exists, reuse its base code prefix automatically
       if (itemName) {
         const existingMatch = items.find(i =>
           i.name.toLowerCase() === itemName.trim().toLowerCase() &&
@@ -1712,7 +1737,6 @@
       return `${plantCode || 'PLT'}-${catPrefix}`;
     }
 
-    // Generates 4-digit sequential Item Codes (e.g. MTR-5HP-0001, MTR-5HP-0002)
     function buildBatchItemCodes(baseCodeRaw, count, plantCode, category, itemName) {
       const base = getEffectiveBaseCode(baseCodeRaw, plantCode, category, itemName);
 
@@ -2013,7 +2037,7 @@
       modal.classList.remove('flex');
     }
 
-    // --- MASS SELECTION & QR PRINTING ---
+    // --- MASS SELECTION & GLOBAL UNSELECT ALL QR PRINTING ---
     function toggleItemSelect(id, checked) {
       if (checked) selectedItemIds.add(id);
       else selectedItemIds.delete(id);
@@ -2036,13 +2060,37 @@
       renderInventory();
     }
 
+    // Instantly clears the entire QR print queue across all categories and plants
+    function clearAllSelectedQRCodes() {
+      if (selectedItemIds.size === 0) return;
+      selectedItemIds.clear();
+      const master = document.getElementById('master-checkbox');
+      if (master) master.checked = false;
+      renderInventory();
+    }
+
     function updateSelectedCounter() {
-      document.getElementById('selected-count').textContent = selectedItemIds.size;
+      const count = selectedItemIds.size;
+      document.getElementById('selected-count').textContent = count;
+
+      const barCountEl = document.getElementById('bar-selected-count');
+      if (barCountEl) barCountEl.textContent = count;
+
+      const globalUnselectBtn = document.getElementById('global-unselect-btn');
+      if (globalUnselectBtn) {
+        globalUnselectBtn.disabled = count === 0;
+      }
+
+      const barUnselectBtn = document.getElementById('bar-unselect-all-btn');
+      if (barUnselectBtn) {
+        if (count > 0) barUnselectBtn.classList.remove('hidden');
+        else barUnselectBtn.classList.add('hidden');
+      }
     }
 
     function printSelectedQRCodes() {
       if (selectedItemIds.size === 0) {
-        alert('Please select at least one unit (or click the 🖨️ button on an item card) to print QR labels.');
+        alert('Please select at least one unit (or click "🖨️ Select QR" on an item card) to print QR labels.');
         return;
       }
 
