@@ -3,14 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>StorageLocater - Category & Unit QR Inventory</title>
-  <!-- Tailwind CSS for styling -->
+  <title>StorageLocater — Multi-Plant QR Inventory</title>
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- QRCode.js for generating scannable QR codes -->
+  <!-- QRCode.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <!-- EmailJS SDK for optional silent background email alerts -->
+  <!-- EmailJS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
     @media print {
       body * { visibility: hidden; }
       #print-area, #print-area * { visibility: visible; }
@@ -43,181 +50,232 @@
     }
   </style>
 </head>
-<body class="bg-slate-100 text-slate-800 min-h-screen">
+<body class="bg-slate-50 text-slate-800 min-h-screen pb-24 overflow-x-hidden">
 
-  <!-- Live Toast Notification Container (Top Right) -->
-  <div id="toast-container" class="fixed top-20 right-4 z-50 space-y-2 max-w-sm w-full pointer-events-none no-print"></div>
+  <!-- Live Toast Notification Container -->
+  <div id="toast-container" class="fixed top-16 right-4 z-50 space-y-2 max-w-sm w-full pointer-events-none no-print"></div>
 
-  <!-- Top Navigation Bar -->
-  <header class="bg-slate-900 text-white shadow-md no-print">
-    <div class="max-w-7xl mx-auto px-4 py-4 flex flex-wrap justify-between items-center gap-4">
-      <div class="flex items-center space-x-3">
-        <span class="text-2xl">🏭</span>
-        <div>
-          <div class="flex items-center gap-2 flex-wrap">
-            <h1 class="text-xl font-bold tracking-wide cursor-pointer" onclick="resetToOverview()">StorageLocater Inventory</h1>
-            <span id="sync-badge" onclick="openCloudModal()" class="cursor-pointer text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">
-              🟢 Connecting to Cloud...
-            </span>
+  <!-- Clean, Streamlined Top Navigation Bar -->
+  <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40 no-print">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
+      
+      <!-- Brand & Live Cloud Status -->
+      <div class="flex items-center gap-3 min-w-0">
+        <div onclick="resetToOverview()" class="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-lg shadow-sm cursor-pointer shrink-0">
+          🏭
+        </div>
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <h1 onclick="resetToOverview()" class="text-base sm:text-lg font-bold tracking-tight truncate cursor-pointer hover:text-blue-300 transition">
+              StorageLocater
+            </h1>
+            <button id="sync-badge" onclick="openCloudModal()" class="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shrink-0 hover:bg-emerald-500/25 transition" title="Cloud Sync Status">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span id="sync-badge-text" class="hidden sm:inline">Connecting...</span>
+            </button>
           </div>
-          <p class="text-xs text-slate-400">Product Category Overview, 4-Digit Unit Codes, Email Alerts & Live Notifications</p>
+          <p class="text-[11px] text-slate-400 truncate hidden sm:block">Multi-Plant QR Asset & Quality Tracker</p>
         </div>
       </div>
-      <div class="flex flex-wrap items-center gap-2">
-        <!-- App Notification Bell Button -->
-        <button onclick="openNotificationsModal()" class="relative bg-slate-800 hover:bg-slate-700 border border-slate-600 px-3 py-2 rounded text-sm font-semibold transition flex items-center gap-1.5" title="View App Check-Out Notifications">
-          <span>🔔 Alerts</span>
-          <span id="notif-unread-badge" class="hidden bg-rose-600 text-white text-[11px] font-extrabold px-1.5 py-0.2 rounded-full">0</span>
+
+      <!-- Compact Right Action Controls (Never Overflows) -->
+      <div class="flex items-center gap-2 shrink-0">
+        <!-- Print Queue Quick Button (Always accessible in header too) -->
+        <button onclick="printSelectedQRCodes()" id="header-print-btn" class="hidden sm:inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded-lg text-xs font-semibold transition shadow-sm">
+          <span>🖨️ Print QR</span>
+          <span id="selected-count" class="bg-black/25 px-1.5 py-0.5 rounded text-[11px] font-mono">0</span>
         </button>
 
-        <button onclick="openEmailConfigModal()" class="bg-violet-600 hover:bg-violet-500 px-3 py-2 rounded text-sm font-medium transition" title="Configure Automatic Email Alerts">
-          ✉️ Email Config
+        <!-- Notification Bell -->
+        <button onclick="openNotificationsModal()" class="relative bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-1.5" title="View Check-Out Alerts">
+          <span>🔔</span>
+          <span class="hidden md:inline">Alerts</span>
+          <span id="notif-unread-badge" class="hidden bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full">0</span>
         </button>
 
-        <button onclick="openCloudModal()" class="bg-indigo-600 hover:bg-indigo-500 px-3 py-2 rounded text-sm font-medium transition">
-          ☁️ Cloud Status
-        </button>
-        <button onclick="openPlantModal()" class="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded text-sm font-medium transition">
-          🏢 Manage Plants
-        </button>
-        <button onclick="openItemModal()" class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded text-sm font-semibold transition">
-          ➕ Add New Item Type
+        <!-- Primary Add Button -->
+        <button onclick="openItemModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-3.5 py-2 rounded-lg text-xs font-bold transition shadow-sm flex items-center gap-1.5">
+          <span>➕</span>
+          <span>Add Item</span>
         </button>
 
-        <!-- Print & Global Unselect All QR Controls -->
-        <div class="flex items-center bg-slate-800 p-1 rounded-lg border border-slate-700 gap-1">
-          <button onclick="printSelectedQRCodes()" class="bg-emerald-600 hover:bg-emerald-500 px-3.5 py-1.5 rounded text-sm font-semibold transition">
-            🖨️ Print Selected QR (<span id="selected-count">0</span>)
+        <!-- Clean Dropdown Menu for Admin & Settings -->
+        <div class="relative">
+          <button onclick="toggleSettingsMenu(event)" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-1">
+            <span>⚙️</span>
+            <span class="hidden sm:inline">Menu</span>
+            <span class="text-[10px] text-slate-400 ml-0.5">▼</span>
           </button>
-          <button id="global-unselect-btn" onclick="clearAllSelectedQRCodes()" disabled class="bg-rose-600 hover:bg-rose-500 disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed text-white px-3 py-1.5 rounded text-xs font-bold transition" title="Unselect all QR codes across all categories and plants">
-            ✕ Unselect All QR
-          </button>
+
+          <div id="settings-dropdown" class="hidden absolute right-0 mt-2 w-56 bg-white text-slate-800 rounded-xl shadow-xl border border-slate-200 py-1.5 z-50 text-xs font-medium">
+            <div class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">System Management</div>
+            <button onclick="closeSettingsMenu(); openPlantModal()" class="w-full text-left px-3.5 py-2 hover:bg-slate-100 flex items-center gap-2.5">
+              <span>🏢</span> Manage Plants
+            </button>
+            <button onclick="closeSettingsMenu(); openEmailConfigModal()" class="w-full text-left px-3.5 py-2 hover:bg-slate-100 flex items-center gap-2.5">
+              <span>✉️</span> Email Alert Settings
+            </button>
+            <button onclick="closeSettingsMenu(); openCloudModal()" class="w-full text-left px-3.5 py-2 hover:bg-slate-100 flex items-center gap-2.5">
+              <span>☁️</span> Cloud Database Status
+            </button>
+            <div class="border-t my-1 border-slate-100"></div>
+            <div class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">QR Print & Backup</div>
+            <button onclick="closeSettingsMenu(); printSelectedQRCodes()" class="w-full text-left px-3.5 py-2 hover:bg-slate-100 flex items-center justify-between">
+              <span class="flex items-center gap-2.5"><span>🖨️</span> Print Selected QR</span>
+              <span id="menu-selected-count" class="font-mono font-bold text-emerald-600">0</span>
+            </button>
+            <button onclick="closeSettingsMenu(); clearAllSelectedQRCodes()" class="w-full text-left px-3.5 py-2 hover:bg-rose-50 text-rose-600 flex items-center gap-2.5">
+              <span>✕</span> Unselect All QR Codes
+            </button>
+            <div class="border-t my-1 border-slate-100"></div>
+            <button onclick="closeSettingsMenu(); exportData()" class="w-full text-left px-3.5 py-2 hover:bg-slate-100 flex items-center gap-2.5">
+              <span>💾</span> Export Backup (.json)
+            </button>
+            <label class="w-full text-left px-3.5 py-2 hover:bg-slate-100 flex items-center gap-2.5 cursor-pointer">
+              <span>📂</span> Import Backup (.json)
+              <input type="file" id="import-file" class="hidden" accept=".json" onchange="importData(event)" />
+            </label>
+          </div>
         </div>
-
-        <button onclick="exportData()" class="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded text-sm font-medium transition" title="Download backup JSON">
-          💾 Export
-        </button>
-        <label class="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded text-sm font-medium transition cursor-pointer" title="Restore backup JSON">
-          📂 Import
-          <input type="file" id="import-file" class="hidden" accept=".json" onchange="importData(event)" />
-        </label>
       </div>
+
     </div>
   </header>
 
-  <!-- Dedicated Individual Item QR Scan Page / View -->
-  <div id="scanned-banner" class="hidden max-w-5xl mx-auto mt-6 px-4 no-print">
-    <div class="bg-white border-4 border-blue-600 rounded-2xl p-6 shadow-2xl">
-      <div class="flex flex-wrap justify-between items-start gap-4 border-b pb-4">
+  <!-- Floating Bottom QR Print Selection Bar (Appears Automatically When Any QR is Selected) -->
+  <div id="floating-print-bar" class="hidden fixed bottom-4 inset-x-4 max-w-3xl mx-auto bg-slate-900 text-white rounded-2xl shadow-2xl border border-slate-700 px-5 py-3.5 z-40 no-print flex flex-wrap items-center justify-between gap-3">
+    <div class="flex items-center gap-3">
+      <span class="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 flex items-center justify-center font-mono font-bold text-sm" id="floating-selected-count">0</span>
+      <div>
+        <p class="text-xs font-bold text-white">QR Label(s) Selected for Printing</p>
+        <p class="text-[11px] text-slate-400">Ready to format into 3-column printable QR sticker sheets</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <button onclick="clearAllSelectedQRCodes()" class="bg-rose-600/20 hover:bg-rose-600 border border-rose-500/40 text-rose-200 hover:text-white px-3.5 py-2 rounded-xl text-xs font-bold transition">
+        ✕ Unselect All QR
+      </button>
+      <button onclick="printSelectedQRCodes()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg transition">
+        🖨️ Print Selected QR Codes
+      </button>
+    </div>
+  </div>
+
+  <!-- Dedicated Individual Item QR Scan View -->
+  <div id="scanned-banner" class="hidden max-w-5xl mx-auto mt-6 px-4 sm:px-6 no-print">
+    <div class="bg-white border-2 border-blue-600 rounded-2xl p-5 sm:p-6 shadow-xl">
+      <div class="flex flex-wrap justify-between items-start gap-3 border-b border-slate-100 pb-4">
         <div>
           <div class="flex items-center gap-2 flex-wrap">
-            <span class="bg-blue-600 text-white text-xs font-bold px-2.5 py-1 rounded uppercase tracking-wider">📱 Dedicated Unit QR Page</span>
-            <span id="scan-status-pill" class="text-xs font-bold px-2.5 py-1 rounded uppercase"></span>
+            <span class="bg-blue-600 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-md uppercase tracking-wider">📱 QR Scan View</span>
+            <span id="scan-status-pill" class="text-[11px] font-bold px-2.5 py-0.5 rounded-md uppercase"></span>
           </div>
-          <h2 id="scan-title" class="text-2xl font-bold text-slate-900 mt-2"></h2>
-          <div class="flex flex-wrap items-center gap-3 mt-1">
-            <span id="scan-tag" class="text-sm font-mono bg-blue-50 text-blue-800 border border-blue-200 px-2.5 py-0.5 rounded font-bold"></span>
-            <span id="scan-code" class="text-sm font-mono bg-slate-100 px-2.5 py-0.5 rounded border border-slate-300 text-slate-800 font-bold"></span>
+          <h2 id="scan-title" class="text-xl sm:text-2xl font-bold text-slate-900 mt-2"></h2>
+          <div class="flex flex-wrap items-center gap-2 mt-1.5">
+            <span id="scan-tag" class="text-xs font-mono bg-blue-50 text-blue-800 border border-blue-200 px-2.5 py-0.5 rounded font-bold"></span>
+            <span id="scan-code" class="text-xs font-mono bg-slate-100 px-2.5 py-0.5 rounded border border-slate-200 text-slate-700 font-bold"></span>
           </div>
         </div>
-        <button onclick="closeScanBanner()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold">
-          ✕ Return to Inventory Display
+        <button onclick="closeScanBanner()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold transition">
+          ✕ Close View
         </button>
       </div>
 
       <!-- Primary Action Prompt Banner -->
       <div id="scan-smart-prompt" class="mt-4 p-4 rounded-xl border flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h3 id="scan-prompt-title" class="font-bold text-base"></h3>
+          <h3 id="scan-prompt-title" class="font-bold text-sm sm:text-base"></h3>
           <p id="scan-prompt-desc" class="text-xs mt-0.5"></p>
         </div>
         <div class="flex flex-wrap gap-2">
-          <button id="scan-checkout-btn" class="bg-amber-600 hover:bg-amber-500 text-white px-5 py-2.5 rounded-lg font-bold text-sm shadow-md transition">
-            📤 Check Out This Unit
+          <button id="scan-checkout-btn" class="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-lg font-bold text-xs sm:text-sm shadow transition">
+            📤 Check Out Unit
           </button>
-          <button id="scan-checkin-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 rounded-lg font-bold text-sm shadow-md transition">
-            📥 Check In Unit & Rate Quality
+          <button id="scan-checkin-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg font-bold text-xs sm:text-sm shadow transition">
+            📥 Check In & Rate Quality
           </button>
         </div>
       </div>
 
       <!-- Item Specs Grid -->
-      <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+      <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-4 bg-slate-50 p-4 rounded-xl border border-slate-200/80">
         <div>
-          <p class="text-[11px] text-slate-500 uppercase font-bold">Plant</p>
-          <p id="scan-plant" class="font-semibold text-slate-800 text-sm mt-0.5"></p>
+          <p class="text-[10px] text-slate-400 uppercase font-bold">Plant</p>
+          <p id="scan-plant" class="font-semibold text-slate-800 text-xs sm:text-sm mt-0.5"></p>
         </div>
         <div>
-          <p class="text-[11px] text-slate-500 uppercase font-bold">Category</p>
-          <p id="scan-category" class="font-semibold text-slate-800 text-sm mt-0.5"></p>
+          <p class="text-[10px] text-slate-400 uppercase font-bold">Category</p>
+          <p id="scan-category" class="font-semibold text-slate-800 text-xs sm:text-sm mt-0.5"></p>
         </div>
         <div>
-          <p class="text-[11px] text-slate-500 uppercase font-bold">Home Storage Location</p>
-          <p id="scan-location" class="font-semibold text-slate-800 text-sm mt-0.5"></p>
+          <p class="text-[10px] text-slate-400 uppercase font-bold">Home Location</p>
+          <p id="scan-location" class="font-semibold text-slate-800 text-xs sm:text-sm mt-0.5"></p>
         </div>
         <div>
-          <p class="text-[11px] text-slate-500 uppercase font-bold">Unit Status</p>
-          <p id="scan-qty" class="text-base font-bold mt-0.5"></p>
+          <p class="text-[10px] text-slate-400 uppercase font-bold">Status</p>
+          <p id="scan-qty" class="text-xs sm:text-sm font-bold mt-0.5"></p>
         </div>
         <div>
-          <p class="text-[11px] text-slate-500 uppercase font-bold">Current Quality</p>
+          <p class="text-[10px] text-slate-400 uppercase font-bold">Quality</p>
           <div id="scan-quality-badge" class="mt-1"></div>
         </div>
       </div>
 
       <!-- Active Check-Out with Live Timer -->
       <div id="scan-active-checkouts-box" class="mt-4 hidden">
-        <h4 class="text-xs font-bold uppercase text-amber-800 mb-2">⏱️ Currently Checked Out (Live Time Tracking)</h4>
+        <h4 class="text-[11px] font-bold uppercase text-amber-800 mb-2">⏱️ Active Check-Out Timer</h4>
         <div id="scan-active-checkouts-list" class="space-y-2"></div>
       </div>
 
       <!-- Notes & Work Instructions -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-          <p class="text-xs font-bold text-slate-500 uppercase mb-1">📋 Details & Notes</p>
-          <p id="scan-notes" class="text-sm text-slate-700 whitespace-pre-line"></p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+        <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200/80">
+          <p class="text-[11px] font-bold text-slate-400 uppercase mb-1">📋 Details & Notes</p>
+          <p id="scan-notes" class="text-xs sm:text-sm text-slate-700 whitespace-pre-line"></p>
         </div>
-        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-          <p class="text-xs font-bold text-slate-500 uppercase mb-1">🛠️ Work Instructions</p>
-          <p id="scan-instructions" class="text-sm text-slate-700 whitespace-pre-line"></p>
+        <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200/80">
+          <p class="text-[11px] font-bold text-slate-400 uppercase mb-1">🛠️ Work Instructions</p>
+          <p id="scan-instructions" class="text-xs sm:text-sm text-slate-700 whitespace-pre-line"></p>
         </div>
       </div>
 
-      <div class="mt-4 pt-3 border-t flex flex-wrap justify-between items-center gap-2">
+      <div class="mt-4 pt-3 border-t border-slate-100 flex flex-wrap justify-between items-center gap-2">
         <div class="flex flex-wrap gap-2">
-          <button id="scan-history-btn" class="text-xs bg-slate-800 hover:bg-slate-700 text-white px-3.5 py-2 rounded-lg font-semibold">
-            📜 View Unit History Log
+          <button id="scan-history-btn" class="text-xs bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg font-semibold transition">
+            📜 History Log
           </button>
-          <button id="scan-qr-btn" class="text-xs bg-slate-200 hover:bg-slate-300 text-slate-800 px-3.5 py-2 rounded-lg font-semibold">
-            🔍 View / Print Unit QR Code
+          <button id="scan-qr-btn" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg font-semibold transition">
+            🔍 QR Code
           </button>
         </div>
-        <button id="scan-edit-btn" class="text-xs bg-blue-100 hover:bg-blue-200 text-blue-800 px-3.5 py-2 rounded-lg font-semibold">
-          ✏️ Edit Unit / Change Quality
+        <button id="scan-edit-btn" class="text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg font-semibold transition">
+          ✏️ Edit Unit
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Main Content Area -->
-  <main class="max-w-7xl mx-auto px-4 py-6 no-print">
+  <!-- Main Content Container -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 no-print space-y-5">
 
-    <!-- Filters & Search Bar -->
-    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-4 flex flex-wrap gap-4 items-end justify-between">
-      <div class="flex flex-wrap gap-3 flex-1">
-        <div class="w-full sm:w-60">
-          <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Search Categories, Types or Units</label>
-          <input type="text" id="search-input" oninput="renderInventory()" placeholder="Search category, item name, tag, code..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+    <!-- Unified Control Card: Search, Filters & Category Navigation -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200/90 p-4 sm:p-5 space-y-4">
+      
+      <!-- 4-Column Responsive Filter Grid (Fits 100% of screen width cleanly) -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div>
+          <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Search Inventory</label>
+          <input type="text" id="search-input" oninput="renderInventory()" placeholder="Name, category, tag, code..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
-        <div class="w-full sm:w-44">
-          <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Filter by Plant</label>
-          <select id="filter-plant" onchange="renderInventory()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <div>
+          <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Plant Location</label>
+          <select id="filter-plant" onchange="renderInventory()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs sm:text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
             <option value="ALL">All Plants</option>
           </select>
         </div>
-        <div class="w-full sm:w-44">
-          <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Filter by Quality</label>
-          <select id="filter-quality" onchange="renderInventory()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <div>
+          <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Item Quality</label>
+          <select id="filter-quality" onchange="renderInventory()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs sm:text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
             <option value="ALL">All Qualities</option>
             <option value="New">New</option>
             <option value="Good">Good</option>
@@ -226,108 +284,104 @@
             <option value="Broken">Broken</option>
           </select>
         </div>
-        <div class="w-full sm:w-44">
-          <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Filter by Availability</label>
-          <select id="filter-status" onchange="renderInventory()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <div>
+          <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Availability Status</label>
+          <select id="filter-status" onchange="renderInventory()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs sm:text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
             <option value="ALL">All Units</option>
             <option value="IN_STORAGE">Available In Storage</option>
-            <option value="CHECKED_OUT">Checked Out</option>
+            <option value="CHECKED_OUT">Currently Checked Out</option>
           </select>
         </div>
       </div>
-      <div class="flex items-center space-x-2">
-        <button onclick="pullFromCloud(true)" class="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 font-semibold px-3 py-2 rounded">
-          🔄 Sync Now
-        </button>
-      </div>
-    </div>
 
-    <!-- View Mode Navigation & Category Pills Bar -->
-    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6">
-      <div class="flex flex-wrap items-center justify-between gap-3 border-b pb-3 mb-3">
-        <div class="flex items-center gap-2 flex-wrap" id="breadcrumb-bar">
+      <!-- Breadcrumb & View Switcher Row -->
+      <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100">
+        <div class="flex items-center gap-1.5 flex-wrap" id="breadcrumb-bar">
           <!-- Populated dynamically -->
         </div>
-        <div class="flex flex-wrap items-center gap-2">
-          <button id="btn-view-overview" onclick="resetToOverview()" class="text-xs px-3 py-1.5 rounded-lg font-bold transition">
-            📦 Item Types & Categories
+
+        <div class="flex flex-wrap items-center gap-1.5">
+          <div class="inline-flex rounded-lg bg-slate-100 p-1 border border-slate-200">
+            <button id="btn-view-overview" onclick="resetToOverview()" class="text-xs px-3 py-1.5 rounded-md font-semibold transition">
+              📦 Product Types
+            </button>
+            <button id="btn-view-all-units" onclick="openAllUnitsView()" class="text-xs px-3 py-1.5 rounded-md font-semibold transition">
+              📋 Individual Units
+            </button>
+          </div>
+          <button onclick="pullFromCloud(true)" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 font-semibold px-3 py-2 rounded-lg transition" title="Sync with Cloud">
+            🔄 Sync
           </button>
-          <button id="btn-view-all-units" onclick="openAllUnitsView()" class="text-xs px-3 py-1.5 rounded-lg font-bold transition">
-            📋 All Individual Units
-          </button>
-          <button id="bar-unselect-all-btn" onclick="clearAllSelectedQRCodes()" class="hidden text-xs bg-rose-100 hover:bg-rose-200 text-rose-800 border border-rose-300 px-3 py-1.5 rounded-lg font-bold transition">
-            ✕ Unselect All QR (<span id="bar-selected-count">0</span>)
+          <button id="bar-unselect-all-btn" onclick="clearAllSelectedQRCodes()" class="hidden text-xs bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 px-3 py-2 rounded-lg font-bold transition">
+            ✕ Unselect All (<span id="bar-selected-count">0</span>)
           </button>
         </div>
       </div>
 
       <!-- Clickable Product Categories Bar -->
-      <div>
-        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Click a Product Category to View Available Items:</p>
-        <div id="category-pills-container" class="flex flex-wrap gap-2">
+      <div class="pt-2 border-t border-slate-100">
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Product Categories (Click to View Items):</p>
+        <div id="category-pills-container" class="flex flex-wrap gap-1.5">
           <!-- Populated dynamically -->
         </div>
       </div>
     </div>
 
-    <!-- OVERVIEW DISPLAY: Grouped Product Types & Categories -->
-    <div id="overview-section" class="space-y-6">
-      <div id="product-types-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+    <!-- OVERVIEW DISPLAY: Grouped Product Types Grid -->
+    <div id="overview-section">
+      <div id="product-types-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <!-- Populated by JavaScript -->
       </div>
     </div>
 
     <!-- DRILL-DOWN DISPLAY: Individual Serialized Units Table -->
-    <div id="units-section" class="hidden">
-      <div class="bg-slate-800 text-white px-4 py-3 rounded-t-xl flex flex-wrap justify-between items-center gap-3">
+    <div id="units-section" class="hidden bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <div class="bg-slate-900 text-white px-4 sm:px-5 py-3.5 flex flex-wrap justify-between items-center gap-3">
         <div class="flex items-center gap-3">
-          <button onclick="resetToOverview()" class="bg-slate-700 hover:bg-slate-600 text-xs font-bold px-3 py-1.5 rounded-lg transition">
-            ← Back to Item Types
+          <button onclick="resetToOverview()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold px-3 py-1.5 rounded-lg transition">
+            ← Back
           </button>
           <div>
-            <h3 id="units-section-title" class="font-bold text-base">Individual Units</h3>
-            <p id="units-section-subtitle" class="text-xs text-slate-300"></p>
+            <h3 id="units-section-title" class="font-bold text-sm sm:text-base">Individual Units</h3>
+            <p id="units-section-subtitle" class="text-[11px] text-slate-400"></p>
           </div>
         </div>
         <div class="flex flex-wrap items-center gap-2">
-          <button id="units-add-more-btn" class="hidden text-xs bg-blue-600 hover:bg-blue-500 text-white font-bold px-3 py-1.5 rounded shadow">
-            ➕ Add More Units to This Type
+          <button id="units-add-more-btn" class="hidden text-xs bg-blue-600 hover:bg-blue-500 text-white font-bold px-3 py-1.5 rounded-lg shadow-sm transition">
+            ➕ Add More Units
           </button>
-          <button onclick="toggleSelectAll(true)" class="text-xs bg-slate-700 hover:bg-slate-600 text-white font-semibold px-3 py-1.5 rounded">
+          <button onclick="toggleSelectAll(true)" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-medium px-2.5 py-1.5 rounded-lg transition">
             Select Visible
           </button>
-          <button onclick="toggleSelectAll(false)" class="text-xs bg-slate-700 hover:bg-slate-600 text-white font-semibold px-3 py-1.5 rounded">
+          <button onclick="toggleSelectAll(false)" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-medium px-2.5 py-1.5 rounded-lg transition">
             Unselect Visible
           </button>
-          <button onclick="clearAllSelectedQRCodes()" class="text-xs bg-rose-600 hover:bg-rose-500 text-white font-bold px-3 py-1.5 rounded shadow-sm">
-            ✕ Unselect All QR
+          <button onclick="clearAllSelectedQRCodes()" class="text-xs bg-rose-600/20 hover:bg-rose-600 border border-rose-500/40 text-rose-200 hover:text-white font-semibold px-2.5 py-1.5 rounded-lg transition">
+            ✕ Unselect All
           </button>
         </div>
       </div>
 
-      <div class="bg-white rounded-b-xl shadow-sm border border-t-0 border-slate-200 overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead>
-              <tr class="bg-slate-100 text-slate-700 border-b border-slate-200 text-xs uppercase tracking-wider">
-                <th class="p-3 w-10 text-center">
-                  <input type="checkbox" id="master-checkbox" onchange="toggleSelectAll(this.checked)" class="w-4 h-4 accent-blue-600 cursor-pointer" />
-                </th>
-                <th class="p-3">Plant Tag & 4-Digit Item Code</th>
-                <th class="p-3">Item Name & Category</th>
-                <th class="p-3">Plant & Home Location</th>
-                <th class="p-3">Quality Status</th>
-                <th class="p-3 text-center">Availability</th>
-                <th class="p-3">Live Check-Out Timer & Holder</th>
-                <th class="p-3 text-center">Check Out / In</th>
-                <th class="p-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="inventory-tbody" class="divide-y divide-slate-200 text-sm">
-              <!-- Populated by JavaScript -->
-            </tbody>
-          </table>
-        </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50 text-slate-500 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider">
+              <th class="p-3 w-10 text-center">
+                <input type="checkbox" id="master-checkbox" onchange="toggleSelectAll(this.checked)" class="w-4 h-4 accent-blue-600 cursor-pointer rounded" />
+              </th>
+              <th class="p-3">Plant Tag & Code</th>
+              <th class="p-3">Item & Category</th>
+              <th class="p-3">Plant & Location</th>
+              <th class="p-3">Quality</th>
+              <th class="p-3 text-center">Status</th>
+              <th class="p-3">Active Check-Out Timer</th>
+              <th class="p-3 text-right">Unit Actions</th>
+            </tr>
+          </thead>
+          <tbody id="inventory-tbody" class="divide-y divide-slate-200/80 text-xs sm:text-sm">
+            <!-- Populated by JavaScript -->
+          </tbody>
+        </table>
       </div>
     </div>
 
@@ -336,40 +390,39 @@
   <!-- Printable QR Area -->
   <div id="print-area" class="hidden"></div>
 
-  <!-- MODAL: Check Out Individual Unit (Now Requires User Email Address & Sends Email Alert) -->
+  <!-- MODAL: Check Out Individual Unit -->
   <div id="checkout-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print">
-    <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
       <div class="flex justify-between items-center border-b pb-3 mb-3">
-        <h3 class="text-lg font-bold text-slate-900">📤 Check Out Unit & Send Email Alert</h3>
+        <h3 class="text-base font-bold text-slate-900">📤 Check Out Unit & Send Alert</h3>
         <button onclick="closeCheckOutModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
       </div>
-      <p id="checkout-modal-subtitle" class="text-xs font-mono font-bold text-blue-700 mb-4 bg-blue-50 p-2.5 rounded border border-blue-200"></p>
+      <p id="checkout-modal-subtitle" class="text-xs font-mono font-bold text-blue-700 mb-4 bg-blue-50 p-2.5 rounded-lg border border-blue-200"></p>
       <form onsubmit="confirmCheckOut(event)" class="space-y-3.5">
         <input type="hidden" id="checkout-item-id" />
         <div>
-          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Your Name (Checked Out By) *</label>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Your Name *</label>
           <input type="text" id="checkout-user" required placeholder="e.g. John Smith" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
         </div>
         <div>
-          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Your Email Address (For Check-Out Alert) *</label>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Your Email Address *</label>
           <input type="email" id="checkout-email" required placeholder="e.g. john.smith@company.com" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
-          <p class="text-[10px] text-slate-400 mt-0.5">An email confirmation with the item details & return link will be sent here.</p>
         </div>
         <div>
-          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Destination Location (Where Unit is Going) *</label>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Destination Location *</label>
           <input type="text" id="checkout-destination" required placeholder="e.g. Assembly Line 3, Press Bay 2" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Additional Notes</label>
-          <textarea id="checkout-note" rows="2" placeholder="Work order #, reason for checkout, or comments..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"></textarea>
+          <textarea id="checkout-note" rows="2" placeholder="Work order #, reason for checkout..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"></textarea>
         </div>
         <div class="bg-amber-50 border border-amber-200 rounded-lg p-2.5 flex items-center gap-2 text-xs text-amber-900">
           <input type="checkbox" id="checkout-send-email-toggle" checked class="w-4 h-4 accent-amber-600 cursor-pointer" />
-          <label for="checkout-send-email-toggle" class="cursor-pointer font-medium">Send Email Alert Receipt to this email address upon check-out</label>
+          <label for="checkout-send-email-toggle" class="cursor-pointer font-medium">Send Email Alert Receipt to this address</label>
         </div>
         <div class="flex justify-end space-x-2 pt-3 border-t">
-          <button type="button" onclick="closeCheckOutModal()" class="px-4 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 text-sm font-medium">Cancel</button>
-          <button type="submit" id="checkout-submit-btn" class="px-5 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-sm font-bold shadow">Check Out & Notify</button>
+          <button type="button" onclick="closeCheckOutModal()" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium">Cancel</button>
+          <button type="submit" class="px-5 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-sm font-bold shadow">Check Out & Notify</button>
         </div>
       </form>
     </div>
@@ -377,12 +430,12 @@
 
   <!-- MODAL: Check In Individual Unit & Rate Quality -->
   <div id="checkin-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print">
-    <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
       <div class="flex justify-between items-center border-b pb-3 mb-3">
-        <h3 class="text-lg font-bold text-slate-900">📥 Check In Unit & Rate Quality</h3>
+        <h3 class="text-base font-bold text-slate-900">📥 Check In Unit & Rate Quality</h3>
         <button onclick="closeCheckInModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
       </div>
-      <p id="checkin-modal-subtitle" class="text-xs font-mono font-bold text-emerald-800 mb-4 bg-emerald-50 p-2.5 rounded border border-emerald-200"></p>
+      <p id="checkin-modal-subtitle" class="text-xs font-mono font-bold text-emerald-800 mb-4 bg-emerald-50 p-2.5 rounded-lg border border-emerald-200"></p>
       <form onsubmit="confirmCheckIn(event)" class="space-y-3.5">
         <input type="hidden" id="checkin-item-id" />
         <div>
@@ -404,7 +457,7 @@
           <textarea id="checkin-note" rows="2" placeholder="Any wear, damage, or restocking notes..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"></textarea>
         </div>
         <div class="flex justify-end space-x-2 pt-3 border-t">
-          <button type="button" onclick="closeCheckInModal()" class="px-4 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 text-sm font-medium">Cancel</button>
+          <button type="button" onclick="closeCheckInModal()" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium">Cancel</button>
           <button type="submit" class="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold shadow">Complete Check-In</button>
         </div>
       </form>
@@ -413,55 +466,52 @@
 
   <!-- MODAL: Live In-App Notifications Center -->
   <div id="notifications-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print">
-    <div class="bg-white rounded-xl max-w-2xl w-full p-6 shadow-2xl max-h-[85vh] flex flex-col">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl max-h-[85vh] flex flex-col">
       <div class="flex justify-between items-center border-b pb-3 mb-4">
         <div class="flex items-center gap-2">
           <span class="text-xl">🔔</span>
           <div>
-            <h2 class="text-lg font-bold text-slate-900">Live App Check-Out Notifications</h2>
+            <h2 class="text-base font-bold text-slate-900">Live App Check-Out Notifications</h2>
             <p class="text-xs text-slate-500">Synced across all connected devices in real time</p>
           </div>
         </div>
         <button onclick="closeNotificationsModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
       </div>
 
-      <div id="notifications-list" class="overflow-y-auto flex-1 space-y-2.5 pr-1">
-        <!-- Populated by JavaScript -->
-      </div>
+      <div id="notifications-list" class="overflow-y-auto flex-1 space-y-2.5 pr-1"></div>
 
       <div class="flex justify-between items-center pt-4 mt-4 border-t">
-        <button onclick="clearAllNotifications()" class="text-xs bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold px-3 py-2 rounded-lg">
+        <button onclick="clearAllNotifications()" class="text-xs bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold px-3 py-2 rounded-lg">
           🗑️ Clear All Notifications
         </button>
-        <button onclick="closeNotificationsModal()" class="px-4 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 text-sm font-medium">
+        <button onclick="closeNotificationsModal()" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium">
           Close
         </button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL: Email Alert Configuration (EmailJS or Instant Mailto) -->
+  <!-- MODAL: Email Alert Configuration -->
   <div id="email-config-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print">
-    <div class="bg-white rounded-xl max-w-lg w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b pb-3 mb-4">
-        <h2 class="text-lg font-bold text-slate-900">✉️ Email Alert Configuration</h2>
+        <h2 class="text-base font-bold text-slate-900">✉️ Email Alert Configuration</h2>
         <button onclick="closeEmailConfigModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
       </div>
-      <div class="text-xs text-slate-600 space-y-2 mb-4 bg-slate-50 p-3 rounded-lg border">
-        <p><strong>How Email Alerts Work:</strong></p>
-        <p>1. <strong>Default Mode (Zero Setup):</strong> When a user checks out an item, the app generates a formatted email alert addressed to their email and opens their device's mail app (or gives a 1-click Send Email Receipt button).</p>
-        <p>2. <strong>Silent Automatic Mode (Optional Free EmailJS):</strong> If you enter your free <a href="https://www.emailjs.com/" target="_blank" class="text-blue-600 underline font-semibold">EmailJS.com</a> keys below, the app will automatically dispatch background emails to `{{to_email}}` without opening any mail window!</p>
+      <div class="text-xs text-slate-600 space-y-1.5 mb-4 bg-slate-50 p-3 rounded-xl border">
+        <p><strong>1. Default Mode (Zero Setup):</strong> Opens a pre-filled email receipt addressed to the person checking out the unit.</p>
+        <p><strong>2. Silent Automatic Mode (EmailJS):</strong> Enter free <a href="https://www.emailjs.com/" target="_blank" class="text-blue-600 underline font-semibold">EmailJS</a> keys below to send emails silently in the background.</p>
       </div>
       <form onsubmit="saveEmailConfig(event)" class="space-y-3">
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Email Delivery Mode</label>
           <select id="email-mode-select" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold">
-            <option value="MAILTO">Instant Email Client / Receipt Popup (No API Keys Needed)</option>
-            <option value="EMAILJS">Silent Automatic Background Email (via EmailJS)</option>
+            <option value="MAILTO">Instant Email Client / Receipt (No Keys Needed)</option>
+            <option value="EMAILJS">Silent Automatic Background Email (EmailJS)</option>
           </select>
         </div>
         <div>
-          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">EmailJS Public Key (Optional)</label>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">EmailJS Public Key</label>
           <input type="text" id="emailjs-public-key" placeholder="e.g. user_xxxxxx" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono" />
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -474,12 +524,9 @@
             <input type="text" id="emailjs-template-id" placeholder="e.g. template_xxx" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono" />
           </div>
         </div>
-        <p class="text-[11px] text-slate-400">
-          EmailJS Template Variables sent: <code>to_email</code>, <code>user_name</code>, <code>item_name</code>, <code>item_tag</code>, <code>item_code</code>, <code>destination</code>, <code>checkout_time</code>, <code>return_url</code>, <code>message</code>.
-        </p>
         <div class="flex justify-end space-x-2 pt-3 border-t">
-          <button type="button" onclick="closeEmailConfigModal()" class="px-4 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 text-sm font-medium">Cancel</button>
-          <button type="submit" class="px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold">Save Email Settings</button>
+          <button type="button" onclick="closeEmailConfigModal()" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium">Cancel</button>
+          <button type="submit" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold">Save Settings</button>
         </div>
       </form>
     </div>
@@ -487,46 +534,44 @@
 
   <!-- MODAL: Add / Edit Inventory Item -->
   <div id="item-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print">
-    <div class="bg-white rounded-xl max-w-2xl w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b pb-3 mb-4">
-        <h2 id="item-modal-title" class="text-lg font-bold text-slate-900">Add Inventory Item(s)</h2>
+        <h2 id="item-modal-title" class="text-base font-bold text-slate-900">Add Inventory Item(s)</h2>
         <button onclick="closeItemModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
       </div>
       <form id="item-form" onsubmit="saveItem(event)" class="space-y-4">
         <input type="hidden" id="edit-item-id" />
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
             <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Plant *</label>
-            <select id="item-plant" required onchange="updatePreviewTag()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"></select>
+            <select id="item-plant" required onchange="updatePreviewTag()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"></select>
           </div>
           <div id="batch-count-wrapper">
-            <label class="block text-xs font-bold text-blue-700 uppercase mb-1">Number of Units to Add *</label>
-            <input type="number" id="item-batch-count" required min="1" max="500" value="1" oninput="updatePreviewTag()" class="w-full border-2 border-blue-500 bg-blue-50/40 rounded-lg px-3 py-2 text-sm font-bold text-slate-900" />
-            <p class="text-[10px] text-slate-500 mt-0.5">Each unit gets a 4-digit Item Code & QR</p>
+            <label class="block text-xs font-bold text-blue-700 uppercase mb-1">Units to Add *</label>
+            <input type="number" id="item-batch-count" required min="1" max="500" value="1" oninput="updatePreviewTag()" class="w-full border-2 border-blue-500 bg-blue-50/40 rounded-lg px-3 py-1.5 text-sm font-bold text-slate-900" />
           </div>
           <div>
-            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Base Item Code (Optional)</label>
-            <input type="text" id="item-code" oninput="updatePreviewTag()" placeholder="Leave blank to auto-generate" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono uppercase" />
-            <p class="text-[10px] text-slate-400 mt-0.5">Appends 4-digit sequence (e.g. -0001)</p>
+            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Base Code (Optional)</label>
+            <input type="text" id="item-code" oninput="updatePreviewTag()" placeholder="Auto-generated if blank" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono uppercase" />
           </div>
         </div>
 
         <!-- Live Preview of Generated Tags & 4-Digit Item Codes -->
-        <div class="bg-slate-100 border border-slate-300 rounded-lg p-3">
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
             <div>
-              <span class="font-bold text-slate-500 uppercase block">Assigned Plant Tag(s):</span>
-              <span id="item-tag-preview" class="font-mono font-bold text-blue-700 text-sm"></span>
+              <span class="font-bold text-slate-400 uppercase block text-[10px]">Assigned Plant Tag(s):</span>
+              <span id="item-tag-preview" class="font-mono font-bold text-blue-700 text-xs sm:text-sm"></span>
             </div>
             <div>
-              <span class="font-bold text-slate-500 uppercase block">Assigned 4-Digit Item Code(s):</span>
-              <span id="item-code-preview" class="font-mono font-bold text-emerald-700 text-sm"></span>
+              <span class="font-bold text-slate-400 uppercase block text-[10px]">Assigned 4-Digit Item Code(s):</span>
+              <span id="item-code-preview" class="font-mono font-bold text-emerald-700 text-xs sm:text-sm"></span>
             </div>
           </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
             <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Item Name *</label>
             <input type="text" id="item-name" required oninput="updatePreviewTag()" placeholder="e.g. Hydraulic Pump" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
@@ -537,7 +582,7 @@
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Initial Quality *</label>
-            <select id="item-quality" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold">
+            <select id="item-quality" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold bg-white">
               <option value="New">New</option>
               <option value="Good" selected>Good</option>
               <option value="Used">Used</option>
@@ -552,19 +597,20 @@
           <input type="text" id="item-location" required placeholder="e.g. Aisle 4, Rack B, Bin 12" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
         </div>
 
-        <div>
-          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Details & Notes</label>
-          <textarea id="item-notes" rows="2" placeholder="Part specs, vendor info, serial numbers, or condition notes..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"></textarea>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Details & Notes</label>
+            <textarea id="item-notes" rows="2" placeholder="Specs, vendor info, serials..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"></textarea>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Work Instructions</label>
+            <textarea id="item-instructions" rows="2" placeholder="Safety PPE, torque, handling..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"></textarea>
+          </div>
         </div>
 
-        <div>
-          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Work Instructions</label>
-          <textarea id="item-instructions" rows="2" placeholder="Step-by-step handling, safety PPE requirements, or installation instructions..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"></textarea>
-        </div>
-
-        <div class="flex justify-end space-x-3 pt-3 border-t">
-          <button type="button" onclick="closeItemModal()" class="px-4 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 text-sm font-medium">Cancel</button>
-          <button type="submit" id="item-save-btn" class="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold">Save & Generate QR Unit(s)</button>
+        <div class="flex justify-end space-x-2 pt-3 border-t">
+          <button type="button" onclick="closeItemModal()" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium">Cancel</button>
+          <button type="submit" id="item-save-btn" class="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold shadow-sm">Save & Generate QR</button>
         </div>
       </form>
     </div>
@@ -572,11 +618,11 @@
 
   <!-- MODAL: Check-Out & Check-In History Log -->
   <div id="history-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print">
-    <div class="bg-white rounded-xl max-w-4xl w-full p-6 shadow-2xl max-h-[90vh] flex flex-col">
+    <div class="bg-white rounded-2xl max-w-4xl w-full p-6 shadow-2xl max-h-[90vh] flex flex-col">
       <div class="flex justify-between items-start border-b pb-3 mb-4">
         <div>
           <span id="history-tag" class="font-mono text-xs font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded"></span>
-          <h3 id="history-title" class="text-lg font-bold text-slate-900 mt-1">Unit Check-Out & Check-In History</h3>
+          <h3 id="history-title" class="text-base font-bold text-slate-900 mt-1">Unit Check-Out & Check-In History</h3>
         </div>
         <button onclick="closeHistoryModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
       </div>
@@ -588,36 +634,36 @@
         </div>
 
         <div class="border-t pt-4">
-          <h4 class="text-xs font-bold uppercase text-slate-600 mb-2">📜 Complete Historical Log (All Transactions for This Unit)</h4>
+          <h4 class="text-xs font-bold uppercase text-slate-500 mb-2">📜 Complete Historical Log</h4>
           <div id="history-log-list" class="space-y-2"></div>
         </div>
       </div>
 
       <div class="flex justify-end pt-3 mt-4 border-t">
-        <button onclick="closeHistoryModal()" class="px-4 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 text-sm font-medium">Close</button>
+        <button onclick="closeHistoryModal()" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium">Close</button>
       </div>
     </div>
   </div>
 
   <!-- MODAL: Single Item Details & QR View -->
   <div id="detail-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print">
-    <div class="bg-white rounded-xl max-w-lg w-full p-6 shadow-2xl">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl">
       <div class="flex justify-between items-start border-b pb-3 mb-4">
         <div>
           <div class="flex items-center gap-2">
-            <span id="detail-tag" class="font-mono text-xs font-bold bg-blue-100 text-blue-800 px-2 py-1 rounded"></span>
-            <span id="detail-code" class="font-mono text-xs font-semibold bg-slate-100 text-slate-700 px-2 py-1 rounded border"></span>
+            <span id="detail-tag" class="font-mono text-xs font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded"></span>
+            <span id="detail-code" class="font-mono text-xs font-semibold bg-slate-100 text-slate-700 px-2 py-0.5 rounded border"></span>
           </div>
-          <h3 id="detail-name" class="text-xl font-bold text-slate-900 mt-1"></h3>
+          <h3 id="detail-name" class="text-lg font-bold text-slate-900 mt-1.5"></h3>
         </div>
         <button onclick="closeDetailModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
       </div>
-      <div class="flex flex-col sm:flex-row gap-6 items-center">
+      <div class="flex flex-col sm:flex-row gap-5 items-center">
         <div class="flex flex-col items-center">
-          <div id="single-qr-container" class="p-3 border-2 border-slate-800 rounded-lg bg-white"></div>
+          <div id="single-qr-container" class="p-3 border-2 border-slate-800 rounded-xl bg-white"></div>
           <a id="detail-qr-link" href="#" target="_blank" class="text-[11px] text-blue-600 hover:underline mt-2 font-medium">🔗 Open Unit Check-Out Page</a>
         </div>
-        <div class="space-y-1.5 text-sm flex-1">
+        <div class="space-y-1.5 text-xs sm:text-sm flex-1">
           <p><strong>Plant:</strong> <span id="detail-plant"></span></p>
           <p><strong>Category:</strong> <span id="detail-category"></span></p>
           <p><strong>Home Location:</strong> <span id="detail-location"></span></p>
@@ -625,48 +671,48 @@
           <p><strong>Status:</strong> <span id="detail-qty" class="font-bold"></span></p>
         </div>
       </div>
-      <div class="mt-4 space-y-3 bg-slate-50 p-3 rounded-lg border text-sm">
+      <div class="mt-4 space-y-2.5 bg-slate-50 p-3.5 rounded-xl border text-xs sm:text-sm">
         <div>
-          <p class="text-xs font-bold text-slate-500 uppercase">Details & Notes</p>
+          <p class="text-[10px] font-bold text-slate-400 uppercase">Details & Notes</p>
           <p id="detail-notes" class="text-slate-700 whitespace-pre-line"></p>
         </div>
         <div class="border-t pt-2">
-          <p class="text-xs font-bold text-slate-500 uppercase">Work Instructions</p>
+          <p class="text-[10px] font-bold text-slate-400 uppercase">Work Instructions</p>
           <p id="detail-instructions" class="text-slate-700 whitespace-pre-line"></p>
         </div>
       </div>
       <div class="flex justify-between gap-2 mt-4 pt-3 border-t">
         <button id="detail-open-scan-btn" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold">📱 Open Dedicated Unit Page</button>
-        <button onclick="closeDetailModal()" class="px-4 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 text-sm font-medium">Close</button>
+        <button onclick="closeDetailModal()" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium">Close</button>
       </div>
     </div>
   </div>
 
   <!-- MODAL: Manage Plants -->
   <div id="plant-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print">
-    <div class="bg-white rounded-xl max-w-lg w-full p-6 shadow-2xl">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl">
       <div class="flex justify-between items-center border-b pb-3 mb-4">
-        <h2 class="text-lg font-bold text-slate-900">🏢 Manage Plants (3-Digit Codes)</h2>
+        <h2 class="text-base font-bold text-slate-900">🏢 Manage Plants (3-Digit Codes)</h2>
         <button onclick="closePlantModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
       </div>
       <form onsubmit="savePlant(event)" class="flex gap-2 mb-4">
         <input type="hidden" id="edit-plant-old-code" />
-        <input type="text" id="plant-code" required maxlength="3" minlength="3" placeholder="Code (e.g. KEN)" class="w-28 border border-slate-300 rounded-lg px-3 py-2 text-sm uppercase font-mono" />
+        <input type="text" id="plant-code" required maxlength="3" minlength="3" placeholder="KEN" class="w-24 border border-slate-300 rounded-lg px-3 py-2 text-sm uppercase font-mono" />
         <input type="text" id="plant-name" required placeholder="Plant Name (e.g. Kentwood Plant)" class="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm" />
         <button type="submit" id="plant-submit-btn" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-semibold">Add</button>
       </form>
-      <div class="max-h-64 overflow-y-auto divide-y divide-slate-200 border rounded-lg" id="plant-list"></div>
+      <div class="max-h-64 overflow-y-auto divide-y divide-slate-200 border rounded-xl" id="plant-list"></div>
       <div class="flex justify-end pt-4 mt-4 border-t">
-        <button onclick="closePlantModal()" class="px-4 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 text-sm font-medium">Done</button>
+        <button onclick="closePlantModal()" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium">Done</button>
       </div>
     </div>
   </div>
 
   <!-- MODAL: Cloud Sync Configuration -->
   <div id="cloud-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print">
-    <div class="bg-white rounded-xl max-w-lg w-full p-6 shadow-2xl">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl">
       <div class="flex justify-between items-center border-b pb-3 mb-4">
-        <h2 class="text-lg font-bold text-slate-900">☁️ Live Firebase Cloud Database</h2>
+        <h2 class="text-base font-bold text-slate-900">☁️ Live Firebase Cloud Database</h2>
         <button onclick="closeCloudModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
       </div>
       <form onsubmit="saveCloudConfig(event)" class="space-y-4">
@@ -675,12 +721,12 @@
           <input type="url" id="cloud-url-input" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono bg-slate-50" />
         </div>
         <div class="flex justify-between items-center pt-3 border-t">
-          <button type="button" onclick="pushToCloud(true)" class="text-xs bg-emerald-100 hover:bg-emerald-200 text-emerald-800 px-3 py-2 rounded font-semibold">
-            ⬆️ Force Upload Local Data to Cloud
+          <button type="button" onclick="pushToCloud(true)" class="text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 px-3 py-2 rounded-lg font-semibold">
+            ⬆️ Force Upload Local Data
           </button>
           <div class="space-x-2">
-            <button type="button" onclick="closeCloudModal()" class="px-4 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 text-sm font-medium">Close</button>
-            <button type="submit" class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold">Save & Sync</button>
+            <button type="button" onclick="closeCloudModal()" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium">Close</button>
+            <button type="submit" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold">Save & Sync</button>
           </div>
         </div>
       </form>
@@ -709,7 +755,7 @@
     }
 
     let emailConfig = JSON.parse(localStorage.getItem(STORAGE_KEY_EMAIL)) || {
-      mode: 'MAILTO', // 'MAILTO' or 'EMAILJS'
+      mode: 'MAILTO',
       publicKey: '',
       serviceId: '',
       templateId: ''
@@ -768,10 +814,21 @@
     let activeScannedTag = null;
     let activeHistoryItemId = null;
 
-    // Navigation View State
     let viewMode = 'OVERVIEW';
     let selectedCategory = null;
     let selectedProductName = null;
+
+    // Dropdown menu toggle
+    function toggleSettingsMenu(e) {
+      e.stopPropagation();
+      const menu = document.getElementById('settings-dropdown');
+      menu.classList.toggle('hidden');
+    }
+    function closeSettingsMenu() {
+      const menu = document.getElementById('settings-dropdown');
+      if (menu) menu.classList.add('hidden');
+    }
+    document.addEventListener('click', () => closeSettingsMenu());
 
     function normalizeItems() {
       items.forEach((item, index) => {
@@ -813,7 +870,7 @@
             <span>${icon} ${escapeHtml(notif.title)}</span>
           </div>
           <p class="text-slate-200 leading-snug">${escapeHtml(notif.message)}</p>
-          ${notif.userEmail ? `<p class="text-[11px] text-blue-300 font-mono">✉️ Alert To: ${escapeHtml(notif.userEmail)}</p>` : ''}
+          ${notif.userEmail ? `<p class="text-[11px] text-blue-300 font-mono">✉️ Alert: ${escapeHtml(notif.userEmail)}</p>` : ''}
         </div>
         <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-white text-lg leading-none">&times;</button>
       `;
@@ -821,7 +878,7 @@
 
       setTimeout(() => {
         if (toast.parentElement) toast.remove();
-      }, 7500);
+      }, 7000);
     }
 
     function addAppNotification(type, title, message, itemTag, userEmail = '', mailtoLink = '') {
@@ -879,15 +936,13 @@
       list.innerHTML = '';
 
       if (appNotifications.length === 0) {
-        list.innerHTML = `<div class="p-8 text-center text-slate-400 text-sm">No app notifications yet. Check-out and check-in events will appear here automatically.</div>`;
+        list.innerHTML = `<div class="p-8 text-center text-slate-400 text-sm">No app notifications yet. Check-out and check-in events appear here automatically.</div>`;
         return;
       }
 
       appNotifications.forEach(n => {
         const isOut = n.type === 'CHECK_OUT';
-        const cardStyle = isOut
-          ? 'bg-amber-50/70 border-amber-300'
-          : 'bg-emerald-50/70 border-emerald-300';
+        const cardStyle = isOut ? 'bg-amber-50/70 border-amber-200' : 'bg-emerald-50/70 border-emerald-200';
         const badgeHtml = isOut
           ? `<span class="bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">📤 Checked Out</span>`
           : `<span class="bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">📥 Checked In</span>`;
@@ -898,15 +953,15 @@
           <div class="space-y-1 flex-1">
             <div class="flex items-center gap-2 flex-wrap">
               ${badgeHtml}
-              <span class="font-bold text-slate-900 text-sm">${escapeHtml(n.title)}</span>
-              <span class="text-[11px] font-mono text-slate-500">${new Date(n.timestamp).toLocaleString()}</span>
+              <span class="font-bold text-slate-900">${escapeHtml(n.title)}</span>
+              <span class="text-[11px] font-mono text-slate-400">${new Date(n.timestamp).toLocaleString()}</span>
             </div>
             <p class="text-slate-700">${escapeHtml(n.message)}</p>
-            ${n.userEmail ? `<p class="text-[11px] font-mono text-blue-700">📧 Recipient Email: <strong>${escapeHtml(n.userEmail)}</strong></p>` : ''}
+            ${n.userEmail ? `<p class="text-[11px] font-mono text-blue-700">📧 To: <strong>${escapeHtml(n.userEmail)}</strong></p>` : ''}
           </div>
-          <div class="flex items-center gap-2">
-            ${n.mailtoLink ? `<a href="${n.mailtoLink}" class="bg-violet-600 hover:bg-violet-500 text-white px-2.5 py-1.5 rounded font-bold text-[11px]">✉️ Resend Email</a>` : ''}
-            ${n.itemTag ? `<button onclick="closeNotificationsModal(); refreshScannedBanner('${escapeJsStr(n.itemTag)}', true)" class="bg-slate-800 hover:bg-slate-700 text-white px-2.5 py-1.5 rounded font-bold text-[11px]">View Unit</button>` : ''}
+          <div class="flex items-center gap-1.5">
+            ${n.mailtoLink ? `<a href="${n.mailtoLink}" class="bg-blue-600 hover:bg-blue-500 text-white px-2.5 py-1.5 rounded-lg font-bold text-[11px]">✉️ Resend</a>` : ''}
+            ${n.itemTag ? `<button onclick="closeNotificationsModal(); refreshScannedBanner('${escapeJsStr(n.itemTag)}', true)" class="bg-slate-800 hover:bg-slate-700 text-white px-2.5 py-1.5 rounded-lg font-bold text-[11px]">View Unit</button>` : ''}
           </div>
         `;
         list.appendChild(div);
@@ -921,7 +976,6 @@
       await saveState();
     }
 
-    // Builds the mailto URL and sends automatic EmailJS alert if configured
     async function dispatchCheckoutEmailAlert(item, userName, userEmail, destination, notes, checkedOutAt, shouldTriggerEmail) {
       const unitUrl = buildQRUrl(item);
       const timeStr = new Date(checkedOutAt).toLocaleString();
@@ -943,18 +997,14 @@
         notes ? `• Notes: ${notes}` : null,
         ``,
         `--- DIRECT CHECK-IN / QR LINK ---`,
-        `When you are finished using this item, scan its QR code or open the link below to check it back in and rate its quality:`,
-        `${unitUrl}`,
-        ``,
-        `Thank you,`,
-        `StorageLocater Inventory System`
+        `Scan the unit QR code or open the link below to check it back in and rate its quality:`,
+        `${unitUrl}`
       ].filter(Boolean).join('\n');
 
       const mailtoLink = `mailto:${encodeURIComponent(userEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyLines)}`;
 
       if (!shouldTriggerEmail) return mailtoLink;
 
-      // Option A: Silent Background Email via EmailJS if configured
       if (emailConfig.mode === 'EMAILJS' && emailConfig.publicKey && emailConfig.serviceId && emailConfig.templateId && window.emailjs) {
         try {
           emailjs.init({ publicKey: emailConfig.publicKey });
@@ -975,7 +1025,6 @@
         }
       }
 
-      // Option B: Zero-config instant email dispatch via device email client
       setTimeout(() => {
         window.location.href = mailtoLink;
       }, 300);
@@ -1011,7 +1060,7 @@
       localStorage.setItem(STORAGE_KEY_EMAIL, JSON.stringify(emailConfig));
       closeEmailConfigModal();
       await saveState();
-      alert('Email alert settings saved and synced!');
+      alert('Email alert settings saved!');
     }
 
     // ============================================================================
@@ -1020,14 +1069,14 @@
     function getQualityBadgeHtml(quality) {
       const q = quality || 'Good';
       const styles = {
-        'New': 'bg-emerald-100 text-emerald-800 border-emerald-300',
-        'Good': 'bg-blue-100 text-blue-800 border-blue-300',
-        'Used': 'bg-slate-200 text-slate-800 border-slate-300',
-        'Needs Repair': 'bg-amber-100 text-amber-800 border-amber-400',
-        'Broken': 'bg-red-100 text-red-800 border-red-400'
+        'New': 'bg-emerald-50 text-emerald-700 border-emerald-200',
+        'Good': 'bg-blue-50 text-blue-700 border-blue-200',
+        'Used': 'bg-slate-100 text-slate-700 border-slate-300',
+        'Needs Repair': 'bg-amber-50 text-amber-800 border-amber-300',
+        'Broken': 'bg-rose-50 text-rose-700 border-rose-300'
       };
       const cls = styles[q] || styles['Good'];
-      return `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold border ${cls}">${escapeHtml(q)}</span>`;
+      return `<span class="px-2 py-0.5 rounded-md text-[11px] font-bold border ${cls}">${escapeHtml(q)}</span>`;
     }
 
     function formatElapsedDuration(startMs, endMs = Date.now()) {
@@ -1060,13 +1109,13 @@
 
     function updateSyncBadge(statusText, isCloudActive) {
       const badge = document.getElementById('sync-badge');
-      if (!badge) return;
+      const textEl = document.getElementById('sync-badge-text');
+      if (!badge || !textEl) return;
+      textEl.textContent = statusText;
       if (isCloudActive) {
-        badge.className = 'cursor-pointer text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/40';
-        badge.textContent = `🟢 ${statusText}`;
+        badge.className = 'inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shrink-0 hover:bg-emerald-500/25 transition';
       } else {
-        badge.className = 'cursor-pointer text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/40';
-        badge.textContent = `⚠️ ${statusText}`;
+        badge.className = 'inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/40 shrink-0';
       }
     }
 
@@ -1084,7 +1133,7 @@
       const endpoint = getNormalizedCloudEndpoint();
       if (!endpoint) return;
       try {
-        updateSyncBadge('Syncing to Cloud...', true);
+        updateSyncBadge('Syncing...', true);
         const payload = {
           plants,
           items,
@@ -1099,12 +1148,12 @@
           body: JSON.stringify(payload)
         });
         if (!res.ok) throw new Error('HTTP ' + res.status);
-        updateSyncBadge('Cloud Synced (Live Across All Devices)', true);
+        updateSyncBadge('Cloud Live', true);
         if (showAlert) alert('Successfully synced inventory & notifications to Firebase Cloud!');
       } catch (err) {
         console.error('Cloud push error:', err);
-        updateSyncBadge('Cloud Sync Error (Check Firebase Rules)', false);
-        if (showAlert) alert('Could not write to Firebase. Make sure your Realtime Database Rules allow read/write.');
+        updateSyncBadge('Sync Error', false);
+        if (showAlert) alert('Could not write to Firebase. Check your database rules.');
       }
     }
 
@@ -1122,7 +1171,6 @@
           plantSequences = data.plantSequences || {};
 
           if (Array.isArray(data.appNotifications)) {
-            // Show a live toast if another device just checked out an item!
             const newestRemote = data.appNotifications[0];
             if (newestRemote && newestRemote.timestamp > lastToastTimestamp) {
               lastToastTimestamp = newestRemote.timestamp;
@@ -1146,13 +1194,13 @@
           updateNotificationBadge();
           if (activeScannedTag) refreshScannedBanner(activeScannedTag, false);
           if (activeHistoryItemId) renderHistoryModalContent(activeHistoryItemId);
-          updateSyncBadge('Cloud Synced (Live Across All Devices)', true);
+          updateSyncBadge('Cloud Live', true);
         } else {
           await pushToCloud(false);
         }
       } catch (err) {
         console.error('Cloud pull error:', err);
-        updateSyncBadge('Cloud Sync Error (Check Firebase Rules)', false);
+        updateSyncBadge('Sync Error', false);
       }
     }
 
@@ -1231,9 +1279,9 @@
       const isCheckedOut = activeList.length > 0;
 
       document.getElementById('scan-title').textContent = match.name;
-      document.getElementById('scan-tag').textContent = `PLANT TAG: ${match.tag}`;
-      document.getElementById('scan-code').textContent = `ITEM CODE: ${match.itemCode || 'N/A'}`;
-      document.getElementById('scan-plant').textContent = plantObj ? `${plantObj.code} - ${plantObj.name}` : match.plantCode;
+      document.getElementById('scan-tag').textContent = `TAG: ${match.tag}`;
+      document.getElementById('scan-code').textContent = `CODE: ${match.itemCode || 'N/A'}`;
+      document.getElementById('scan-plant').textContent = plantObj ? `${plantObj.code} (${plantObj.name})` : match.plantCode;
       document.getElementById('scan-category').textContent = match.category;
       document.getElementById('scan-location').textContent = match.location;
       document.getElementById('scan-quality-badge').innerHTML = getQualityBadgeHtml(match.quality);
@@ -1250,32 +1298,32 @@
 
       if (isCheckedOut) {
         const rec = activeList[0];
-        scanQtyEl.className = 'text-base font-bold text-amber-700 mt-0.5';
-        scanQtyEl.textContent = `Checked Out (${rec.userName})`;
+        scanQtyEl.className = 'text-xs sm:text-sm font-bold text-amber-700 mt-0.5';
+        scanQtyEl.textContent = `Out (${rec.userName})`;
 
-        statusPill.className = 'text-xs font-bold px-2.5 py-1 rounded uppercase bg-amber-100 text-amber-800 border border-amber-400';
-        statusPill.textContent = `⏱️ Currently Checked Out to ${rec.destination}`;
+        statusPill.className = 'text-[11px] font-bold px-2.5 py-0.5 rounded-md uppercase bg-amber-100 text-amber-800 border border-amber-300';
+        statusPill.textContent = `⏱️ Checked Out to ${rec.destination}`;
 
-        smartPrompt.className = 'mt-4 p-4 rounded-xl border-2 border-emerald-500 bg-emerald-50 flex flex-wrap items-center justify-between gap-4';
-        promptTitle.className = 'font-bold text-base text-emerald-900';
+        smartPrompt.className = 'mt-4 p-4 rounded-xl border border-emerald-400 bg-emerald-50/70 flex flex-wrap items-center justify-between gap-4';
+        promptTitle.className = 'font-bold text-sm sm:text-base text-emerald-950';
         promptTitle.textContent = 'Returning this checked-out unit?';
-        promptDesc.className = 'text-xs text-emerald-700 mt-0.5';
-        promptDesc.textContent = 'Tap "Check In Unit & Rate Quality" below to return it to storage and update its condition (New, Good, Used, Needs Repair, or Broken).';
+        promptDesc.className = 'text-xs text-emerald-800 mt-0.5';
+        promptDesc.textContent = 'Tap "Check In & Rate Quality" to return it to storage and update its condition.';
 
         checkoutBtn.classList.add('hidden');
         checkinBtn.classList.remove('hidden');
       } else {
-        scanQtyEl.className = 'text-base font-bold text-emerald-600 mt-0.5';
+        scanQtyEl.className = 'text-xs sm:text-sm font-bold text-emerald-600 mt-0.5';
         scanQtyEl.textContent = 'Available in Storage';
 
-        statusPill.className = 'text-xs font-bold px-2.5 py-1 rounded uppercase bg-emerald-100 text-emerald-800 border border-emerald-300';
-        statusPill.textContent = '✅ In Storage & Ready for Check-Out';
+        statusPill.className = 'text-[11px] font-bold px-2.5 py-0.5 rounded-md uppercase bg-emerald-100 text-emerald-800 border border-emerald-300';
+        statusPill.textContent = '✅ Ready for Check-Out';
 
-        smartPrompt.className = 'mt-4 p-4 rounded-xl border-2 border-amber-500 bg-amber-50 flex flex-wrap items-center justify-between gap-4';
-        promptTitle.className = 'font-bold text-base text-amber-900';
+        smartPrompt.className = 'mt-4 p-4 rounded-xl border border-amber-400 bg-amber-50/70 flex flex-wrap items-center justify-between gap-4';
+        promptTitle.className = 'font-bold text-sm sm:text-base text-amber-950';
         promptTitle.textContent = 'Checking out this unit?';
         promptDesc.className = 'text-xs text-amber-800 mt-0.5';
-        promptDesc.textContent = 'Tap "Check Out This Unit" to enter your name, email address, destination location, and receive an email alert.';
+        promptDesc.textContent = 'Tap "Check Out Unit" to enter your name, email, and destination location.';
 
         checkoutBtn.classList.remove('hidden');
         checkinBtn.classList.add('hidden');
@@ -1289,22 +1337,22 @@
         activeBox.classList.remove('hidden');
         activeList.forEach(rec => {
           const row = document.createElement('div');
-          row.className = 'bg-amber-50 border border-amber-300 rounded-lg p-3 flex flex-wrap justify-between items-center gap-2 text-xs';
+          row.className = 'bg-amber-50 border border-amber-200 rounded-xl p-3 flex flex-wrap justify-between items-center gap-2 text-xs';
           row.innerHTML = `
             <div>
-              <span class="font-bold text-slate-900">👤 Checked Out By: ${escapeHtml(rec.userName)}</span>
+              <span class="font-bold text-slate-900">👤 ${escapeHtml(rec.userName)}</span>
               ${rec.userEmail ? `<span class="text-blue-700 font-mono ml-1">(${escapeHtml(rec.userEmail)})</span>` : ''}
-              <span class="mx-1.5 text-slate-400">|</span>
-              <span class="font-semibold text-blue-800">📍 Location: ${escapeHtml(rec.destination)}</span>
+              <span class="mx-1.5 text-slate-300">|</span>
+              <span class="font-semibold text-blue-800">📍 ${escapeHtml(rec.destination)}</span>
               ${rec.notes ? `<div class="text-slate-600 mt-0.5">Note: ${escapeHtml(rec.notes)}</div>` : ''}
             </div>
             <div class="flex items-center gap-3">
               <div class="text-right">
-                <div class="text-[10px] uppercase text-slate-500 font-bold">Live Elapsed Time</div>
+                <div class="text-[10px] uppercase text-slate-400 font-bold">Elapsed</div>
                 <div class="font-mono font-bold text-amber-700 text-sm" data-live-timer="${rec.checkedOutAt}">${formatElapsedDuration(rec.checkedOutAt)}</div>
               </div>
-              <button onclick="openCheckInModal('${match.id}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded font-bold">
-                📥 Check In Now
+              <button onclick="openCheckInModal('${match.id}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg font-bold">
+                📥 Check In
               </button>
             </div>
           `;
@@ -1334,7 +1382,7 @@
     }
 
     // ============================================================================
-    // 6. INDIVIDUAL UNIT CHECK-OUT & CHECK-IN WORKFLOWS (WITH EMAIL & NOTIFICATIONS)
+    // 6. INDIVIDUAL UNIT CHECK-OUT & CHECK-IN WORKFLOWS
     // ============================================================================
     function openCheckOutModal(itemId) {
       const item = items.find(i => i.id === itemId);
@@ -1407,10 +1455,8 @@
 
       closeCheckOutModal();
 
-      // Dispatch Email Alert to the person checking out the item
       const mailtoLink = await dispatchCheckoutEmailAlert(item, userName, userEmail, destination, notes, now, shouldSendEmail);
 
-      // Add Live In-App Notification synced across all devices
       addAppNotification(
         'CHECK_OUT',
         `${item.name} (${item.tag}) Checked Out`,
@@ -1552,24 +1598,24 @@
       logContainer.innerHTML = '';
 
       if (!item.activeCheckouts || item.activeCheckouts.length === 0) {
-        activeContainer.innerHTML = `<p class="text-xs text-emerald-700 font-semibold bg-emerald-50 border border-emerald-200 p-2.5 rounded">✅ Unit is currently in storage (${escapeHtml(item.location)}).</p>`;
+        activeContainer.innerHTML = `<p class="text-xs text-emerald-700 font-semibold bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl">✅ Unit is currently in storage (${escapeHtml(item.location)}).</p>`;
       } else {
         item.activeCheckouts.forEach(rec => {
           const div = document.createElement('div');
-          div.className = 'p-3 bg-amber-50 border border-amber-300 rounded-lg flex flex-wrap justify-between items-center gap-2 text-xs';
+          div.className = 'p-3 bg-amber-50 border border-amber-200 rounded-xl flex flex-wrap justify-between items-center gap-2 text-xs';
           div.innerHTML = `
             <div>
               <span class="font-bold text-slate-900">👤 ${escapeHtml(rec.userName)}</span>
               ${rec.userEmail ? `<span class="text-blue-700 font-mono ml-1">(${escapeHtml(rec.userEmail)})</span>` : ''}
-              <span class="mx-1.5 text-slate-400">•</span>
-              <span class="font-semibold text-blue-800">📍 Destination: ${escapeHtml(rec.destination)}</span>
+              <span class="mx-1.5 text-slate-300">•</span>
+              <span class="font-semibold text-blue-800">📍 ${escapeHtml(rec.destination)}</span>
               <div class="text-slate-500 mt-0.5">Checked Out: ${new Date(rec.checkedOutAt).toLocaleString()} ${rec.notes ? `| Note: ${escapeHtml(rec.notes)}` : ''}</div>
             </div>
             <div class="flex items-center gap-3">
-              <span class="font-mono font-bold text-amber-800 bg-amber-200/70 px-2.5 py-1 rounded" data-live-timer="${rec.checkedOutAt}">
+              <span class="font-mono font-bold text-amber-800 bg-amber-200/70 px-2.5 py-1 rounded-lg" data-live-timer="${rec.checkedOutAt}">
                 ${formatElapsedDuration(rec.checkedOutAt)}
               </span>
-              <button onclick="closeHistoryModal(); openCheckInModal('${item.id}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded font-bold">
+              <button onclick="closeHistoryModal(); openCheckInModal('${item.id}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-lg font-bold">
                 Check In
               </button>
             </div>
@@ -1584,28 +1630,28 @@
         item.checkoutHistory.forEach(entry => {
           const isOut = entry.type === 'CHECK_OUT';
           const badge = isOut
-            ? `<span class="bg-amber-100 text-amber-800 border border-amber-300 font-bold px-2 py-0.5 rounded text-[11px]">📤 CHECK OUT</span>`
-            : `<span class="bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold px-2 py-0.5 rounded text-[11px]">📥 CHECK IN</span>`;
+            ? `<span class="bg-amber-100 text-amber-800 border border-amber-300 font-bold px-2 py-0.5 rounded text-[10px]">📤 CHECK OUT</span>`
+            : `<span class="bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold px-2 py-0.5 rounded text-[10px]">📥 CHECK IN</span>`;
 
           const durationText = entry.durationMs
-            ? `<span class="font-mono text-xs text-slate-600 bg-slate-200 px-2 py-0.5 rounded">Time Out: ${formatElapsedDuration(0, entry.durationMs)}</span>`
+            ? `<span class="font-mono text-[11px] text-slate-600 bg-slate-200 px-2 py-0.5 rounded">Time Out: ${formatElapsedDuration(0, entry.durationMs)}</span>`
             : '';
 
           const row = document.createElement('div');
-          row.className = 'p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs flex flex-wrap justify-between items-start gap-2';
+          row.className = 'p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs flex flex-wrap justify-between items-start gap-2';
           row.innerHTML = `
             <div class="space-y-1">
               <div class="flex items-center gap-2 flex-wrap">
                 ${badge}
                 <span class="font-bold text-slate-900">👤 ${escapeHtml(entry.userName || 'Unknown')}</span>
                 ${entry.userEmail ? `<span class="text-blue-700 font-mono">(${escapeHtml(entry.userEmail)})</span>` : ''}
-                <span class="text-slate-600">📍 Location: <strong>${escapeHtml(entry.destination || 'Storage')}</strong></span>
+                <span class="text-slate-600">📍 <strong>${escapeHtml(entry.destination || 'Storage')}</strong></span>
                 ${getQualityBadgeHtml(entry.qualityAtEvent)}
                 ${durationText}
               </div>
               ${entry.notes ? `<p class="text-slate-600">Note: ${escapeHtml(entry.notes)}</p>` : ''}
             </div>
-            <div class="text-right text-[11px] text-slate-500 font-mono">
+            <div class="text-right text-[11px] text-slate-400 font-mono">
               ${new Date(entry.timestamp).toLocaleString()}
             </div>
           `;
@@ -1670,7 +1716,7 @@
 
       title.textContent = `➕ Add More Units to "${templateItem.name}"`;
       batchWrapper.classList.remove('hidden');
-      saveBtn.textContent = 'Add Units & Generate 4-Digit QR Codes';
+      saveBtn.textContent = 'Add Units & Generate QR';
 
       document.getElementById('edit-item-id').value = '';
       document.getElementById('item-plant').value = templateItem.plantCode;
@@ -1698,8 +1744,8 @@
       modalSelect.innerHTML = '';
 
       plants.forEach(p => {
-        filterSelect.innerHTML += `<option value="${p.code}">${p.code} - ${p.name}</option>`;
-        modalSelect.innerHTML += `<option value="${p.code}">${p.code} - ${p.name}</option>`;
+        filterSelect.innerHTML += `<option value="${p.code}">${p.code} — ${p.name}</option>`;
+        modalSelect.innerHTML += `<option value="${p.code}">${p.code} — ${p.name}</option>`;
       });
 
       filterSelect.value = currentFilter;
@@ -1733,22 +1779,22 @@
       const btnOverview = document.getElementById('btn-view-overview');
       const btnAllUnits = document.getElementById('btn-view-all-units');
       if (viewMode === 'OVERVIEW') {
-        btnOverview.className = 'text-xs px-3 py-1.5 rounded-lg font-bold bg-blue-600 text-white shadow-sm';
-        btnAllUnits.className = 'text-xs px-3 py-1.5 rounded-lg font-bold bg-slate-100 hover:bg-slate-200 text-slate-700';
+        btnOverview.className = 'text-xs px-3 py-1.5 rounded-md font-bold bg-white text-slate-900 shadow-sm';
+        btnAllUnits.className = 'text-xs px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-slate-900';
       } else {
-        btnOverview.className = 'text-xs px-3 py-1.5 rounded-lg font-bold bg-slate-100 hover:bg-slate-200 text-slate-700';
-        btnAllUnits.className = 'text-xs px-3 py-1.5 rounded-lg font-bold bg-blue-600 text-white shadow-sm';
+        btnOverview.className = 'text-xs px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-slate-900';
+        btnAllUnits.className = 'text-xs px-3 py-1.5 rounded-md font-bold bg-white text-slate-900 shadow-sm';
       }
 
       const breadcrumbBar = document.getElementById('breadcrumb-bar');
-      let crumbsHtml = `<button onclick="resetToOverview()" class="text-xs font-bold text-blue-700 hover:underline flex items-center gap-1">🏠 All Product Types</button>`;
+      let crumbsHtml = `<button onclick="resetToOverview()" class="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1">🏠 Overview</button>`;
       if (selectedCategory) {
-        crumbsHtml += `<span class="text-slate-400 text-xs">/</span>`;
-        crumbsHtml += `<button onclick="selectCategoryView('${escapeJsStr(selectedCategory)}')" class="text-xs font-bold text-slate-800 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded">${escapeHtml(selectedCategory)}</button>`;
+        crumbsHtml += `<span class="text-slate-300 text-xs">/</span>`;
+        crumbsHtml += `<button onclick="selectCategoryView('${escapeJsStr(selectedCategory)}')" class="text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded-md">${escapeHtml(selectedCategory)}</button>`;
       }
       if (selectedProductName) {
-        crumbsHtml += `<span class="text-slate-400 text-xs">/</span>`;
-        crumbsHtml += `<span class="text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">${escapeHtml(selectedProductName)}</span>`;
+        crumbsHtml += `<span class="text-slate-300 text-xs">/</span>`;
+        crumbsHtml += `<span class="text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-md">${escapeHtml(selectedProductName)}</span>`;
       }
       breadcrumbBar.innerHTML = crumbsHtml;
 
@@ -1773,12 +1819,12 @@
       const totalAvailableAll = baseFiltered.filter(i => !i.activeCheckouts || i.activeCheckouts.length === 0).length;
       const allActiveClass = (!selectedCategory && viewMode === 'OVERVIEW')
         ? 'bg-slate-900 text-white border-slate-900'
-        : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300';
+        : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200';
 
       pillsContainer.innerHTML += `
-        <button onclick="resetToOverview()" class="px-3 py-1.5 rounded-lg border text-xs font-bold transition flex items-center gap-2 ${allActiveClass}">
+        <button onclick="resetToOverview()" class="px-3 py-1.5 rounded-lg border text-xs font-semibold transition flex items-center gap-1.5 ${allActiveClass}">
           <span>All Categories</span>
-          <span class="px-1.5 py-0.5 rounded bg-emerald-500 text-white text-[10px]">${totalAvailableAll} Avail / ${baseFiltered.length} Total</span>
+          <span class="px-1.5 py-0.2 rounded bg-emerald-500 text-white text-[10px] font-bold">${totalAvailableAll}/${baseFiltered.length}</span>
         </button>
       `;
 
@@ -1786,16 +1832,16 @@
         const isSelected = selectedCategory === catName;
         const btnClass = isSelected
           ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
-          : 'bg-white hover:bg-blue-50 text-slate-800 border-slate-300';
+          : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200';
         const badgeClass = isSelected
-          ? 'bg-white text-blue-800'
-          : (stat.available > 0 ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-red-100 text-red-700 border border-red-300');
+          ? 'bg-white/20 text-white'
+          : (stat.available > 0 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200');
 
         pillsContainer.innerHTML += `
-          <button onclick="selectCategoryView('${escapeJsStr(catName)}')" class="px-3.5 py-1.5 rounded-lg border text-xs font-bold transition flex items-center gap-2 ${btnClass}">
+          <button onclick="selectCategoryView('${escapeJsStr(catName)}')" class="px-3 py-1.5 rounded-lg border text-xs font-semibold transition flex items-center gap-1.5 ${btnClass}">
             <span>📂 ${escapeHtml(catName)}</span>
-            <span class="px-2 py-0.5 rounded-full text-[11px] font-bold ${badgeClass}">
-              ${stat.available} Available
+            <span class="px-1.5 py-0.2 rounded text-[10px] font-bold ${badgeClass}">
+              ${stat.available} Avail
             </span>
           </button>
         `;
@@ -1833,8 +1879,8 @@
 
       if (filteredByCat.length === 0) {
         grid.innerHTML = `
-          <div class="col-span-full bg-white rounded-xl p-10 text-center border border-slate-200 text-slate-400">
-            No matching item types found. Click "➕ Add New Item Type" to add inventory.
+          <div class="col-span-full bg-white rounded-2xl p-10 text-center border border-slate-200 text-slate-400 text-sm">
+            No matching item types found. Click "➕ Add Item" in the top bar to add inventory.
           </div>
         `;
         return;
@@ -1869,59 +1915,57 @@
       });
 
       Array.from(productGroups.values()).forEach(grp => {
-        const availColor = grp.available > 0
-          ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
-          : 'bg-red-50 border-red-300 text-red-700';
-
         const allGroupSelected = grp.selectedForPrint === grp.total && grp.total > 0;
         const printToggleBtn = allGroupSelected
-          ? `<button onclick="toggleGroupForPrinting('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}', false)" class="bg-rose-100 hover:bg-rose-200 text-rose-800 border border-rose-300 text-xs font-bold py-2 px-2.5 rounded-lg transition" title="Unselect all units of this item type from printing">
-               ✕ Unselect (${grp.selectedForPrint})
+          ? `<button onclick="toggleGroupForPrinting('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}', false)" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-semibold py-2 px-2.5 rounded-lg transition" title="Unselect all units of this item type">
+               ✕ (${grp.selectedForPrint})
              </button>`
-          : `<button onclick="toggleGroupForPrinting('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}', true)" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 border border-emerald-300 text-xs font-bold py-2 px-2.5 rounded-lg transition" title="Select all units of this item type for QR printing">
-               🖨️ ${grp.selectedForPrint > 0 ? `(${grp.selectedForPrint}/${grp.total})` : 'Select QR'}
+          : `<button onclick="toggleGroupForPrinting('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}', true)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 text-xs font-semibold py-2 px-2.5 rounded-lg transition" title="Select all units of this item type for QR printing">
+               🖨️ ${grp.selectedForPrint > 0 ? `${grp.selectedForPrint}/${grp.total}` : 'QR'}
              </button>`;
 
         const card = document.createElement('div');
-        card.className = 'bg-white rounded-xl shadow-sm hover:shadow-md border border-slate-200 p-5 flex flex-col justify-between transition';
+        card.className = 'bg-white rounded-2xl shadow-sm hover:shadow-md border border-slate-200/90 p-5 flex flex-col justify-between transition';
         card.innerHTML = `
           <div>
-            <div class="flex justify-between items-start gap-2">
-              <button onclick="selectCategoryView('${escapeJsStr(grp.category)}')" class="text-[11px] font-bold uppercase tracking-wider bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 px-2.5 py-1 rounded transition" title="Click to view all items in this category">
+            <div class="flex justify-between items-center gap-2">
+              <button onclick="selectCategoryView('${escapeJsStr(grp.category)}')" class="text-[11px] font-semibold bg-blue-50 hover:bg-blue-100 text-blue-700 px-2.5 py-0.5 rounded-md transition truncate">
                 📂 ${escapeHtml(grp.category)}
               </button>
-              <span class="text-xs font-mono text-slate-500">🏢 ${Array.from(grp.plants).join(', ')}</span>
+              <span class="text-[11px] font-mono font-bold text-slate-400 shrink-0">🏢 ${Array.from(grp.plants).join(', ')}</span>
             </div>
 
-            <h3 onclick="selectProductTypeView('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}')" class="text-lg font-bold text-slate-900 mt-3 hover:text-blue-600 cursor-pointer">
+            <h3 onclick="selectProductTypeView('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}')" class="text-base font-bold text-slate-900 mt-2.5 hover:text-blue-600 cursor-pointer truncate">
               ${escapeHtml(grp.name)}
             </h3>
-            <p class="text-xs text-slate-500 mt-0.5 truncate">📍 Locations: ${escapeHtml(Array.from(grp.locations).join(', '))}</p>
-            <p class="text-[11px] font-mono text-slate-400 mt-0.5">Code Series: ${escapeHtml(grp.sampleCode)}-XXXX</p>
+            <div class="flex items-center justify-between text-[11px] text-slate-400 mt-1 gap-2">
+              <span class="truncate">📍 ${escapeHtml(Array.from(grp.locations).join(', '))}</span>
+              <span class="font-mono shrink-0">${escapeHtml(grp.sampleCode)}-XXXX</span>
+            </div>
 
-            <!-- Availability Counter Box -->
-            <div class="grid grid-cols-3 gap-2 mt-4 p-3 rounded-xl border ${availColor}">
+            <!-- Clean 3-Stat Pill Box -->
+            <div class="grid grid-cols-3 gap-2 mt-4 p-2.5 rounded-xl bg-slate-50 border border-slate-200/80">
               <div class="text-center">
-                <div class="text-2xl font-extrabold">${grp.available}</div>
-                <div class="text-[10px] font-bold uppercase tracking-wide">Available</div>
+                <div class="text-xl font-extrabold ${grp.available > 0 ? 'text-emerald-600' : 'text-rose-600'}">${grp.available}</div>
+                <div class="text-[10px] font-bold uppercase text-slate-400">Available</div>
               </div>
-              <div class="text-center border-x border-current/20">
-                <div class="text-2xl font-bold text-amber-700">${grp.checkedOut}</div>
-                <div class="text-[10px] font-bold uppercase tracking-wide text-amber-800">Checked Out</div>
+              <div class="text-center border-x border-slate-200">
+                <div class="text-xl font-bold text-amber-600">${grp.checkedOut}</div>
+                <div class="text-[10px] font-bold uppercase text-slate-400">Out</div>
               </div>
               <div class="text-center">
-                <div class="text-2xl font-bold text-slate-700">${grp.total}</div>
-                <div class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Total Units</div>
+                <div class="text-xl font-bold text-slate-700">${grp.total}</div>
+                <div class="text-[10px] font-bold uppercase text-slate-400">Total</div>
               </div>
             </div>
           </div>
 
-          <div class="mt-4 pt-3 border-t flex flex-wrap justify-between items-center gap-2">
-            <button onclick="selectProductTypeView('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}')" class="flex-1 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2 px-3 rounded-lg transition">
-              🔍 View ${grp.total} Unit(s)
+          <div class="mt-4 pt-3 border-t border-slate-100 flex items-center gap-2">
+            <button onclick="selectProductTypeView('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}')" class="flex-1 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold py-2 px-3 rounded-lg transition truncate">
+              View ${grp.total} Unit(s)
             </button>
-            <button onclick="openAddMoreForProductType('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}')" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2 px-3 rounded-lg transition shadow-sm" title="Add more units to this product type">
-              ➕ Add Units
+            <button onclick="openAddMoreForProductType('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}')" class="bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-bold py-2 px-2.5 rounded-lg transition shrink-0" title="Add more units to this product type">
+              + Add
             </button>
             ${printToggleBtn}
           </div>
@@ -1958,7 +2002,7 @@
       const addMoreBtn = document.getElementById('units-add-more-btn');
 
       if (selectedProductName) {
-        titleEl.textContent = `${selectedProductName} (${selectedCategory})`;
+        titleEl.textContent = `${selectedProductName}`;
         addMoreBtn.classList.remove('hidden');
         addMoreBtn.onclick = () => openAddMoreForProductType(selectedCategory, selectedProductName);
       } else if (selectedCategory) {
@@ -1968,7 +2012,7 @@
         titleEl.textContent = `All Individual Inventory Units`;
         addMoreBtn.classList.add('hidden');
       }
-      subtitleEl.textContent = `${availableCount} Available in Storage • ${checkedOutCount} Checked Out • ${filtered.length} Total Unit(s)`;
+      subtitleEl.textContent = `${availableCount} Available • ${checkedOutCount} Checked Out • ${filtered.length} Total`;
 
       const masterCheckbox = document.getElementById('master-checkbox');
       if (masterCheckbox) {
@@ -1976,7 +2020,7 @@
       }
 
       if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="9" class="p-8 text-center text-slate-400">No matching units found in this view.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-400">No matching units found in this view.</td></tr>`;
         return;
       }
 
@@ -1986,19 +2030,18 @@
         const isCheckedOut = activeList.length > 0;
 
         const statusBadge = isCheckedOut
-          ? `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300">Checked Out</span>`
-          : `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">Available</span>`;
+          ? `<span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">Out</span>`
+          : `<span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">In Stock</span>`;
 
-        let liveCheckoutHtml = `<span class="text-xs text-slate-400">In Home Storage</span>`;
+        let liveCheckoutHtml = `<span class="text-xs text-slate-400">—</span>`;
         if (isCheckedOut) {
           const latest = activeList[0];
           liveCheckoutHtml = `
-            <div class="text-xs bg-amber-50 border border-amber-300 rounded p-1.5">
-              <div class="font-bold text-amber-900">👤 ${escapeHtml(latest.userName)} → 📍 ${escapeHtml(latest.destination)}</div>
-              ${latest.userEmail ? `<div class="text-[11px] font-mono text-blue-700 truncate">✉️ ${escapeHtml(latest.userEmail)}</div>` : ''}
+            <div class="text-xs bg-amber-50/70 border border-amber-200 rounded-lg p-2 max-w-[220px]">
+              <div class="font-bold text-slate-900 truncate">👤 ${escapeHtml(latest.userName)} → ${escapeHtml(latest.destination)}</div>
               <div class="flex items-center justify-between mt-0.5">
-                <span class="text-[10px] uppercase text-amber-700 font-semibold">Live Timer:</span>
-                <span class="font-mono font-bold text-amber-800 text-xs" data-live-timer="${latest.checkedOutAt}">${formatElapsedDuration(latest.checkedOutAt)}</span>
+                <span class="text-[10px] text-slate-400">Timer:</span>
+                <span class="font-mono font-bold text-amber-700 text-[11px]" data-live-timer="${latest.checkedOutAt}">${formatElapsedDuration(latest.checkedOutAt)}</span>
               </div>
             </div>
           `;
@@ -2009,58 +2052,51 @@
           `<option value="${q}" ${item.quality === q ? 'selected' : ''}>${q}</option>`
         ).join('');
 
-        const actionBtnHtml = isCheckedOut
-          ? `<button onclick="openCheckInModal('${item.id}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded text-xs font-bold shadow-sm">📥 Check In</button>`
-          : `<button onclick="openCheckOutModal('${item.id}')" class="bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded text-xs font-bold shadow-sm">📤 Check Out</button>`;
+        const primaryActionBtn = isCheckedOut
+          ? `<button onclick="openCheckInModal('${item.id}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-md text-xs font-bold">📥 In</button>`
+          : `<button onclick="openCheckOutModal('${item.id}')" class="bg-amber-600 hover:bg-amber-500 text-white px-2.5 py-1 rounded-md text-xs font-bold">📤 Out</button>`;
 
         const tr = document.createElement('tr');
-        tr.className = 'hover:bg-slate-50 transition';
+        tr.className = 'hover:bg-slate-50/80 transition';
         tr.innerHTML = `
           <td class="p-3 text-center">
-            <input type="checkbox" ${isChecked} onchange="toggleItemSelect('${item.id}', this.checked)" class="w-4 h-4 accent-blue-600 cursor-pointer" />
+            <input type="checkbox" ${isChecked} onchange="toggleItemSelect('${item.id}', this.checked)" class="w-4 h-4 accent-blue-600 cursor-pointer rounded" />
           </td>
           <td class="p-3">
-            <button onclick="openScanViewForItem('${item.id}')" class="font-mono font-bold text-blue-700 hover:underline flex items-center gap-1" title="Open Dedicated Unit QR Page">
-              <span>📱</span> ${escapeHtml(item.tag)}
+            <button onclick="openScanViewForItem('${item.id}')" class="font-mono font-bold text-blue-600 hover:underline text-xs sm:text-sm">
+              ${escapeHtml(item.tag)}
             </button>
-            <div class="text-xs font-mono text-slate-600 mt-0.5">Code: <strong class="text-slate-900">${escapeHtml(item.itemCode)}</strong></div>
+            <div class="text-[11px] font-mono text-slate-500">${escapeHtml(item.itemCode)}</div>
           </td>
           <td class="p-3">
-            <div class="font-semibold text-slate-900">${escapeHtml(item.name)}</div>
-            <div class="flex items-center gap-1 mt-0.5">
-              <button onclick="selectCategoryView('${escapeJsStr(item.category)}')" class="bg-blue-50 hover:bg-blue-100 border border-blue-200 px-1.5 py-0.5 rounded text-[11px] text-blue-700 font-semibold">
-                📂 ${escapeHtml(item.category)}
-              </button>
-              <button onclick="openAddMoreForProductType('${escapeJsStr(item.category)}', '${escapeJsStr(item.name)}')" class="bg-slate-100 hover:bg-blue-100 border border-slate-300 px-1.5 py-0.5 rounded text-[10px] text-slate-700 font-bold" title="Add more units of this item type">
-                + Add More
-              </button>
-            </div>
+            <div class="font-semibold text-slate-900 text-xs sm:text-sm">${escapeHtml(item.name)}</div>
+            <button onclick="selectCategoryView('${escapeJsStr(item.category)}')" class="text-[11px] text-blue-600 hover:underline">
+              ${escapeHtml(item.category)}
+            </button>
           </td>
           <td class="p-3">
-            <div class="text-xs font-bold text-slate-700">🏢 ${escapeHtml(item.plantCode)}</div>
-            <div class="text-xs text-slate-600">📍 ${escapeHtml(item.location)}</div>
+            <div class="text-xs font-bold text-slate-700">${escapeHtml(item.plantCode)}</div>
+            <div class="text-[11px] text-slate-500">${escapeHtml(item.location)}</div>
           </td>
           <td class="p-3">
-            <div class="mb-1">${getQualityBadgeHtml(item.quality)}</div>
-            <select onchange="quickChangeQuality('${item.id}', this.value)" class="text-[11px] border border-slate-300 rounded px-1.5 py-0.5 bg-white text-slate-700 cursor-pointer">
+            <select onchange="quickChangeQuality('${item.id}', this.value)" class="text-xs border border-slate-200 rounded-md px-2 py-1 bg-white font-semibold text-slate-700 cursor-pointer">
               ${qualityOptionsHtml}
             </select>
           </td>
           <td class="p-3 text-center">
             ${statusBadge}
           </td>
-          <td class="p-3 min-w-[200px]">
+          <td class="p-3">
             ${liveCheckoutHtml}
           </td>
-          <td class="p-3 text-center whitespace-nowrap">
-            ${actionBtnHtml}
-          </td>
-          <td class="p-3 text-right whitespace-nowrap space-x-1">
-            <button onclick="openScanViewForItem('${item.id}')" class="text-xs bg-blue-600 hover:bg-blue-500 text-white px-2 py-1 rounded font-medium" title="Open Dedicated Check-Out Page">Page</button>
-            <button onclick="openDetailModal('${item.id}')" class="text-xs bg-slate-200 hover:bg-slate-300 px-2 py-1 rounded font-medium" title="View QR Code">QR</button>
-            <button onclick="openHistoryModal('${item.id}')" class="text-xs bg-slate-800 hover:bg-slate-700 text-white px-2 py-1 rounded font-medium" title="View History">📜 (${(item.checkoutHistory || []).length})</button>
-            <button onclick="openItemModal('${item.id}')" class="text-xs bg-blue-100 hover:bg-blue-200 text-blue-800 px-2 py-1 rounded font-medium">Edit</button>
-            <button onclick="deleteItem('${item.id}')" class="text-xs bg-red-100 hover:bg-red-200 text-red-700 px-2 py-1 rounded font-medium">Delete</button>
+          <td class="p-3 text-right">
+            <div class="flex flex-wrap items-center justify-end gap-1">
+              ${primaryActionBtn}
+              <button onclick="openDetailModal('${item.id}')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded-md font-medium">QR</button>
+              <button onclick="openHistoryModal('${item.id}')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded-md font-medium" title="History">📜</button>
+              <button onclick="openItemModal('${item.id}')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded-md font-medium">Edit</button>
+              <button onclick="deleteItem('${item.id}')" class="text-xs bg-rose-50 hover:bg-rose-100 text-rose-600 px-2 py-1 rounded-md font-medium">✕</button>
+            </div>
           </td>
         `;
         tbody.appendChild(tr);
@@ -2081,9 +2117,9 @@
       if (itemId) {
         const item = items.find(i => i.id === itemId);
         if (!item) return;
-        title.textContent = `Edit Individual Unit (${item.tag})`;
+        title.textContent = `Edit Unit (${item.tag})`;
         batchWrapper.classList.add('hidden');
-        saveBtn.textContent = 'Save Unit Changes';
+        saveBtn.textContent = 'Save Changes';
 
         document.getElementById('edit-item-id').value = item.id;
         document.getElementById('item-plant').value = item.plantCode;
@@ -2097,9 +2133,9 @@
         document.getElementById('item-instructions').value = item.instructions || '';
         updatePreviewTag();
       } else {
-        title.textContent = 'Add New Inventory Item(s) — 4-Digit Unit Codes';
+        title.textContent = 'Add New Inventory Item(s)';
         batchWrapper.classList.remove('hidden');
-        saveBtn.textContent = 'Create Unit(s) & Generate QR Codes';
+        saveBtn.textContent = 'Create Unit(s) & QR';
 
         document.getElementById('edit-item-id').value = '';
         document.getElementById('item-batch-count').value = 1;
@@ -2188,8 +2224,8 @@
         tagPreviewEl.textContent = firstTag;
         codePreviewEl.textContent = generatedCodes[0];
       } else {
-        tagPreviewEl.textContent = `${firstTag} → ${lastTag} (${count} unique tags)`;
-        codePreviewEl.textContent = `${generatedCodes[0]} → ${generatedCodes[generatedCodes.length - 1]} (${count} unique codes)`;
+        tagPreviewEl.textContent = `${firstTag} → ${lastTag} (${count})`;
+        codePreviewEl.textContent = `${generatedCodes[0]} → ${generatedCodes[generatedCodes.length - 1]}`;
       }
     }
 
@@ -2274,7 +2310,7 @@
     async function deleteItem(itemId) {
       const item = items.find(i => i.id === itemId);
       if (!item) return;
-      if (confirm(`Are you sure you want to permanently delete unit "${item.name}" (${item.tag} / ${item.itemCode}) from all devices?`)) {
+      if (confirm(`Permanently delete unit "${item.name}" (${item.tag} / ${item.itemCode})?`)) {
         items = items.filter(i => i.id !== itemId);
         selectedItemIds.delete(itemId);
         renderInventory();
@@ -2309,13 +2345,13 @@
         div.className = 'p-3 flex justify-between items-center text-sm hover:bg-slate-50';
         div.innerHTML = `
           <div>
-            <span class="font-mono font-bold bg-slate-200 px-2 py-0.5 rounded text-slate-800">${escapeHtml(p.code)}</span>
+            <span class="font-mono font-bold bg-slate-100 border px-2 py-0.5 rounded text-slate-800">${escapeHtml(p.code)}</span>
             <span class="font-medium text-slate-800 ml-2">${escapeHtml(p.name)}</span>
             <span class="text-xs text-slate-400 ml-1">(${count} units)</span>
           </div>
           <div class="space-x-1">
-            <button onclick="startEditPlant('${p.code}')" class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200">Edit</button>
-            <button onclick="deletePlant('${p.code}')" class="text-xs bg-red-100 text-red-700 px-2 py-1 rounded hover:bg-red-200">Remove</button>
+            <button onclick="startEditPlant('${p.code}')" class="text-xs bg-blue-50 text-blue-700 px-2.5 py-1 rounded-md hover:bg-blue-100">Edit</button>
+            <button onclick="deletePlant('${p.code}')" class="text-xs bg-rose-50 text-rose-700 px-2.5 py-1 rounded-md hover:bg-rose-100">Remove</button>
           </div>
         `;
         container.appendChild(div);
@@ -2435,7 +2471,7 @@
       modal.classList.remove('flex');
     }
 
-    // --- MASS SELECTION & GLOBAL UNSELECT ALL QR PRINTING ---
+    // --- MASS SELECTION & FLOATING QR PRINT BAR ---
     function toggleItemSelect(id, checked) {
       if (checked) selectedItemIds.add(id);
       else selectedItemIds.delete(id);
@@ -2468,14 +2504,22 @@
 
     function updateSelectedCounter() {
       const count = selectedItemIds.size;
-      document.getElementById('selected-count').textContent = count;
+      const selEl = document.getElementById('selected-count');
+      if (selEl) selEl.textContent = count;
+
+      const menuSelEl = document.getElementById('menu-selected-count');
+      if (menuSelEl) menuSelEl.textContent = count;
+
+      const floatingCountEl = document.getElementById('floating-selected-count');
+      if (floatingCountEl) floatingCountEl.textContent = count;
 
       const barCountEl = document.getElementById('bar-selected-count');
       if (barCountEl) barCountEl.textContent = count;
 
-      const globalUnselectBtn = document.getElementById('global-unselect-btn');
-      if (globalUnselectBtn) {
-        globalUnselectBtn.disabled = count === 0;
+      const floatingBar = document.getElementById('floating-print-bar');
+      if (floatingBar) {
+        if (count > 0) floatingBar.classList.remove('hidden');
+        else floatingBar.classList.add('hidden');
       }
 
       const barUnselectBtn = document.getElementById('bar-unselect-all-btn');
@@ -2487,7 +2531,7 @@
 
     function printSelectedQRCodes() {
       if (selectedItemIds.size === 0) {
-        alert('Please select at least one unit (or click "🖨️ Select QR" on an item card) to print QR labels.');
+        alert('Select at least one unit (or click "🖨️ QR" on any product card) to print QR labels.');
         return;
       }
 
