@@ -8,6 +8,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- QRCode.js for generating scannable QR codes -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- EmailJS SDK for optional silent background email alerts -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <style>
     @media print {
       body * { visibility: hidden; }
@@ -32,9 +34,19 @@
       text-align: center;
       background: #fff;
     }
+    @keyframes slideInRight {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    .toast-animate {
+      animation: slideInRight 0.25s ease-out forwards;
+    }
   </style>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen">
+
+  <!-- Live Toast Notification Container (Top Right) -->
+  <div id="toast-container" class="fixed top-20 right-4 z-50 space-y-2 max-w-sm w-full pointer-events-none no-print"></div>
 
   <!-- Top Navigation Bar -->
   <header class="bg-slate-900 text-white shadow-md no-print">
@@ -48,10 +60,20 @@
               🟢 Connecting to Cloud...
             </span>
           </div>
-          <p class="text-xs text-slate-400">Product Category Overview, 4-Digit Unit Codes & Live QR Tracking</p>
+          <p class="text-xs text-slate-400">Product Category Overview, 4-Digit Unit Codes, Email Alerts & Live Notifications</p>
         </div>
       </div>
       <div class="flex flex-wrap items-center gap-2">
+        <!-- App Notification Bell Button -->
+        <button onclick="openNotificationsModal()" class="relative bg-slate-800 hover:bg-slate-700 border border-slate-600 px-3 py-2 rounded text-sm font-semibold transition flex items-center gap-1.5" title="View App Check-Out Notifications">
+          <span>🔔 Alerts</span>
+          <span id="notif-unread-badge" class="hidden bg-rose-600 text-white text-[11px] font-extrabold px-1.5 py-0.2 rounded-full">0</span>
+        </button>
+
+        <button onclick="openEmailConfigModal()" class="bg-violet-600 hover:bg-violet-500 px-3 py-2 rounded text-sm font-medium transition" title="Configure Automatic Email Alerts">
+          ✉️ Email Config
+        </button>
+
         <button onclick="openCloudModal()" class="bg-indigo-600 hover:bg-indigo-500 px-3 py-2 rounded text-sm font-medium transition">
           ☁️ Cloud Status
         </button>
@@ -314,11 +336,11 @@
   <!-- Printable QR Area -->
   <div id="print-area" class="hidden"></div>
 
-  <!-- MODAL: Check Out Individual Unit -->
+  <!-- MODAL: Check Out Individual Unit (Now Requires User Email Address & Sends Email Alert) -->
   <div id="checkout-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print">
     <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl">
       <div class="flex justify-between items-center border-b pb-3 mb-3">
-        <h3 class="text-lg font-bold text-slate-900">📤 Check Out Unit</h3>
+        <h3 class="text-lg font-bold text-slate-900">📤 Check Out Unit & Send Email Alert</h3>
         <button onclick="closeCheckOutModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
       </div>
       <p id="checkout-modal-subtitle" class="text-xs font-mono font-bold text-blue-700 mb-4 bg-blue-50 p-2.5 rounded border border-blue-200"></p>
@@ -329,6 +351,11 @@
           <input type="text" id="checkout-user" required placeholder="e.g. John Smith" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
         </div>
         <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Your Email Address (For Check-Out Alert) *</label>
+          <input type="email" id="checkout-email" required placeholder="e.g. john.smith@company.com" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+          <p class="text-[10px] text-slate-400 mt-0.5">An email confirmation with the item details & return link will be sent here.</p>
+        </div>
+        <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Destination Location (Where Unit is Going) *</label>
           <input type="text" id="checkout-destination" required placeholder="e.g. Assembly Line 3, Press Bay 2" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
         </div>
@@ -336,9 +363,13 @@
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Additional Notes</label>
           <textarea id="checkout-note" rows="2" placeholder="Work order #, reason for checkout, or comments..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"></textarea>
         </div>
+        <div class="bg-amber-50 border border-amber-200 rounded-lg p-2.5 flex items-center gap-2 text-xs text-amber-900">
+          <input type="checkbox" id="checkout-send-email-toggle" checked class="w-4 h-4 accent-amber-600 cursor-pointer" />
+          <label for="checkout-send-email-toggle" class="cursor-pointer font-medium">Send Email Alert Receipt to this email address upon check-out</label>
+        </div>
         <div class="flex justify-end space-x-2 pt-3 border-t">
           <button type="button" onclick="closeCheckOutModal()" class="px-4 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 text-sm font-medium">Cancel</button>
-          <button type="submit" class="px-5 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-sm font-bold shadow">Start Live Check-Out</button>
+          <button type="submit" id="checkout-submit-btn" class="px-5 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-sm font-bold shadow">Check Out & Notify</button>
         </div>
       </form>
     </div>
@@ -380,7 +411,81 @@
     </div>
   </div>
 
-  <!-- MODAL: Add / Edit Inventory Item (Supports Adding More to Existing Types + 4-Digit Codes) -->
+  <!-- MODAL: Live In-App Notifications Center -->
+  <div id="notifications-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print">
+    <div class="bg-white rounded-xl max-w-2xl w-full p-6 shadow-2xl max-h-[85vh] flex flex-col">
+      <div class="flex justify-between items-center border-b pb-3 mb-4">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">🔔</span>
+          <div>
+            <h2 class="text-lg font-bold text-slate-900">Live App Check-Out Notifications</h2>
+            <p class="text-xs text-slate-500">Synced across all connected devices in real time</p>
+          </div>
+        </div>
+        <button onclick="closeNotificationsModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
+      </div>
+
+      <div id="notifications-list" class="overflow-y-auto flex-1 space-y-2.5 pr-1">
+        <!-- Populated by JavaScript -->
+      </div>
+
+      <div class="flex justify-between items-center pt-4 mt-4 border-t">
+        <button onclick="clearAllNotifications()" class="text-xs bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold px-3 py-2 rounded-lg">
+          🗑️ Clear All Notifications
+        </button>
+        <button onclick="closeNotificationsModal()" class="px-4 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 text-sm font-medium">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Email Alert Configuration (EmailJS or Instant Mailto) -->
+  <div id="email-config-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print">
+    <div class="bg-white rounded-xl max-w-lg w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b pb-3 mb-4">
+        <h2 class="text-lg font-bold text-slate-900">✉️ Email Alert Configuration</h2>
+        <button onclick="closeEmailConfigModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
+      </div>
+      <div class="text-xs text-slate-600 space-y-2 mb-4 bg-slate-50 p-3 rounded-lg border">
+        <p><strong>How Email Alerts Work:</strong></p>
+        <p>1. <strong>Default Mode (Zero Setup):</strong> When a user checks out an item, the app generates a formatted email alert addressed to their email and opens their device's mail app (or gives a 1-click Send Email Receipt button).</p>
+        <p>2. <strong>Silent Automatic Mode (Optional Free EmailJS):</strong> If you enter your free <a href="https://www.emailjs.com/" target="_blank" class="text-blue-600 underline font-semibold">EmailJS.com</a> keys below, the app will automatically dispatch background emails to `{{to_email}}` without opening any mail window!</p>
+      </div>
+      <form onsubmit="saveEmailConfig(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Email Delivery Mode</label>
+          <select id="email-mode-select" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold">
+            <option value="MAILTO">Instant Email Client / Receipt Popup (No API Keys Needed)</option>
+            <option value="EMAILJS">Silent Automatic Background Email (via EmailJS)</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">EmailJS Public Key (Optional)</label>
+          <input type="text" id="emailjs-public-key" placeholder="e.g. user_xxxxxx" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono" />
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">EmailJS Service ID</label>
+            <input type="text" id="emailjs-service-id" placeholder="e.g. service_xxx" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">EmailJS Template ID</label>
+            <input type="text" id="emailjs-template-id" placeholder="e.g. template_xxx" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono" />
+          </div>
+        </div>
+        <p class="text-[11px] text-slate-400">
+          EmailJS Template Variables sent: <code>to_email</code>, <code>user_name</code>, <code>item_name</code>, <code>item_tag</code>, <code>item_code</code>, <code>destination</code>, <code>checkout_time</code>, <code>return_url</code>, <code>message</code>.
+        </p>
+        <div class="flex justify-end space-x-2 pt-3 border-t">
+          <button type="button" onclick="closeEmailConfigModal()" class="px-4 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 text-sm font-medium">Cancel</button>
+          <button type="submit" class="px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold">Save Email Settings</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Add / Edit Inventory Item -->
   <div id="item-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print">
     <div class="bg-white rounded-xl max-w-2xl w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b pb-3 mb-4">
@@ -584,21 +689,31 @@
 
   <script>
     // ============================================================================
-    // 1. LIVE FIREBASE & GITHUB CONFIGURATION
+    // 1. LIVE FIREBASE, EMAIL & GITHUB CONFIGURATION
     // ============================================================================
     const DEFAULT_CLOUD_DB_URL = 'https://storagelocator-405e5-default-rtdb.firebaseio.com/';
     const FALLBACK_GITHUB_URL  = 'https://asrieldreemurr2003.github.io/StorageLocater/';
 
-    const STORAGE_KEY_PLANTS = 'PLANT_QR_PLANTS_V7';
-    const STORAGE_KEY_ITEMS  = 'PLANT_QR_ITEMS_V7';
-    const STORAGE_KEY_SEQ    = 'PLANT_QR_SEQ_V7';
-    const STORAGE_KEY_CLOUD  = 'PLANT_QR_CLOUD_URL_V7';
+    const STORAGE_KEY_PLANTS = 'PLANT_QR_PLANTS_V8';
+    const STORAGE_KEY_ITEMS  = 'PLANT_QR_ITEMS_V8';
+    const STORAGE_KEY_SEQ    = 'PLANT_QR_SEQ_V8';
+    const STORAGE_KEY_CLOUD  = 'PLANT_QR_CLOUD_URL_V8';
+    const STORAGE_KEY_NOTIFS = 'PLANT_QR_NOTIFS_V8';
+    const STORAGE_KEY_EMAIL  = 'PLANT_QR_EMAIL_CFG_V8';
+    const STORAGE_KEY_SEEN_N = 'PLANT_QR_SEEN_NOTIF_TS_V8';
 
     let cloudDbUrl = localStorage.getItem(STORAGE_KEY_CLOUD) || DEFAULT_CLOUD_DB_URL;
     if (!cloudDbUrl || !cloudDbUrl.includes('firebaseio.com')) {
       cloudDbUrl = DEFAULT_CLOUD_DB_URL;
       localStorage.setItem(STORAGE_KEY_CLOUD, cloudDbUrl);
     }
+
+    let emailConfig = JSON.parse(localStorage.getItem(STORAGE_KEY_EMAIL)) || {
+      mode: 'MAILTO', // 'MAILTO' or 'EMAILJS'
+      publicKey: '',
+      serviceId: '',
+      templateId: ''
+    };
 
     let plants = JSON.parse(localStorage.getItem(STORAGE_KEY_PLANTS)) || [
       { code: 'KEN', name: 'Kentwood Plant' },
@@ -645,6 +760,10 @@
       CHI: 0
     };
 
+    let appNotifications = JSON.parse(localStorage.getItem(STORAGE_KEY_NOTIFS)) || [];
+    let lastSeenNotifTimestamp = parseInt(localStorage.getItem(STORAGE_KEY_SEEN_N), 10) || 0;
+    let lastToastTimestamp = Date.now();
+
     let selectedItemIds = new Set();
     let activeScannedTag = null;
     let activeHistoryItemId = null;
@@ -654,7 +773,6 @@
     let selectedCategory = null;
     let selectedProductName = null;
 
-    // Ensure all items have 4-digit item codes (auto-upgrades any older 3-digit codes like -001 to -0001)
     function normalizeItems() {
       items.forEach((item, index) => {
         if (!item.itemCode) {
@@ -667,6 +785,7 @@
         if (!Array.isArray(item.checkoutHistory)) item.checkoutHistory = [];
         item.quantity = item.activeCheckouts.length > 0 ? 0 : 1;
       });
+      if (!Array.isArray(appNotifications)) appNotifications = [];
     }
     normalizeItems();
 
@@ -676,7 +795,227 @@
     }
 
     // ============================================================================
-    // 2. QUALITY BADGE & LIVE DURATION FORMATTERS
+    // 2. IN-APP NOTIFICATIONS & EMAIL ALERT ENGINE
+    // ============================================================================
+    function showAppToast(notif) {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+
+      const isOut = notif.type === 'CHECK_OUT';
+      const borderClass = isOut ? 'border-amber-500 bg-slate-900' : 'border-emerald-500 bg-slate-900';
+      const icon = isOut ? '📤' : '📥';
+
+      const toast = document.createElement('div');
+      toast.className = `pointer-events-auto ${borderClass} text-white border-l-4 rounded-xl p-4 shadow-2xl toast-animate flex justify-between items-start gap-3`;
+      toast.innerHTML = `
+        <div class="text-xs space-y-1">
+          <div class="font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
+            <span>${icon} ${escapeHtml(notif.title)}</span>
+          </div>
+          <p class="text-slate-200 leading-snug">${escapeHtml(notif.message)}</p>
+          ${notif.userEmail ? `<p class="text-[11px] text-blue-300 font-mono">✉️ Alert To: ${escapeHtml(notif.userEmail)}</p>` : ''}
+        </div>
+        <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-white text-lg leading-none">&times;</button>
+      `;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        if (toast.parentElement) toast.remove();
+      }, 7500);
+    }
+
+    function addAppNotification(type, title, message, itemTag, userEmail = '', mailtoLink = '') {
+      const now = Date.now();
+      const newNotif = {
+        id: 'notif-' + now + '-' + Math.random().toString(36).substring(2, 5),
+        type,
+        title,
+        message,
+        itemTag,
+        userEmail,
+        mailtoLink,
+        timestamp: now
+      };
+      appNotifications.unshift(newNotif);
+      if (appNotifications.length > 100) appNotifications = appNotifications.slice(0, 100);
+      lastToastTimestamp = now;
+
+      showAppToast(newNotif);
+      updateNotificationBadge();
+    }
+
+    function updateNotificationBadge() {
+      const badge = document.getElementById('notif-unread-badge');
+      if (!badge) return;
+      const unreadCount = appNotifications.filter(n => n.timestamp > lastSeenNotifTimestamp).length;
+      if (unreadCount > 0) {
+        badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+    }
+
+    function openNotificationsModal() {
+      lastSeenNotifTimestamp = Date.now();
+      localStorage.setItem(STORAGE_KEY_SEEN_N, String(lastSeenNotifTimestamp));
+      updateNotificationBadge();
+      renderNotificationsList();
+
+      const modal = document.getElementById('notifications-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeNotificationsModal() {
+      const modal = document.getElementById('notifications-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function renderNotificationsList() {
+      const list = document.getElementById('notifications-list');
+      if (!list) return;
+      list.innerHTML = '';
+
+      if (appNotifications.length === 0) {
+        list.innerHTML = `<div class="p-8 text-center text-slate-400 text-sm">No app notifications yet. Check-out and check-in events will appear here automatically.</div>`;
+        return;
+      }
+
+      appNotifications.forEach(n => {
+        const isOut = n.type === 'CHECK_OUT';
+        const cardStyle = isOut
+          ? 'bg-amber-50/70 border-amber-300'
+          : 'bg-emerald-50/70 border-emerald-300';
+        const badgeHtml = isOut
+          ? `<span class="bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">📤 Checked Out</span>`
+          : `<span class="bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">📥 Checked In</span>`;
+
+        const div = document.createElement('div');
+        div.className = `p-3.5 rounded-xl border ${cardStyle} flex flex-wrap justify-between items-start gap-3 text-xs`;
+        div.innerHTML = `
+          <div class="space-y-1 flex-1">
+            <div class="flex items-center gap-2 flex-wrap">
+              ${badgeHtml}
+              <span class="font-bold text-slate-900 text-sm">${escapeHtml(n.title)}</span>
+              <span class="text-[11px] font-mono text-slate-500">${new Date(n.timestamp).toLocaleString()}</span>
+            </div>
+            <p class="text-slate-700">${escapeHtml(n.message)}</p>
+            ${n.userEmail ? `<p class="text-[11px] font-mono text-blue-700">📧 Recipient Email: <strong>${escapeHtml(n.userEmail)}</strong></p>` : ''}
+          </div>
+          <div class="flex items-center gap-2">
+            ${n.mailtoLink ? `<a href="${n.mailtoLink}" class="bg-violet-600 hover:bg-violet-500 text-white px-2.5 py-1.5 rounded font-bold text-[11px]">✉️ Resend Email</a>` : ''}
+            ${n.itemTag ? `<button onclick="closeNotificationsModal(); refreshScannedBanner('${escapeJsStr(n.itemTag)}', true)" class="bg-slate-800 hover:bg-slate-700 text-white px-2.5 py-1.5 rounded font-bold text-[11px]">View Unit</button>` : ''}
+          </div>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    async function clearAllNotifications() {
+      if (!confirm('Clear all notifications from the app log?')) return;
+      appNotifications = [];
+      renderNotificationsList();
+      updateNotificationBadge();
+      await saveState();
+    }
+
+    // Builds the mailto URL and sends automatic EmailJS alert if configured
+    async function dispatchCheckoutEmailAlert(item, userName, userEmail, destination, notes, checkedOutAt, shouldTriggerEmail) {
+      const unitUrl = buildQRUrl(item);
+      const timeStr = new Date(checkedOutAt).toLocaleString();
+      const subject = `[StorageLocater Alert] Checked Out: ${item.name} (${item.tag} / ${item.itemCode})`;
+      const bodyLines = [
+        `Hello ${userName},`,
+        ``,
+        `This is an automated check-out alert from StorageLocater Inventory.`,
+        ``,
+        `--- CHECKED OUT UNIT DETAILS ---`,
+        `• Item Name: ${item.name}`,
+        `• Plant Tag: ${item.tag}`,
+        `• 4-Digit Item Code: ${item.itemCode}`,
+        `• Plant: ${item.plantCode}`,
+        `• Home Storage Location: ${item.location}`,
+        `• Checked Out By: ${userName} (${userEmail})`,
+        `• Destination Location: ${destination}`,
+        `• Check-Out Time: ${timeStr}`,
+        notes ? `• Notes: ${notes}` : null,
+        ``,
+        `--- DIRECT CHECK-IN / QR LINK ---`,
+        `When you are finished using this item, scan its QR code or open the link below to check it back in and rate its quality:`,
+        `${unitUrl}`,
+        ``,
+        `Thank you,`,
+        `StorageLocater Inventory System`
+      ].filter(Boolean).join('\n');
+
+      const mailtoLink = `mailto:${encodeURIComponent(userEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyLines)}`;
+
+      if (!shouldTriggerEmail) return mailtoLink;
+
+      // Option A: Silent Background Email via EmailJS if configured
+      if (emailConfig.mode === 'EMAILJS' && emailConfig.publicKey && emailConfig.serviceId && emailConfig.templateId && window.emailjs) {
+        try {
+          emailjs.init({ publicKey: emailConfig.publicKey });
+          await emailjs.send(emailConfig.serviceId, emailConfig.templateId, {
+            to_email: userEmail,
+            user_name: userName,
+            item_name: item.name,
+            item_tag: item.tag,
+            item_code: item.itemCode,
+            destination: destination,
+            checkout_time: timeStr,
+            return_url: unitUrl,
+            message: bodyLines
+          });
+          return mailtoLink;
+        } catch (err) {
+          console.error('EmailJS error, falling back to mailto:', err);
+        }
+      }
+
+      // Option B: Zero-config instant email dispatch via device email client
+      setTimeout(() => {
+        window.location.href = mailtoLink;
+      }, 300);
+
+      return mailtoLink;
+    }
+
+    function openEmailConfigModal() {
+      document.getElementById('email-mode-select').value = emailConfig.mode || 'MAILTO';
+      document.getElementById('emailjs-public-key').value = emailConfig.publicKey || '';
+      document.getElementById('emailjs-service-id').value = emailConfig.serviceId || '';
+      document.getElementById('emailjs-template-id').value = emailConfig.templateId || '';
+
+      const modal = document.getElementById('email-config-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeEmailConfigModal() {
+      const modal = document.getElementById('email-config-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    async function saveEmailConfig(e) {
+      e.preventDefault();
+      emailConfig = {
+        mode: document.getElementById('email-mode-select').value,
+        publicKey: document.getElementById('emailjs-public-key').value.trim(),
+        serviceId: document.getElementById('emailjs-service-id').value.trim(),
+        templateId: document.getElementById('emailjs-template-id').value.trim()
+      };
+      localStorage.setItem(STORAGE_KEY_EMAIL, JSON.stringify(emailConfig));
+      closeEmailConfigModal();
+      await saveState();
+      alert('Email alert settings saved and synced!');
+    }
+
+    // ============================================================================
+    // 3. QUALITY BADGE & LIVE DURATION FORMATTERS
     // ============================================================================
     function getQualityBadgeHtml(quality) {
       const q = quality || 'Good';
@@ -710,7 +1049,7 @@
     }, 1000);
 
     // ============================================================================
-    // 3. CLOUD SYNC ENGINE
+    // 4. CLOUD SYNC ENGINE
     // ============================================================================
     function getNormalizedCloudEndpoint() {
       if (!cloudDbUrl) return null;
@@ -736,6 +1075,8 @@
       localStorage.setItem(STORAGE_KEY_PLANTS, JSON.stringify(plants));
       localStorage.setItem(STORAGE_KEY_ITEMS, JSON.stringify(items));
       localStorage.setItem(STORAGE_KEY_SEQ, JSON.stringify(plantSequences));
+      localStorage.setItem(STORAGE_KEY_NOTIFS, JSON.stringify(appNotifications));
+      localStorage.setItem(STORAGE_KEY_EMAIL, JSON.stringify(emailConfig));
       await pushToCloud(false);
     }
 
@@ -748,6 +1089,8 @@
           plants,
           items,
           plantSequences,
+          appNotifications,
+          emailConfig,
           updatedAt: Date.now()
         };
         const res = await fetch(endpoint, {
@@ -757,7 +1100,7 @@
         });
         if (!res.ok) throw new Error('HTTP ' + res.status);
         updateSyncBadge('Cloud Synced (Live Across All Devices)', true);
-        if (showAlert) alert('Successfully synced inventory to Firebase Cloud!');
+        if (showAlert) alert('Successfully synced inventory & notifications to Firebase Cloud!');
       } catch (err) {
         console.error('Cloud push error:', err);
         updateSyncBadge('Cloud Sync Error (Check Firebase Rules)', false);
@@ -777,13 +1120,30 @@
           plants = data.plants;
           items = data.items || [];
           plantSequences = data.plantSequences || {};
+
+          if (Array.isArray(data.appNotifications)) {
+            // Show a live toast if another device just checked out an item!
+            const newestRemote = data.appNotifications[0];
+            if (newestRemote && newestRemote.timestamp > lastToastTimestamp) {
+              lastToastTimestamp = newestRemote.timestamp;
+              showAppToast(newestRemote);
+            }
+            appNotifications = data.appNotifications;
+          }
+          if (data.emailConfig && data.emailConfig.publicKey) {
+            emailConfig = data.emailConfig;
+            localStorage.setItem(STORAGE_KEY_EMAIL, JSON.stringify(emailConfig));
+          }
+
           normalizeItems();
           localStorage.setItem(STORAGE_KEY_PLANTS, JSON.stringify(plants));
           localStorage.setItem(STORAGE_KEY_ITEMS, JSON.stringify(items));
           localStorage.setItem(STORAGE_KEY_SEQ, JSON.stringify(plantSequences));
+          localStorage.setItem(STORAGE_KEY_NOTIFS, JSON.stringify(appNotifications));
 
           populatePlantDropdowns();
           renderInventory();
+          updateNotificationBadge();
           if (activeScannedTag) refreshScannedBanner(activeScannedTag, false);
           if (activeHistoryItemId) renderHistoryModalContent(activeHistoryItemId);
           updateSyncBadge('Cloud Synced (Live Across All Devices)', true);
@@ -818,7 +1178,7 @@
     }
 
     // ============================================================================
-    // 4. QR URL BUILDER & INDIVIDUAL UNIT PAGE ROUTING
+    // 5. QR URL BUILDER & INDIVIDUAL UNIT PAGE ROUTING
     // ============================================================================
     function buildQRUrl(item) {
       let baseUrl = FALLBACK_GITHUB_URL;
@@ -915,7 +1275,7 @@
         promptTitle.className = 'font-bold text-base text-amber-900';
         promptTitle.textContent = 'Checking out this unit?';
         promptDesc.className = 'text-xs text-amber-800 mt-0.5';
-        promptDesc.textContent = 'Tap "Check Out This Unit" to enter your name, destination location, and start the live checkout timer.';
+        promptDesc.textContent = 'Tap "Check Out This Unit" to enter your name, email address, destination location, and receive an email alert.';
 
         checkoutBtn.classList.remove('hidden');
         checkinBtn.classList.add('hidden');
@@ -933,6 +1293,7 @@
           row.innerHTML = `
             <div>
               <span class="font-bold text-slate-900">👤 Checked Out By: ${escapeHtml(rec.userName)}</span>
+              ${rec.userEmail ? `<span class="text-blue-700 font-mono ml-1">(${escapeHtml(rec.userEmail)})</span>` : ''}
               <span class="mx-1.5 text-slate-400">|</span>
               <span class="font-semibold text-blue-800">📍 Location: ${escapeHtml(rec.destination)}</span>
               ${rec.notes ? `<div class="text-slate-600 mt-0.5">Note: ${escapeHtml(rec.notes)}</div>` : ''}
@@ -973,7 +1334,7 @@
     }
 
     // ============================================================================
-    // 5. INDIVIDUAL UNIT CHECK-OUT & CHECK-IN WORKFLOWS
+    // 6. INDIVIDUAL UNIT CHECK-OUT & CHECK-IN WORKFLOWS (WITH EMAIL & NOTIFICATIONS)
     // ============================================================================
     function openCheckOutModal(itemId) {
       const item = items.find(i => i.id === itemId);
@@ -986,8 +1347,10 @@
 
       document.getElementById('checkout-item-id').value = item.id;
       document.getElementById('checkout-user').value = '';
+      document.getElementById('checkout-email').value = '';
       document.getElementById('checkout-destination').value = '';
       document.getElementById('checkout-note').value = '';
+      document.getElementById('checkout-send-email-toggle').checked = true;
       document.getElementById('checkout-modal-subtitle').textContent =
         `TAG: ${item.tag} | CODE: ${item.itemCode} — ${item.name}`;
 
@@ -1006,8 +1369,10 @@
       e.preventDefault();
       const itemId = document.getElementById('checkout-item-id').value;
       const userName = document.getElementById('checkout-user').value.trim();
+      const userEmail = document.getElementById('checkout-email').value.trim();
       const destination = document.getElementById('checkout-destination').value.trim();
       const notes = document.getElementById('checkout-note').value.trim();
+      const shouldSendEmail = document.getElementById('checkout-send-email-toggle').checked;
 
       const item = items.find(i => i.id === itemId);
       if (!item) return;
@@ -1019,6 +1384,7 @@
       item.activeCheckouts = [{
         checkoutId,
         userName,
+        userEmail,
         destination,
         quantity: 1,
         notes,
@@ -1030,6 +1396,7 @@
         checkoutId,
         type: 'CHECK_OUT',
         userName,
+        userEmail,
         destination,
         quantity: 1,
         notes,
@@ -1039,6 +1406,20 @@
       });
 
       closeCheckOutModal();
+
+      // Dispatch Email Alert to the person checking out the item
+      const mailtoLink = await dispatchCheckoutEmailAlert(item, userName, userEmail, destination, notes, now, shouldSendEmail);
+
+      // Add Live In-App Notification synced across all devices
+      addAppNotification(
+        'CHECK_OUT',
+        `${item.name} (${item.tag}) Checked Out`,
+        `${userName} checked out unit ${item.itemCode} to "${destination}".`,
+        item.tag,
+        userEmail,
+        mailtoLink
+      );
+
       renderInventory();
       if (activeScannedTag) refreshScannedBanner(activeScannedTag, false);
       await saveState();
@@ -1083,12 +1464,14 @@
       let durationMs = null;
       let originDestination = item.location;
       let checkoutId = null;
+      let previousEmail = '';
 
       if (item.activeCheckouts && item.activeCheckouts.length > 0) {
         const activeRec = item.activeCheckouts[0];
         checkoutId = activeRec.checkoutId;
         durationMs = now - activeRec.checkedOutAt;
         originDestination = activeRec.destination;
+        previousEmail = activeRec.userEmail || '';
         item.activeCheckouts = [];
 
         const histMatch = item.checkoutHistory.find(h => h.checkoutId === checkoutId);
@@ -1110,6 +1493,7 @@
         checkoutId,
         type: 'CHECK_IN',
         userName: returnedBy,
+        userEmail: previousEmail,
         destination: originDestination,
         quantity: 1,
         notes,
@@ -1120,6 +1504,16 @@
       });
 
       closeCheckInModal();
+
+      addAppNotification(
+        'CHECK_IN',
+        `${item.name} (${item.tag}) Checked In`,
+        `${returnedBy} returned unit ${item.itemCode} from "${originDestination}" (Quality: ${quality}).`,
+        item.tag,
+        previousEmail,
+        ''
+      );
+
       renderInventory();
       if (activeScannedTag) refreshScannedBanner(activeScannedTag, false);
       await saveState();
@@ -1135,7 +1529,7 @@
     }
 
     // ============================================================================
-    // 6. HISTORY MODAL
+    // 7. HISTORY MODAL
     // ============================================================================
     function openHistoryModal(itemId) {
       activeHistoryItemId = itemId;
@@ -1166,6 +1560,7 @@
           div.innerHTML = `
             <div>
               <span class="font-bold text-slate-900">👤 ${escapeHtml(rec.userName)}</span>
+              ${rec.userEmail ? `<span class="text-blue-700 font-mono ml-1">(${escapeHtml(rec.userEmail)})</span>` : ''}
               <span class="mx-1.5 text-slate-400">•</span>
               <span class="font-semibold text-blue-800">📍 Destination: ${escapeHtml(rec.destination)}</span>
               <div class="text-slate-500 mt-0.5">Checked Out: ${new Date(rec.checkedOutAt).toLocaleString()} ${rec.notes ? `| Note: ${escapeHtml(rec.notes)}` : ''}</div>
@@ -1203,6 +1598,7 @@
               <div class="flex items-center gap-2 flex-wrap">
                 ${badge}
                 <span class="font-bold text-slate-900">👤 ${escapeHtml(entry.userName || 'Unknown')}</span>
+                ${entry.userEmail ? `<span class="text-blue-700 font-mono">(${escapeHtml(entry.userEmail)})</span>` : ''}
                 <span class="text-slate-600">📍 Location: <strong>${escapeHtml(entry.destination || 'Storage')}</strong></span>
                 ${getQualityBadgeHtml(entry.qualityAtEvent)}
                 ${durationText}
@@ -1226,7 +1622,7 @@
     }
 
     // ============================================================================
-    // 7. CATEGORY & PRODUCT TYPE OVERVIEW + DRILL-DOWN NAVIGATION
+    // 8. CATEGORY & PRODUCT TYPE OVERVIEW + DRILL-DOWN NAVIGATION
     // ============================================================================
     function resetToOverview() {
       viewMode = 'OVERVIEW';
@@ -1424,6 +1820,7 @@
       }
 
       updateSelectedCounter();
+      updateNotificationBadge();
     }
 
     function renderOverviewCards(baseFiltered) {
@@ -1598,6 +1995,7 @@
           liveCheckoutHtml = `
             <div class="text-xs bg-amber-50 border border-amber-300 rounded p-1.5">
               <div class="font-bold text-amber-900">👤 ${escapeHtml(latest.userName)} → 📍 ${escapeHtml(latest.destination)}</div>
+              ${latest.userEmail ? `<div class="text-[11px] font-mono text-blue-700 truncate">✉️ ${escapeHtml(latest.userEmail)}</div>` : ''}
               <div class="flex items-center justify-between mt-0.5">
                 <span class="text-[10px] uppercase text-amber-700 font-semibold">Live Timer:</span>
                 <span class="font-mono font-bold text-amber-800 text-xs" data-live-timer="${latest.checkedOutAt}">${formatElapsedDuration(latest.checkedOutAt)}</span>
@@ -1670,7 +2068,7 @@
     }
 
     // ============================================================================
-    // 8. ADD / EDIT ITEM MODAL (WITH 4-DIGIT SEQUENTIAL ITEM CODES)
+    // 9. ADD / EDIT ITEM MODAL (WITH 4-DIGIT SEQUENTIAL ITEM CODES)
     // ============================================================================
     function openItemModal(itemId = null) {
       populatePlantDropdowns();
@@ -2060,7 +2458,6 @@
       renderInventory();
     }
 
-    // Instantly clears the entire QR print queue across all categories and plants
     function clearAllSelectedQRCodes() {
       if (selectedItemIds.size === 0) return;
       selectedItemIds.clear();
@@ -2137,7 +2534,7 @@
 
     // --- EXPORT / IMPORT JSON FOR BACKUP ---
     function exportData() {
-      const data = { plants, items, plantSequences };
+      const data = { plants, items, plantSequences, appNotifications, emailConfig };
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -2157,6 +2554,7 @@
             plants = imported.plants;
             items = imported.items;
             plantSequences = imported.plantSequences || {};
+            if (Array.isArray(imported.appNotifications)) appNotifications = imported.appNotifications;
             normalizeItems();
             populatePlantDropdowns();
             renderInventory();
