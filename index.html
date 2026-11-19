@@ -28,16 +28,22 @@
         width: 100%;
         display: grid !important;
         grid-template-columns: repeat(3, 1fr);
-        gap: 16px;
-        padding: 16px;
+        gap: 12px;
+        padding: 12px;
       }
       .no-print { display: none !important; }
+      .qr-card-print {
+        page-break-inside: avoid;
+        break-inside: avoid;
+        height: 230px;
+        box-sizing: border-box;
+      }
     }
     .qr-card-print {
       page-break-inside: avoid;
-      border: 2px solid #1e293b;
+      border: 1.5px solid #1e293b;
       border-radius: 8px;
-      padding: 12px;
+      padding: 8px;
       text-align: center;
       background: #fff;
     }
@@ -142,13 +148,13 @@
     </div>
   </header>
 
-  <!-- Floating Bottom QR Print Selection Bar (Appears Automatically When Any QR is Selected) -->
+  <!-- Floating Bottom QR Print Selection Bar -->
   <div id="floating-print-bar" class="hidden fixed bottom-4 inset-x-4 max-w-3xl mx-auto bg-slate-900 text-white rounded-2xl shadow-2xl border border-slate-700 px-5 py-3.5 z-40 no-print flex flex-wrap items-center justify-between gap-3">
     <div class="flex items-center gap-3">
       <span class="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 flex items-center justify-center font-mono font-bold text-sm" id="floating-selected-count">0</span>
       <div>
         <p class="text-xs font-bold text-white">QR Label(s) Selected for Printing</p>
-        <p class="text-[11px] text-slate-400">Ready to format into 3-column printable QR sticker sheets</p>
+        <p class="text-[11px] text-slate-400">Ready to format into 3-column printable QR sticker sheets (12 per page)</p>
       </div>
     </div>
     <div class="flex items-center gap-2">
@@ -261,7 +267,7 @@
     <!-- Unified Control Card: Search, Filters & Category Navigation -->
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200/90 p-4 sm:p-5 space-y-4">
       
-      <!-- 4-Column Responsive Filter Grid (Fits 100% of screen width cleanly) -->
+      <!-- 4-Column Responsive Filter Grid -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <div>
           <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Search Inventory</label>
@@ -1455,8 +1461,17 @@
 
       closeCheckOutModal();
 
+      // UI updates immediately first to prioritize checkout
+      renderInventory();
+      if (activeScannedTag) refreshScannedBanner(activeScannedTag, false);
+
+      // Save state to LocalStorage and Firebase Cloud completely first
+      await saveState();
+
+      // Dispatch the email alert AFTER data storage is verified and synchronized
       const mailtoLink = await dispatchCheckoutEmailAlert(item, userName, userEmail, destination, notes, now, shouldSendEmail);
 
+      // Finally, add app notification
       addAppNotification(
         'CHECK_OUT',
         `${item.name} (${item.tag}) Checked Out`,
@@ -1465,10 +1480,6 @@
         userEmail,
         mailtoLink
       );
-
-      renderInventory();
-      if (activeScannedTag) refreshScannedBanner(activeScannedTag, false);
-      await saveState();
     }
 
     function openCheckInModal(itemId) {
@@ -1691,6 +1702,7 @@
       renderInventory();
     }
 
+    // Switch view mode directly
     function openAllUnitsView() {
       selectedCategory = null;
       selectedProductName = null;
@@ -2548,15 +2560,15 @@
         qrDiv.className = 'flex justify-center my-2';
 
         card.innerHTML = `
-          <div style="font-family: monospace; font-weight: bold; font-size: 16px; color: #1e3a8a;">${escapeHtml(item.tag)}</div>
-          <div style="font-family: monospace; font-weight: bold; font-size: 12px; color: #0f172a; margin-top: 1px;">Code: ${escapeHtml(item.itemCode)}</div>
-          <div style="font-weight: bold; font-size: 14px; margin-top: 2px;">${escapeHtml(item.name)}</div>
-          <div style="font-size: 11px; color: #475569;">Plant: ${escapeHtml(item.plantCode)} | Home: ${escapeHtml(item.location)}</div>
+          <div style="font-family: monospace; font-weight: bold; font-size: 14px; color: #1e3a8a;">${escapeHtml(item.tag)}</div>
+          <div style="font-family: monospace; font-weight: bold; font-size: 11px; color: #0f172a; margin-top: 1px;">Code: ${escapeHtml(item.itemCode)}</div>
+          <div style="font-weight: bold; font-size: 12px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(item.name)}</div>
+          <div style="font-size: 10px; color: #475569; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Plant: ${escapeHtml(item.plantCode)} | Home: ${escapeHtml(item.location)}</div>
         `;
         card.appendChild(qrDiv);
 
         const footer = document.createElement('div');
-        footer.style.fontSize = '10px';
+        footer.style.fontSize = '9px';
         footer.style.color = '#64748b';
         footer.textContent = `Cat: ${item.category} | Quality: ${item.quality}`;
         card.appendChild(footer);
@@ -2565,8 +2577,8 @@
 
         new QRCode(qrDiv, {
           text: buildQRUrl(item),
-          width: 135,
-          height: 135,
+          width: 100,
+          height: 100,
           correctLevel: QRCode.CorrectLevel.M
         });
       });
