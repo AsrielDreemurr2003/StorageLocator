@@ -253,7 +253,7 @@
 
       <!-- Active Check-Out with Live Timer -->
       <div id="scan-active-checkouts-box" class="mt-4 hidden">
-        <h4 class="text-[11px] font-bold uppercase text-amber-800 mb-2">⏱️ Active Check-Out Timer</h4>
+        <h4 class="text-[11px] font-bold uppercase text-amber-855 mb-2">⏱️ Active Check-Out Timer</h4>
         <div id="scan-active-checkouts-list" class="space-y-2"></div>
       </div>
 
@@ -695,7 +695,7 @@
         </div>
 
         <div class="border-t pt-4">
-          <h4 class="text-xs font-bold uppercase text-slate-500 mb-2">📜 Complete Historical Log</h4>
+          <h4 class="text-xs font-bold uppercase text-slate-505 mb-2">📜 Complete Historical Log</h4>
           <div id="history-log-list" class="space-y-2"></div>
         </div>
       </div>
@@ -1031,7 +1031,7 @@
               <span class="text-[11px] font-mono text-slate-400">${new Date(n.timestamp).toLocaleString()}</span>
             </div>
             <p class="text-slate-700">${escapeHtml(n.message)}</p>
-            ${n.userEmail ? `<p class="text-[11px] font-mono text-purple-700">📧 To: <strong>${escapeHtml(n.userEmail)}</strong></p>` : ''}
+            ${n.userEmail ? `<p class="text-[11px] font-mono text-purple-750">📧 To: <strong>${escapeHtml(n.userEmail)}</strong></p>` : ''}
           </div>
           <div class="flex items-center gap-1.5">
             ${n.mailtoLink ? `<a href="${n.mailtoLink}" class="bg-[#4F2D7F] hover:bg-[#3D2566] text-white px-2.5 py-1.5 rounded-lg font-bold text-[11px]">✉️ Resend</a>` : ''}
@@ -1443,7 +1443,7 @@
                 <div class="text-[10px] uppercase text-slate-400 font-bold">Elapsed</div>
                 <div class="font-mono font-bold text-amber-700 text-sm" data-live-timer="${rec.checkedOutAt}">${formatElapsedDuration(rec.checkedOutAt)}</div>
               </div>
-              <button onclick="openCheckInModal('${match.id}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg font-bold">
+              <button onclick="openCheckInModal('${match.id}')" class="bg-emerald-650 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg font-bold">
                 📥 Check In
               </button>
             </div>
@@ -1695,11 +1695,11 @@
       } else {
         item.activeCheckouts.forEach(rec => {
           const div = document.createElement('div');
-          div.className = 'p-3 bg-amber-55 border border-amber-200 rounded-xl flex flex-wrap justify-between items-center gap-2 text-xs';
+          div.className = 'p-3 bg-amber-50 border border-amber-200 rounded-xl flex flex-wrap justify-between items-center gap-2 text-xs';
           div.innerHTML = `
             <div>
               <span class="font-bold text-slate-900">👤 ${escapeHtml(rec.userName)}</span>
-              ${rec.userEmail ? `<span class="text-purple-750 font-mono ml-1">(${escapeHtml(rec.userEmail)})</span>` : ''}
+              ${rec.userEmail ? `<span class="text-purple-700 font-mono ml-1">(${escapeHtml(rec.userEmail)})</span>` : ''}
               <span class="mx-1.5 text-slate-300">•</span>
               <span class="font-semibold text-purple-800">📍 ${escapeHtml(rec.destination)}</span>
               <div class="text-slate-500 mt-0.5">Checked Out: ${new Date(rec.checkedOutAt).toLocaleString()} ${rec.notes ? `| Note: ${escapeHtml(rec.notes)}` : ''}</div>
@@ -1770,6 +1770,7 @@
       renderInventory();
     }
 
+    // Drill down category
     function selectCategoryView(categoryName) {
       selectedCategory = categoryName;
       selectedProductName = null;
@@ -2401,8 +2402,6 @@
             activeCheckouts: [],
             checkoutHistory: []
           });
-
-          selectedItemIds.add(newId);
         }
       }
 
@@ -2584,7 +2583,6 @@
       updateSelectedCounter();
     }
 
-    // Toggle visible items
     function toggleSelectAll(checked) {
       const master = document.getElementById('master-checkbox');
       if (master) master.checked = checked;
@@ -2734,6 +2732,7 @@
         .replace(/"/g, '&quot;');
     }
 
+    // Escape single quotes
     function escapeJsStr(str) {
       return String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
     }
