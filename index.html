@@ -27,16 +27,17 @@
         top: 0;
         width: 100%;
         display: grid !important;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 12px;
-        padding: 12px;
+        grid-template-columns: repeat(4, 1fr); /* Exactly 4 columns */
+        gap: 8px;
+        padding: 4px;
       }
       .no-print { display: none !important; }
       .qr-card-print {
         page-break-inside: avoid;
         break-inside: avoid;
-        height: 230px;
+        height: 180px; /* Uniform bounding height */
         box-sizing: border-box;
+        overflow: hidden;
       }
     }
     .qr-card-print {
@@ -171,7 +172,7 @@
       <span class="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 flex items-center justify-center font-mono font-bold text-sm" id="floating-selected-count">0</span>
       <div>
         <p class="text-xs font-bold text-white">QR Label(s) Selected for Printing</p>
-        <p class="text-[11px] text-slate-300">Ready to format into 3-column printable QR sticker sheets</p>
+        <p class="text-[11px] text-slate-300">Ready to format into 4x4 printable QR sticker sheets (16 per page)</p>
       </div>
     </div>
     <div class="flex items-center gap-2">
@@ -198,6 +199,7 @@
           <div class="flex flex-wrap items-center gap-2 mt-1.5">
             <span id="scan-tag" class="text-xs font-mono bg-purple-50 text-[#4F2D7F] border border-purple-200 px-2.5 py-0.5 rounded font-bold"></span>
             <span id="scan-code" class="text-xs font-mono bg-slate-100 px-2.5 py-0.5 rounded border border-slate-200 text-slate-700 font-bold"></span>
+            <span id="scan-serial-pill" class="hidden text-xs font-mono bg-indigo-50 text-indigo-700 px-2.5 py-0.5 rounded border border-indigo-200 font-bold"></span>
           </div>
         </div>
         <button onclick="closeScanBanner()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold transition">
@@ -222,7 +224,7 @@
       </div>
 
       <!-- Item Specs Grid -->
-      <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-4 bg-slate-50 p-4 rounded-xl border border-slate-200/80">
+      <div class="grid grid-cols-2 sm:grid-cols-6 gap-3 mt-4 bg-slate-50 p-4 rounded-xl border border-slate-200/80">
         <div>
           <p class="text-[10px] text-slate-400 uppercase font-bold">Plant</p>
           <p id="scan-plant" class="font-semibold text-slate-800 text-xs sm:text-sm mt-0.5"></p>
@@ -234,6 +236,10 @@
         <div>
           <p class="text-[10px] text-slate-400 uppercase font-bold">Home Location</p>
           <p id="scan-location" class="font-semibold text-slate-800 text-xs sm:text-sm mt-0.5"></p>
+        </div>
+        <div>
+          <p class="text-[10px] text-slate-400 uppercase font-bold">Serial Number (S/N)</p>
+          <p id="scan-serial" class="font-mono text-xs sm:text-sm font-semibold text-purple-900 mt-0.5">—</p>
         </div>
         <div>
           <p class="text-[10px] text-slate-400 uppercase font-bold">Status</p>
@@ -288,8 +294,8 @@
       <!-- 4-Column Responsive Filter Grid -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <div>
-          <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Search Inventory</label>
-          <input type="text" id="search-input" oninput="renderInventory()" placeholder="Name, category, tag, code..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#4F2D7F]" />
+          <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Search Inventory (Name, S/N, Tag)</label>
+          <input type="text" id="search-input" oninput="renderInventory()" placeholder="Name, S/N, tag, category..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#4F2D7F]" />
         </div>
         <div>
           <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Plant Location</label>
@@ -336,7 +342,7 @@
           <button onclick="pullFromCloud(true)" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-250 font-semibold px-3 py-2 rounded-lg transition active:scale-95" title="Sync with Cloud">
             🔄 Sync
           </button>
-          <button id="bar-unselect-all-btn" onclick="clearAllSelectedQRCodes()" class="hidden text-xs bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 px-3 py-2 rounded-lg font-bold transition">
+          <button id="bar-unselect-all-btn" onclick="clearAllSelectedQRCodes()" class="hidden text-xs bg-[#FFF1F2] hover:bg-rose-100 text-rose-700 border border-rose-200 px-3 py-2 rounded-lg font-bold transition">
             ✕ Unselect All (<span id="bar-selected-count">0</span>)
           </button>
         </div>
@@ -394,7 +400,7 @@
                 <input type="checkbox" id="master-checkbox" onchange="toggleSelectAll(this.checked)" class="w-4 h-4 accent-[#4F2D7F] cursor-pointer rounded" />
               </th>
               <th class="p-3">Plant Tag & Code</th>
-              <th class="p-3">Item & Category</th>
+              <th class="p-3">Item, Category & S/N</th>
               <th class="p-3">Plant & Location</th>
               <th class="p-3">Quality</th>
               <th class="p-3 text-center">Status</th>
@@ -640,15 +646,22 @@
           </div>
         </div>
 
-        <div>
-          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Home Storage Location *</label>
-          <input type="text" id="item-location" required placeholder="e.g. Aisle 4, Rack B, Bin 12" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#4F2D7F]" />
+        <!-- Serial Number & Location Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Serial Number (S/N) (Optional)</label>
+            <input type="text" id="item-serial" placeholder="e.g. SN-849204A" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-[#4F2D7F]" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Home Storage Location *</label>
+            <input type="text" id="item-location" required placeholder="e.g. Aisle 4, Rack B, Bin 12" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#4F2D7F]" />
+          </div>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Details & Notes</label>
-            <textarea id="item-notes" rows="2" placeholder="Specs, vendor info, serials..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#4F2D7F]"></textarea>
+            <textarea id="item-notes" rows="2" placeholder="Specs, vendor info, notes..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#4F2D7F]"></textarea>
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Work Instructions</label>
@@ -715,6 +728,7 @@
           <p><strong>Plant:</strong> <span id="detail-plant"></span></p>
           <p><strong>Category:</strong> <span id="detail-category"></span></p>
           <p><strong>Home Location:</strong> <span id="detail-location"></span></p>
+          <p><strong>Serial Number (S/N):</strong> <span id="detail-serial" class="font-mono text-purple-900 font-semibold">—</span></p>
           <p><strong>Quality:</strong> <span id="detail-quality"></span></p>
           <p><strong>Status:</strong> <span id="detail-qty" class="font-bold"></span></p>
         </div>
@@ -823,6 +837,7 @@
         id: '1',
         tag: 'KEN000001',
         itemCode: 'MTR-5HP-0001',
+        serialNumber: 'SN-IND-9021',
         plantCode: 'KEN',
         name: '5HP Induction Motor',
         category: 'Motors & Drives',
@@ -838,6 +853,7 @@
         id: '2',
         tag: 'DET000001',
         itemCode: 'TRQ-WRN-0001',
+        serialNumber: 'TRQ-4402',
         plantCode: 'DET',
         name: 'Pneumatic Torque Wrench',
         category: 'Tools',
@@ -888,6 +904,7 @@
         } else {
           item.itemCode = item.itemCode.replace(/-(\d{1,3})$/, (_, digits) => `-${digits.padStart(4, '0')}`);
         }
+        if (!item.serialNumber) item.serialNumber = '';
         if (!item.quality) item.quality = 'Good';
         if (!Array.isArray(item.activeCheckouts)) item.activeCheckouts = [];
         if (!Array.isArray(item.checkoutHistory)) item.checkoutHistory = [];
@@ -1040,6 +1057,7 @@
         `• Item Name: ${item.name}`,
         `• Plant Tag: ${item.tag}`,
         `• 4-Digit Item Code: ${item.itemCode}`,
+        item.serialNumber ? `• Serial Number (S/N): ${item.serialNumber}` : null,
         `• Plant: ${item.plantCode}`,
         `• Home Storage Location: ${item.location}`,
         `• Checked Out By: ${userName} (${userEmail})`,
@@ -1065,6 +1083,7 @@
             item_name: item.name,
             item_tag: item.tag,
             item_code: item.itemCode,
+            serial_number: item.serialNumber || 'N/A',
             destination: destination,
             checkout_time: timeStr,
             return_url: unitUrl,
@@ -1081,37 +1100,6 @@
       }, 350);
 
       return mailtoLink;
-    }
-
-    function openEmailConfigModal() {
-      document.getElementById('email-mode-select').value = emailConfig.mode || 'MAILTO';
-      document.getElementById('emailjs-public-key').value = emailConfig.publicKey || '';
-      document.getElementById('emailjs-service-id').value = emailConfig.serviceId || '';
-      document.getElementById('emailjs-template-id').value = emailConfig.templateId || '';
-
-      const modal = document.getElementById('email-config-modal');
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-    }
-
-    function closeEmailConfigModal() {
-      const modal = document.getElementById('email-config-modal');
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
-    }
-
-    async function saveEmailConfig(e) {
-      e.preventDefault();
-      emailConfig = {
-        mode: document.getElementById('email-mode-select').value,
-        publicKey: document.getElementById('emailjs-public-key').value.trim(),
-        serviceId: document.getElementById('emailjs-service-id').value.trim(),
-        templateId: document.getElementById('emailjs-template-id').value.trim()
-      };
-      localStorage.setItem(STORAGE_KEY_EMAIL, JSON.stringify(emailConfig));
-      closeEmailConfigModal();
-      await saveState();
-      alert('Email alert settings saved!');
     }
 
     // ============================================================================
@@ -1369,9 +1357,19 @@
       document.getElementById('scan-title').textContent = match.name;
       document.getElementById('scan-tag').textContent = `TAG: ${match.tag}`;
       document.getElementById('scan-code').textContent = `CODE: ${match.itemCode || 'N/A'}`;
+
+      const serialPill = document.getElementById('scan-serial-pill');
+      if (match.serialNumber) {
+        serialPill.textContent = `S/N: ${match.serialNumber}`;
+        serialPill.classList.remove('hidden');
+      } else {
+        serialPill.classList.add('hidden');
+      }
+
       document.getElementById('scan-plant').textContent = plantObj ? `${plantObj.code} (${plantObj.name})` : match.plantCode;
       document.getElementById('scan-category').textContent = match.category;
       document.getElementById('scan-location').textContent = match.location;
+      document.getElementById('scan-serial').textContent = match.serialNumber || '—';
       document.getElementById('scan-quality-badge').innerHTML = getQualityBadgeHtml(match.quality);
       document.getElementById('scan-notes').textContent = match.notes || 'None provided.';
       document.getElementById('scan-instructions').textContent = match.instructions || 'None provided.';
@@ -1410,7 +1408,7 @@
         smartPrompt.className = 'mt-4 p-4 rounded-xl border border-purple-400 bg-purple-50/70 flex flex-wrap items-center justify-between gap-4';
         promptTitle.className = 'font-bold text-sm sm:text-base text-purple-950';
         promptTitle.textContent = 'Checking out this unit?';
-        promptDesc.className = 'text-xs text-purple-850 mt-0.5';
+        promptDesc.className = 'text-xs text-purple-855 mt-0.5';
         promptDesc.textContent = 'Tap "Check Out Unit" to enter your name, email, and destination location.';
 
         checkoutBtn.className = 'bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-lg font-bold text-xs sm:text-sm shadow transition';
@@ -1488,7 +1486,7 @@
       document.getElementById('checkout-note').value = '';
       document.getElementById('checkout-send-email-toggle').checked = false;
       document.getElementById('checkout-modal-subtitle').textContent =
-        `TAG: ${item.tag} | CODE: ${item.itemCode} — ${item.name}`;
+        `TAG: ${item.tag} | CODE: ${item.itemCode} ${item.serialNumber ? '| S/N: ' + item.serialNumber : ''} — ${item.name}`;
 
       const modal = document.getElementById('checkout-modal');
       modal.classList.remove('hidden');
@@ -1572,7 +1570,7 @@
       document.getElementById('checkin-note').value = '';
 
       document.getElementById('checkin-modal-subtitle').textContent =
-        `TAG: ${item.tag} | CODE: ${item.itemCode} — ${item.name}`;
+        `TAG: ${item.tag} | CODE: ${item.itemCode} ${item.serialNumber ? '| S/N: ' + item.serialNumber : ''} — ${item.name}`;
 
       const modal = document.getElementById('checkin-modal');
       modal.classList.remove('hidden');
@@ -1678,7 +1676,7 @@
       const item = items.find(i => i.id === itemId);
       if (!item) return;
 
-      document.getElementById('history-tag').textContent = `TAG: ${item.tag} | ITEM CODE: ${item.itemCode}`;
+      document.getElementById('history-tag').textContent = `TAG: ${item.tag} | ITEM CODE: ${item.itemCode} ${item.serialNumber ? '| S/N: ' + item.serialNumber : ''}`;
       document.getElementById('history-title').textContent = `${item.name} — Unit Check-Out & History Log`;
 
       const activeContainer = document.getElementById('history-active-list');
@@ -1734,7 +1732,7 @@
                 ${badge}
                 <span class="font-bold text-slate-900">👤 ${escapeHtml(entry.userName || 'Unknown')}</span>
                 ${entry.userEmail ? `<span class="text-purple-700 font-mono">(${escapeHtml(entry.userEmail)})</span>` : ''}
-                <span class="text-slate-650">📍 <strong>${escapeHtml(entry.destination || 'Storage')}</strong></span>
+                <span class="text-slate-655">📍 <strong>${escapeHtml(entry.destination || 'Storage')}</strong></span>
                 ${getQualityBadgeHtml(entry.qualityAtEvent)}
                 ${durationText}
               </div>
@@ -1773,7 +1771,6 @@
       renderInventory();
     }
 
-    // Product View
     function selectProductTypeView(categoryName, productName) {
       selectedCategory = categoryName;
       selectedProductName = productName;
@@ -1812,6 +1809,7 @@
       document.getElementById('item-plant').value = templateItem.plantCode;
       document.getElementById('item-batch-count').value = 1;
       document.getElementById('item-code').value = extractBaseCodeFromItemCode(templateItem.itemCode);
+      document.getElementById('item-serial').value = '';
       document.getElementById('item-name').value = templateItem.name;
       document.getElementById('item-category').value = templateItem.category;
       document.getElementById('item-quality').value = 'New';
@@ -1857,6 +1855,7 @@
         const matchesSearch = !search ||
           item.tag.toLowerCase().includes(search) ||
           (item.itemCode && item.itemCode.toLowerCase().includes(search)) ||
+          (item.serialNumber && item.serialNumber.toLowerCase().includes(search)) ||
           item.name.toLowerCase().includes(search) ||
           item.category.toLowerCase().includes(search) ||
           item.location.toLowerCase().includes(search) ||
@@ -2063,6 +2062,16 @@
       });
     }
 
+    function toggleGroupForPrinting(categoryName, productName, shouldSelect) {
+      items.forEach(item => {
+        if ((item.category || 'Uncategorized') === categoryName && item.name === productName) {
+          if (shouldSelect) selectedItemIds.add(item.id);
+          else selectedItemIds.delete(item.id);
+        }
+      });
+      renderInventory();
+    }
+
     function renderUnitsTable(baseFiltered) {
       const tbody = document.getElementById('inventory-tbody');
       tbody.innerHTML = '';
@@ -2108,7 +2117,6 @@
         const activeList = item.activeCheckouts || [];
         const isCheckedOut = activeList.length > 0;
 
-        // Forced 'whitespace-nowrap' and inline-flex layout keeps the status badge strictly on 1 line!
         const statusBadge = isCheckedOut
           ? `<span class="whitespace-nowrap inline-flex items-center justify-center px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-50 text-amber-850 border border-amber-200">Out</span>`
           : `<span class="whitespace-nowrap inline-flex items-center justify-center px-2.5 py-1 rounded-md text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">In Stock</span>`;
@@ -2150,9 +2158,12 @@
           </td>
           <td class="p-3">
             <div class="font-semibold text-slate-900 text-xs sm:text-sm">${escapeHtml(item.name)}</div>
-            <button onclick="selectCategoryView('${escapeJsStr(item.category)}')" class="text-[11px] text-[#4F2D7F] hover:underline">
-              ${escapeHtml(item.category)}
-            </button>
+            <div class="flex items-center gap-1.5 flex-wrap mt-0.5">
+              <button onclick="selectCategoryView('${escapeJsStr(item.category)}')" class="text-[11px] text-[#4F2D7F] hover:underline">
+                ${escapeHtml(item.category)}
+              </button>
+              ${item.serialNumber ? `<span class="text-[10px] font-mono text-purple-800 bg-purple-50 border border-purple-200 px-1.5 py-0.2 rounded font-semibold">S/N: ${escapeHtml(item.serialNumber)}</span>` : ''}
+            </div>
           </td>
           <td class="p-3">
             <div class="text-xs font-bold text-slate-700">${escapeHtml(item.plantCode)}</div>
@@ -2184,7 +2195,7 @@
     }
 
     // ============================================================================
-    // 9. ADD / EDIT ITEM MODAL (WITH 4-DIGIT SEQUENTIAL ITEM CODES)
+    // 9. ADD / EDIT ITEM MODAL (WITH SERIAL NUMBER & SEQUENCES)
     // ============================================================================
     function openItemModal(itemId = null) {
       populatePlantDropdowns();
@@ -2205,6 +2216,7 @@
         document.getElementById('item-plant').value = item.plantCode;
         document.getElementById('item-batch-count').value = 1;
         document.getElementById('item-code').value = item.itemCode || '';
+        document.getElementById('item-serial').value = item.serialNumber || '';
         document.getElementById('item-name').value = item.name;
         document.getElementById('item-category').value = item.category;
         document.getElementById('item-quality').value = item.quality || 'Good';
@@ -2219,6 +2231,7 @@
 
         document.getElementById('edit-item-id').value = '';
         document.getElementById('item-batch-count').value = 1;
+        document.getElementById('item-serial').value = '';
         document.getElementById('item-quality').value = 'New';
         if (selectedCategory) {
           document.getElementById('item-category').value = selectedCategory;
@@ -2320,6 +2333,7 @@
       const editId = document.getElementById('edit-item-id').value;
       const plantCode = document.getElementById('item-plant').value;
       const rawBaseCode = document.getElementById('item-code').value;
+      const serialNumber = document.getElementById('item-serial').value.trim();
       const count = Math.max(1, Math.min(500, parseInt(document.getElementById('item-batch-count').value, 10) || 1));
       const name = document.getElementById('item-name').value.trim();
       const category = document.getElementById('item-category').value.trim();
@@ -2344,6 +2358,7 @@
             plantCode,
             tag,
             itemCode: finalCode,
+            serialNumber,
             name,
             category,
             quality,
@@ -2365,6 +2380,7 @@
             id: newId,
             tag,
             itemCode: batchCodes[i],
+            serialNumber: count === 1 ? serialNumber : '',
             plantCode,
             name,
             category,
@@ -2519,6 +2535,7 @@
       document.getElementById('detail-plant').textContent = plantObj ? `${plantObj.code} - ${plantObj.name}` : item.plantCode;
       document.getElementById('detail-category').textContent = item.category;
       document.getElementById('detail-location').textContent = item.location;
+      document.getElementById('detail-serial').textContent = item.serialNumber || '—';
       document.getElementById('detail-quality').innerHTML = getQualityBadgeHtml(item.quality);
       document.getElementById('detail-qty').textContent = isCheckedOut
         ? `Checked Out to ${item.activeCheckouts[0].userName} (${item.activeCheckouts[0].destination})`
@@ -2624,29 +2641,32 @@
         const card = document.createElement('div');
         card.className = 'qr-card-print';
 
-        const qrDiv = document.createElement('div');
-        qrDiv.className = 'flex justify-center my-2';
-
+        // We wrap the entire print block in a 100% Flex container to prevent overflow and keep sizing strictly uniform
         card.innerHTML = `
-          <div style="font-family: monospace; font-weight: bold; font-size: 14px; color: #4F2D7F;">${escapeHtml(item.tag)}</div>
-          <div style="font-family: monospace; font-weight: bold; font-size: 11px; color: #0f172a; margin-top: 1px;">Code: ${escapeHtml(item.itemCode)}</div>
-          <div style="font-weight: bold; font-size: 12px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(item.name)}</div>
-          <div style="font-size: 10px; color: #475569; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Plant: ${escapeHtml(item.plantCode)} | Home: ${escapeHtml(item.location)}</div>
+          <div class="flex flex-col justify-between h-full w-full">
+            <div>
+              <div style="font-family: monospace; font-weight: bold; font-size: 11px; color: #4F2D7F; line-height: 1.1;">${escapeHtml(item.tag)}</div>
+              <div style="font-family: monospace; font-weight: bold; font-size: 9px; color: #0f172a; margin-top: 1px;">Code: ${escapeHtml(item.itemCode)}</div>
+              ${item.serialNumber ? `<div style="font-family: monospace; font-size: 9px; color: #4F2D7F; font-weight: bold;">S/N: ${escapeHtml(item.serialNumber)}</div>` : ''}
+              <div style="font-weight: bold; font-size: 10px; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #000;">${escapeHtml(item.name)}</div>
+              <div style="font-size: 8px; color: #475569; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Plant: ${escapeHtml(item.plantCode)} | Loc: ${escapeHtml(item.location)}</div>
+            </div>
+            
+            <div class="qr-code-wrapper flex justify-center my-1" style="height: 80px;"></div>
+            
+            <div style="font-size: 8px; color: #64748b; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1;">
+              Cat: ${item.category} | Quality: ${item.quality}
+            </div>
+          </div>
         `;
-        card.appendChild(qrDiv);
-
-        const footer = document.createElement('div');
-        footer.style.fontSize = '9px';
-        footer.style.color = '#64748b';
-        footer.textContent = `Cat: ${item.category} | Quality: ${item.quality}`;
-        card.appendChild(footer);
 
         printArea.appendChild(card);
 
+        const qrDiv = card.querySelector('.qr-code-wrapper');
         new QRCode(qrDiv, {
           text: buildQRUrl(item),
-          width: 100,
-          height: 100,
+          width: 80, // Perfect size to guarantee alignment within the compact 180px box height
+          height: 80,
           correctLevel: QRCode.CorrectLevel.M
         });
       });
