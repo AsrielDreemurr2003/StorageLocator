@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>StorageLocater — Multi-Plant QR Inventory</title>
+  <title>StorageLocater — Trane Technologies Asset & Quality Tracker</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- QRCode.js -->
@@ -41,7 +41,7 @@
     }
     .qr-card-print {
       page-break-inside: avoid;
-      border: 1.5px solid #1e293b;
+      border: 1.5px solid #4F2D7F;
       border-radius: 8px;
       padding: 8px;
       text-align: center;
@@ -54,79 +54,94 @@
     .toast-animate {
       animation: slideInRight 0.25s ease-out forwards;
     }
+    /* Custom Scrollbar for a premium feel */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #c7bcd6;
+      border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #4F2D7F;
+    }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen pb-24 overflow-x-hidden">
+<body class="bg-[#F8F9FA] text-slate-800 min-h-screen pb-24 overflow-x-hidden">
 
   <!-- Live Toast Notification Container -->
   <div id="toast-container" class="fixed top-16 right-4 z-50 space-y-2 max-w-sm w-full pointer-events-none no-print"></div>
 
-  <!-- Clean, Streamlined Top Navigation Bar -->
-  <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40 no-print">
+  <!-- Corporate Header themed in Trane Deep Purple & Green Accent -->
+  <header class="bg-[#2E1A4D] text-white border-b-4 border-[#10B981] sticky top-0 z-40 no-print shadow-md">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
       
       <!-- Brand & Live Cloud Status -->
       <div class="flex items-center gap-3 min-w-0">
-        <div onclick="resetToOverview()" class="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-lg shadow-sm cursor-pointer shrink-0">
-          🏭
+        <div onclick="resetToOverview()" class="w-10 h-10 rounded-xl bg-[#4F2D7F] hover:bg-[#623a9c] flex items-center justify-center text-lg shadow-inner cursor-pointer shrink-0 transition-transform active:scale-95">
+          🍃
         </div>
         <div class="min-w-0">
           <div class="flex items-center gap-2">
-            <h1 onclick="resetToOverview()" class="text-base sm:text-lg font-bold tracking-tight truncate cursor-pointer hover:text-blue-300 transition">
+            <h1 onclick="resetToOverview()" class="text-base sm:text-xl font-extrabold tracking-tight truncate cursor-pointer hover:text-emerald-300 transition-colors">
               StorageLocater
             </h1>
-            <button id="sync-badge" onclick="openCloudModal()" class="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shrink-0 hover:bg-emerald-500/25 transition" title="Cloud Sync Status">
+            <button id="sync-badge" onclick="openCloudModal()" class="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shrink-0 hover:bg-emerald-500/25 transition" title="Cloud Sync Status">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
               <span id="sync-badge-text" class="hidden sm:inline">Connecting...</span>
             </button>
           </div>
-          <p class="text-[11px] text-slate-400 truncate hidden sm:block">Multi-Plant QR Asset & Quality Tracker</p>
+          <p class="text-[10px] text-slate-300 uppercase tracking-widest font-semibold hidden sm:block">Trane Technologies Asset System</p>
         </div>
       </div>
 
-      <!-- Compact Right Action Controls (Never Overflows) -->
+      <!-- Header Action Controls -->
       <div class="flex items-center gap-2 shrink-0">
-        <!-- Print Queue Quick Button (Always accessible in header too) -->
-        <button onclick="printSelectedQRCodes()" id="header-print-btn" class="hidden sm:inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded-lg text-xs font-semibold transition shadow-sm">
+        <!-- Print Queue Quick Button -->
+        <button onclick="printSelectedQRCodes()" id="header-print-btn" class="hidden sm:inline-flex items-center gap-1.5 bg-[#10B981] hover:bg-[#059669] text-white px-3 py-2 rounded-lg text-xs font-bold transition shadow-sm hover:shadow active:scale-95">
           <span>🖨️ Print QR</span>
           <span id="selected-count" class="bg-black/25 px-1.5 py-0.5 rounded text-[11px] font-mono">0</span>
         </button>
 
         <!-- Notification Bell -->
-        <button onclick="openNotificationsModal()" class="relative bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-1.5" title="View Check-Out Alerts">
+        <button onclick="openNotificationsModal()" class="relative bg-[#4F2D7F]/60 hover:bg-[#4F2D7F] text-slate-100 border border-purple-500/30 px-3 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 active:scale-95" title="View Check-Out Alerts">
           <span>🔔</span>
           <span class="hidden md:inline">Alerts</span>
           <span id="notif-unread-badge" class="hidden bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full">0</span>
         </button>
 
-        <!-- Primary Add Button -->
-        <button onclick="openItemModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-3.5 py-2 rounded-lg text-xs font-bold transition shadow-sm flex items-center gap-1.5">
+        <!-- Primary Add Button (Themed Trane Purple) -->
+        <button onclick="openItemModal()" class="bg-[#4F2D7F] hover:bg-[#623a9c] text-white px-3.5 py-2 rounded-lg text-xs font-bold transition-all shadow-md hover:shadow-lg flex items-center gap-1.5 active:scale-95">
           <span>➕</span>
           <span>Add Item</span>
         </button>
 
-        <!-- Clean Dropdown Menu for Admin & Settings -->
+        <!-- Clean Dropdown Menu -->
         <div class="relative">
-          <button onclick="toggleSettingsMenu(event)" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-1">
+          <button onclick="toggleSettingsMenu(event)" class="bg-[#3D2566] hover:bg-[#4F2D7F] text-slate-100 border border-purple-500/20 px-3 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-1 active:scale-95">
             <span>⚙️</span>
             <span class="hidden sm:inline">Menu</span>
-            <span class="text-[10px] text-slate-400 ml-0.5">▼</span>
+            <span class="text-[10px] text-slate-300 ml-0.5">▼</span>
           </button>
 
-          <div id="settings-dropdown" class="hidden absolute right-0 mt-2 w-56 bg-white text-slate-800 rounded-xl shadow-xl border border-slate-200 py-1.5 z-50 text-xs font-medium">
-            <div class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">System Management</div>
-            <button onclick="closeSettingsMenu(); openPlantModal()" class="w-full text-left px-3.5 py-2 hover:bg-slate-100 flex items-center gap-2.5">
+          <div id="settings-dropdown" class="hidden absolute right-0 mt-2 w-56 bg-white text-slate-800 rounded-xl shadow-2xl border border-slate-200 py-1.5 z-50 text-xs font-medium">
+            <div class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-purple-800">System Management</div>
+            <button onclick="closeSettingsMenu(); openPlantModal()" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5">
               <span>🏢</span> Manage Plants
             </button>
-            <button onclick="closeSettingsMenu(); openEmailConfigModal()" class="w-full text-left px-3.5 py-2 hover:bg-slate-100 flex items-center gap-2.5">
+            <button onclick="closeSettingsMenu(); openEmailConfigModal()" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5">
               <span>✉️</span> Email Alert Settings
             </button>
-            <button onclick="closeSettingsMenu(); openCloudModal()" class="w-full text-left px-3.5 py-2 hover:bg-slate-100 flex items-center gap-2.5">
+            <button onclick="closeSettingsMenu(); openCloudModal()" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5">
               <span>☁️</span> Cloud Database Status
             </button>
             <div class="border-t my-1 border-slate-100"></div>
-            <div class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">QR Print & Backup</div>
-            <button onclick="closeSettingsMenu(); printSelectedQRCodes()" class="w-full text-left px-3.5 py-2 hover:bg-slate-100 flex items-center justify-between">
+            <div class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-purple-800">QR Print & Backup</div>
+            <button onclick="closeSettingsMenu(); printSelectedQRCodes()" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center justify-between">
               <span class="flex items-center gap-2.5"><span>🖨️</span> Print Selected QR</span>
               <span id="menu-selected-count" class="font-mono font-bold text-emerald-600">0</span>
             </button>
@@ -134,10 +149,10 @@
               <span>✕</span> Unselect All QR Codes
             </button>
             <div class="border-t my-1 border-slate-100"></div>
-            <button onclick="closeSettingsMenu(); exportData()" class="w-full text-left px-3.5 py-2 hover:bg-slate-100 flex items-center gap-2.5">
+            <button onclick="closeSettingsMenu(); exportData()" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5">
               <span>💾</span> Export Backup (.json)
             </button>
-            <label class="w-full text-left px-3.5 py-2 hover:bg-slate-100 flex items-center gap-2.5 cursor-pointer">
+            <label class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5 cursor-pointer">
               <span>📂</span> Import Backup (.json)
               <input type="file" id="import-file" class="hidden" accept=".json" onchange="importData(event)" />
             </label>
@@ -149,19 +164,19 @@
   </header>
 
   <!-- Floating Bottom QR Print Selection Bar -->
-  <div id="floating-print-bar" class="hidden fixed bottom-4 inset-x-4 max-w-3xl mx-auto bg-slate-900 text-white rounded-2xl shadow-2xl border border-slate-700 px-5 py-3.5 z-40 no-print flex flex-wrap items-center justify-between gap-3">
+  <div id="floating-print-bar" class="hidden fixed bottom-4 inset-x-4 max-w-3xl mx-auto bg-[#2E1A4D] text-white rounded-2xl shadow-2xl border border-purple-500/20 px-5 py-3.5 z-40 no-print flex flex-wrap items-center justify-between gap-3 transition-all duration-300">
     <div class="flex items-center gap-3">
       <span class="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 flex items-center justify-center font-mono font-bold text-sm" id="floating-selected-count">0</span>
       <div>
         <p class="text-xs font-bold text-white">QR Label(s) Selected for Printing</p>
-        <p class="text-[11px] text-slate-400">Ready to format into 3-column printable QR sticker sheets (12 per page)</p>
+        <p class="text-[11px] text-slate-300">Ready to format into 3-column printable QR sticker sheets</p>
       </div>
     </div>
     <div class="flex items-center gap-2">
       <button onclick="clearAllSelectedQRCodes()" class="bg-rose-600/20 hover:bg-rose-600 border border-rose-500/40 text-rose-200 hover:text-white px-3.5 py-2 rounded-xl text-xs font-bold transition">
         ✕ Unselect All QR
       </button>
-      <button onclick="printSelectedQRCodes()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg transition">
+      <button onclick="printSelectedQRCodes()" class="bg-[#10B981] hover:bg-[#059669] text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg transition">
         🖨️ Print Selected QR Codes
       </button>
     </div>
@@ -169,16 +184,17 @@
 
   <!-- Dedicated Individual Item QR Scan View -->
   <div id="scanned-banner" class="hidden max-w-5xl mx-auto mt-6 px-4 sm:px-6 no-print">
-    <div class="bg-white border-2 border-blue-600 rounded-2xl p-5 sm:p-6 shadow-xl">
-      <div class="flex flex-wrap justify-between items-start gap-3 border-b border-slate-100 pb-4">
+    <div class="bg-white border-2 border-[#4F2D7F] rounded-2xl p-5 sm:p-6 shadow-xl relative overflow-hidden">
+      <div class="absolute top-0 left-0 w-2 h-full bg-[#4F2D7F]"></div>
+      <div class="flex flex-wrap justify-between items-start gap-3 border-b border-slate-100 pb-4 pl-2">
         <div>
           <div class="flex items-center gap-2 flex-wrap">
-            <span class="bg-blue-600 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-md uppercase tracking-wider">📱 QR Scan View</span>
+            <span class="bg-[#4F2D7F] text-white text-[11px] font-bold px-2.5 py-0.5 rounded-md uppercase tracking-wider">📱 QR Scan View</span>
             <span id="scan-status-pill" class="text-[11px] font-bold px-2.5 py-0.5 rounded-md uppercase"></span>
           </div>
-          <h2 id="scan-title" class="text-xl sm:text-2xl font-bold text-slate-900 mt-2"></h2>
+          <h2 id="scan-title" class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-2"></h2>
           <div class="flex flex-wrap items-center gap-2 mt-1.5">
-            <span id="scan-tag" class="text-xs font-mono bg-blue-50 text-blue-800 border border-blue-200 px-2.5 py-0.5 rounded font-bold"></span>
+            <span id="scan-tag" class="text-xs font-mono bg-purple-50 text-[#4F2D7F] border border-purple-200 px-2.5 py-0.5 rounded font-bold"></span>
             <span id="scan-code" class="text-xs font-mono bg-slate-100 px-2.5 py-0.5 rounded border border-slate-200 text-slate-700 font-bold"></span>
           </div>
         </div>
@@ -197,7 +213,7 @@
           <button id="scan-checkout-btn" class="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-lg font-bold text-xs sm:text-sm shadow transition">
             📤 Check Out Unit
           </button>
-          <button id="scan-checkin-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg font-bold text-xs sm:text-sm shadow transition">
+          <button id="scan-checkin-btn" class="bg-[#10B981] hover:bg-[#059669] text-white px-4 py-2 rounded-lg font-bold text-xs sm:text-sm shadow transition">
             📥 Check In & Rate Quality
           </button>
         </div>
@@ -254,7 +270,7 @@
             🔍 QR Code
           </button>
         </div>
-        <button id="scan-edit-btn" class="text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg font-semibold transition">
+        <button id="scan-edit-btn" class="text-xs bg-purple-50 hover:bg-purple-100 text-[#4F2D7F] px-3 py-1.5 rounded-lg font-semibold transition">
           ✏️ Edit Unit
         </button>
       </div>
@@ -271,17 +287,17 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <div>
           <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Search Inventory</label>
-          <input type="text" id="search-input" oninput="renderInventory()" placeholder="Name, category, tag, code..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <input type="text" id="search-input" oninput="renderInventory()" placeholder="Name, category, tag, code..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#4F2D7F]" />
         </div>
         <div>
           <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Plant Location</label>
-          <select id="filter-plant" onchange="renderInventory()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs sm:text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <select id="filter-plant" onchange="renderInventory()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs sm:text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#4F2D7F]">
             <option value="ALL">All Plants</option>
           </select>
         </div>
         <div>
           <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Item Quality</label>
-          <select id="filter-quality" onchange="renderInventory()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs sm:text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <select id="filter-quality" onchange="renderInventory()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs sm:text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#4F2D7F]">
             <option value="ALL">All Qualities</option>
             <option value="New">New</option>
             <option value="Good">Good</option>
@@ -292,7 +308,7 @@
         </div>
         <div>
           <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Availability Status</label>
-          <select id="filter-status" onchange="renderInventory()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs sm:text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <select id="filter-status" onchange="renderInventory()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs sm:text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#4F2D7F]">
             <option value="ALL">All Units</option>
             <option value="IN_STORAGE">Available In Storage</option>
             <option value="CHECKED_OUT">Currently Checked Out</option>
@@ -315,7 +331,7 @@
               📋 Individual Units
             </button>
           </div>
-          <button onclick="pullFromCloud(true)" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 font-semibold px-3 py-2 rounded-lg transition" title="Sync with Cloud">
+          <button onclick="pullFromCloud(true)" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 font-semibold px-3 py-2 rounded-lg transition active:scale-95" title="Sync with Cloud">
             🔄 Sync
           </button>
           <button id="bar-unselect-all-btn" onclick="clearAllSelectedQRCodes()" class="hidden text-xs bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 px-3 py-2 rounded-lg font-bold transition">
@@ -342,24 +358,24 @@
 
     <!-- DRILL-DOWN DISPLAY: Individual Serialized Units Table -->
     <div id="units-section" class="hidden bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-      <div class="bg-slate-900 text-white px-4 sm:px-5 py-3.5 flex flex-wrap justify-between items-center gap-3">
+      <div class="bg-[#2E1A4D] text-white px-4 sm:px-5 py-3.5 flex flex-wrap justify-between items-center gap-3">
         <div class="flex items-center gap-3">
-          <button onclick="resetToOverview()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold px-3 py-1.5 rounded-lg transition">
+          <button onclick="resetToOverview()" class="bg-[#4F2D7F] hover:bg-[#623a9c] border border-purple-500/30 text-xs font-semibold px-3 py-1.5 rounded-lg transition">
             ← Back
           </button>
           <div>
             <h3 id="units-section-title" class="font-bold text-sm sm:text-base">Individual Units</h3>
-            <p id="units-section-subtitle" class="text-[11px] text-slate-400"></p>
+            <p id="units-section-subtitle" class="text-[11px] text-slate-300"></p>
           </div>
         </div>
         <div class="flex flex-wrap items-center gap-2">
-          <button id="units-add-more-btn" class="hidden text-xs bg-blue-600 hover:bg-blue-500 text-white font-bold px-3 py-1.5 rounded-lg shadow-sm transition">
+          <button id="units-add-more-btn" class="hidden text-xs bg-[#10B981] hover:bg-[#059669] text-white font-bold px-3 py-1.5 rounded-lg shadow-sm transition">
             ➕ Add More Units
           </button>
-          <button onclick="toggleSelectAll(true)" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-medium px-2.5 py-1.5 rounded-lg transition">
+          <button onclick="toggleSelectAll(true)" class="text-xs bg-[#4F2D7F] hover:bg-[#623a9c] border border-purple-500/30 text-slate-200 font-medium px-2.5 py-1.5 rounded-lg transition">
             Select Visible
           </button>
-          <button onclick="toggleSelectAll(false)" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-medium px-2.5 py-1.5 rounded-lg transition">
+          <button onclick="toggleSelectAll(false)" class="text-xs bg-[#4F2D7F] hover:bg-[#623a9c] border border-purple-500/30 text-slate-200 font-medium px-2.5 py-1.5 rounded-lg transition">
             Unselect Visible
           </button>
           <button onclick="clearAllSelectedQRCodes()" class="text-xs bg-rose-600/20 hover:bg-rose-600 border border-rose-500/40 text-rose-200 hover:text-white font-semibold px-2.5 py-1.5 rounded-lg transition">
@@ -373,7 +389,7 @@
           <thead>
             <tr class="bg-slate-50 text-slate-500 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider">
               <th class="p-3 w-10 text-center">
-                <input type="checkbox" id="master-checkbox" onchange="toggleSelectAll(this.checked)" class="w-4 h-4 accent-blue-600 cursor-pointer rounded" />
+                <input type="checkbox" id="master-checkbox" onchange="toggleSelectAll(this.checked)" class="w-4 h-4 accent-[#4F2D7F] cursor-pointer rounded" />
               </th>
               <th class="p-3">Plant Tag & Code</th>
               <th class="p-3">Item & Category</th>
@@ -397,30 +413,30 @@
   <div id="print-area" class="hidden"></div>
 
   <!-- MODAL: Check Out Individual Unit -->
-  <div id="checkout-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print">
+  <div id="checkout-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print backdrop-blur-sm">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
       <div class="flex justify-between items-center border-b pb-3 mb-3">
         <h3 class="text-base font-bold text-slate-900">📤 Check Out Unit & Send Alert</h3>
         <button onclick="closeCheckOutModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
       </div>
-      <p id="checkout-modal-subtitle" class="text-xs font-mono font-bold text-blue-700 mb-4 bg-blue-50 p-2.5 rounded-lg border border-blue-200"></p>
+      <p id="checkout-modal-subtitle" class="text-xs font-mono font-bold text-[#4F2D7F] mb-4 bg-purple-50 p-2.5 rounded-lg border border-purple-200"></p>
       <form onsubmit="confirmCheckOut(event)" class="space-y-3.5">
         <input type="hidden" id="checkout-item-id" />
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Your Name *</label>
-          <input type="text" id="checkout-user" required placeholder="e.g. John Smith" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+          <input type="text" id="checkout-user" required placeholder="e.g. John Smith" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4F2D7F]" />
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Your Email Address *</label>
-          <input type="email" id="checkout-email" required placeholder="e.g. john.smith@company.com" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+          <input type="email" id="checkout-email" required placeholder="e.g. john.smith@company.com" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4F2D7F]" />
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Destination Location *</label>
-          <input type="text" id="checkout-destination" required placeholder="e.g. Assembly Line 3, Press Bay 2" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+          <input type="text" id="checkout-destination" required placeholder="e.g. Assembly Line 3, Press Bay 2" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4F2D7F]" />
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Additional Notes</label>
-          <textarea id="checkout-note" rows="2" placeholder="Work order #, reason for checkout..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"></textarea>
+          <textarea id="checkout-note" rows="2" placeholder="Work order #, reason for checkout..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4F2D7F]"></textarea>
         </div>
         <div class="bg-amber-50 border border-amber-200 rounded-lg p-2.5 flex items-center gap-2 text-xs text-amber-900">
           <input type="checkbox" id="checkout-send-email-toggle" checked class="w-4 h-4 accent-amber-600 cursor-pointer" />
@@ -435,7 +451,7 @@
   </div>
 
   <!-- MODAL: Check In Individual Unit & Rate Quality -->
-  <div id="checkin-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print">
+  <div id="checkin-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print backdrop-blur-sm">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
       <div class="flex justify-between items-center border-b pb-3 mb-3">
         <h3 class="text-base font-bold text-slate-900">📥 Check In Unit & Rate Quality</h3>
@@ -446,11 +462,11 @@
         <input type="hidden" id="checkin-item-id" />
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Checked In By (Name) *</label>
-          <input type="text" id="checkin-user" required placeholder="e.g. John Smith" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+          <input type="text" id="checkin-user" required placeholder="e.g. John Smith" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4F2D7F]" />
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Unit Quality Upon Return *</label>
-          <select id="checkin-quality" required class="w-full border-2 border-emerald-500 rounded-lg px-3 py-2 text-sm font-bold">
+          <select id="checkin-quality" required class="w-full border-2 border-emerald-500 rounded-lg px-3 py-2 text-sm font-bold focus:outline-none">
             <option value="New">🌟 New</option>
             <option value="Good">✅ Good</option>
             <option value="Used">🛠️ Used</option>
@@ -460,7 +476,7 @@
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Return Notes / Condition Details</label>
-          <textarea id="checkin-note" rows="2" placeholder="Any wear, damage, or restocking notes..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"></textarea>
+          <textarea id="checkin-note" rows="2" placeholder="Any wear, damage, or restocking notes..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4F2D7F]"></textarea>
         </div>
         <div class="flex justify-end space-x-2 pt-3 border-t">
           <button type="button" onclick="closeCheckInModal()" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium">Cancel</button>
@@ -471,7 +487,7 @@
   </div>
 
   <!-- MODAL: Live In-App Notifications Center -->
-  <div id="notifications-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print">
+  <div id="notifications-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print backdrop-blur-sm">
     <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl max-h-[85vh] flex flex-col">
       <div class="flex justify-between items-center border-b pb-3 mb-4">
         <div class="flex items-center gap-2">
@@ -498,7 +514,7 @@
   </div>
 
   <!-- MODAL: Email Alert Configuration -->
-  <div id="email-config-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print">
+  <div id="email-config-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print backdrop-blur-sm">
     <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b pb-3 mb-4">
         <h2 class="text-base font-bold text-slate-900">✉️ Email Alert Configuration</h2>
@@ -506,40 +522,40 @@
       </div>
       <div class="text-xs text-slate-600 space-y-1.5 mb-4 bg-slate-50 p-3 rounded-xl border">
         <p><strong>1. Default Mode (Zero Setup):</strong> Opens a pre-filled email receipt addressed to the person checking out the unit.</p>
-        <p><strong>2. Silent Automatic Mode (EmailJS):</strong> Enter free <a href="https://www.emailjs.com/" target="_blank" class="text-blue-600 underline font-semibold">EmailJS</a> keys below to send emails silently in the background.</p>
+        <p><strong>2. Silent Automatic Mode (EmailJS):</strong> Enter free <a href="https://www.emailjs.com/" target="_blank" class="text-[#4F2D7F] underline font-semibold">EmailJS</a> keys below to send emails silently in the background.</p>
       </div>
       <form onsubmit="saveEmailConfig(event)" class="space-y-3">
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Email Delivery Mode</label>
-          <select id="email-mode-select" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold">
+          <select id="email-mode-select" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold focus:ring-2 focus:ring-[#4F2D7F]">
             <option value="MAILTO">Instant Email Client / Receipt (No Keys Needed)</option>
             <option value="EMAILJS">Silent Automatic Background Email (EmailJS)</option>
           </select>
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">EmailJS Public Key</label>
-          <input type="text" id="emailjs-public-key" placeholder="e.g. user_xxxxxx" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono" />
+          <input type="text" id="emailjs-public-key" placeholder="e.g. user_xxxxxx" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-[#4F2D7F]" />
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-bold text-slate-600 uppercase mb-1">EmailJS Service ID</label>
-            <input type="text" id="emailjs-service-id" placeholder="e.g. service_xxx" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono" />
+            <input type="text" id="emailjs-service-id" placeholder="e.g. service_xxx" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-[#4F2D7F]" />
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-600 uppercase mb-1">EmailJS Template ID</label>
-            <input type="text" id="emailjs-template-id" placeholder="e.g. template_xxx" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono" />
+            <input type="text" id="emailjs-template-id" placeholder="e.g. template_xxx" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-[#4F2D7F]" />
           </div>
         </div>
         <div class="flex justify-end space-x-2 pt-3 border-t">
           <button type="button" onclick="closeEmailConfigModal()" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium">Cancel</button>
-          <button type="submit" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold">Save Settings</button>
+          <button type="submit" class="px-4 py-2 rounded-lg bg-[#4F2D7F] hover:bg-[#3D2566] text-white text-sm font-semibold">Save Settings</button>
         </div>
       </form>
     </div>
   </div>
 
   <!-- MODAL: Add / Edit Inventory Item -->
-  <div id="item-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print">
+  <div id="item-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print backdrop-blur-sm">
     <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b pb-3 mb-4">
         <h2 id="item-modal-title" class="text-base font-bold text-slate-900">Add Inventory Item(s)</h2>
@@ -551,15 +567,15 @@
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
             <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Plant *</label>
-            <select id="item-plant" required onchange="updatePreviewTag()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"></select>
+            <select id="item-plant" required onchange="updatePreviewTag()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-[#4F2D7F]"></select>
           </div>
           <div id="batch-count-wrapper">
-            <label class="block text-xs font-bold text-blue-700 uppercase mb-1">Units to Add *</label>
-            <input type="number" id="item-batch-count" required min="1" max="500" value="1" oninput="updatePreviewTag()" class="w-full border-2 border-blue-500 bg-blue-50/40 rounded-lg px-3 py-1.5 text-sm font-bold text-slate-900" />
+            <label class="block text-xs font-bold text-[#4F2D7F] uppercase mb-1">Units to Add *</label>
+            <input type="number" id="item-batch-count" required min="1" max="500" value="1" oninput="updatePreviewTag()" class="w-full border-2 border-purple-500 bg-purple-50/40 rounded-lg px-3 py-1.5 text-sm font-bold text-slate-900 focus:outline-none" />
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Base Code (Optional)</label>
-            <input type="text" id="item-code" oninput="updatePreviewTag()" placeholder="Auto-generated if blank" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono uppercase" />
+            <input type="text" id="item-code" oninput="updatePreviewTag()" placeholder="Auto-generated if blank" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono uppercase focus:ring-2 focus:ring-[#4F2D7F]" />
           </div>
         </div>
 
@@ -568,7 +584,7 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
             <div>
               <span class="font-bold text-slate-400 uppercase block text-[10px]">Assigned Plant Tag(s):</span>
-              <span id="item-tag-preview" class="font-mono font-bold text-blue-700 text-xs sm:text-sm"></span>
+              <span id="item-tag-preview" class="font-mono font-bold text-[#4F2D7F] text-xs sm:text-sm"></span>
             </div>
             <div>
               <span class="font-bold text-slate-400 uppercase block text-[10px]">Assigned 4-Digit Item Code(s):</span>
@@ -580,15 +596,15 @@
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
             <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Item Name *</label>
-            <input type="text" id="item-name" required oninput="updatePreviewTag()" placeholder="e.g. Hydraulic Pump" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+            <input type="text" id="item-name" required oninput="updatePreviewTag()" placeholder="e.g. Hydraulic Pump" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#4F2D7F]" />
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Category *</label>
-            <input type="text" id="item-category" required oninput="updatePreviewTag()" placeholder="e.g. Mechanical" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+            <input type="text" id="item-category" required oninput="updatePreviewTag()" placeholder="e.g. Mechanical" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#4F2D7F]" />
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Initial Quality *</label>
-            <select id="item-quality" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold bg-white">
+            <select id="item-quality" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold bg-white focus:ring-2 focus:ring-[#4F2D7F]">
               <option value="New">New</option>
               <option value="Good" selected>Good</option>
               <option value="Used">Used</option>
@@ -600,34 +616,34 @@
 
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Home Storage Location *</label>
-          <input type="text" id="item-location" required placeholder="e.g. Aisle 4, Rack B, Bin 12" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+          <input type="text" id="item-location" required placeholder="e.g. Aisle 4, Rack B, Bin 12" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#4F2D7F]" />
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Details & Notes</label>
-            <textarea id="item-notes" rows="2" placeholder="Specs, vendor info, serials..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"></textarea>
+            <textarea id="item-notes" rows="2" placeholder="Specs, vendor info, serials..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#4F2D7F]"></textarea>
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Work Instructions</label>
-            <textarea id="item-instructions" rows="2" placeholder="Safety PPE, torque, handling..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"></textarea>
+            <textarea id="item-instructions" rows="2" placeholder="Safety PPE, torque, handling..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#4F2D7F]"></textarea>
           </div>
         </div>
 
         <div class="flex justify-end space-x-2 pt-3 border-t">
           <button type="button" onclick="closeItemModal()" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium">Cancel</button>
-          <button type="submit" id="item-save-btn" class="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold shadow-sm">Save & Generate QR</button>
+          <button type="submit" id="item-save-btn" class="px-5 py-2 rounded-lg bg-[#4F2D7F] hover:bg-[#3D2566] text-white text-sm font-semibold shadow-sm">Save & Generate QR</button>
         </div>
       </form>
     </div>
   </div>
 
   <!-- MODAL: Check-Out & Check-In History Log -->
-  <div id="history-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print">
+  <div id="history-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print backdrop-blur-sm">
     <div class="bg-white rounded-2xl max-w-4xl w-full p-6 shadow-2xl max-h-[90vh] flex flex-col">
       <div class="flex justify-between items-start border-b pb-3 mb-4">
         <div>
-          <span id="history-tag" class="font-mono text-xs font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded"></span>
+          <span id="history-tag" class="font-mono text-xs font-bold bg-purple-100 text-[#4F2D7F] px-2 py-0.5 rounded"></span>
           <h3 id="history-title" class="text-base font-bold text-slate-900 mt-1">Unit Check-Out & Check-In History</h3>
         </div>
         <button onclick="closeHistoryModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
@@ -652,12 +668,12 @@
   </div>
 
   <!-- MODAL: Single Item Details & QR View -->
-  <div id="detail-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print">
+  <div id="detail-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print backdrop-blur-sm">
     <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl">
       <div class="flex justify-between items-start border-b pb-3 mb-4">
         <div>
           <div class="flex items-center gap-2">
-            <span id="detail-tag" class="font-mono text-xs font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded"></span>
+            <span id="detail-tag" class="font-mono text-xs font-bold bg-purple-100 text-[#4F2D7F] px-2 py-0.5 rounded"></span>
             <span id="detail-code" class="font-mono text-xs font-semibold bg-slate-100 text-slate-700 px-2 py-0.5 rounded border"></span>
           </div>
           <h3 id="detail-name" class="text-lg font-bold text-slate-900 mt-1.5"></h3>
@@ -666,8 +682,8 @@
       </div>
       <div class="flex flex-col sm:flex-row gap-5 items-center">
         <div class="flex flex-col items-center">
-          <div id="single-qr-container" class="p-3 border-2 border-slate-800 rounded-xl bg-white"></div>
-          <a id="detail-qr-link" href="#" target="_blank" class="text-[11px] text-blue-600 hover:underline mt-2 font-medium">🔗 Open Unit Check-Out Page</a>
+          <div id="single-qr-container" class="p-3 border-2 border-[#4F2D7F] rounded-xl bg-white"></div>
+          <a id="detail-qr-link" href="#" target="_blank" class="text-[11px] text-[#4F2D7F] hover:underline mt-2 font-medium">🔗 Open Unit Check-Out Page</a>
         </div>
         <div class="space-y-1.5 text-xs sm:text-sm flex-1">
           <p><strong>Plant:</strong> <span id="detail-plant"></span></p>
@@ -688,14 +704,14 @@
         </div>
       </div>
       <div class="flex justify-between gap-2 mt-4 pt-3 border-t">
-        <button id="detail-open-scan-btn" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold">📱 Open Dedicated Unit Page</button>
+        <button id="detail-open-scan-btn" class="px-4 py-2 rounded-lg bg-[#4F2D7F] hover:bg-[#3D2566] text-white text-xs font-bold">📱 Open Dedicated Unit Page</button>
         <button onclick="closeDetailModal()" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium">Close</button>
       </div>
     </div>
   </div>
 
   <!-- MODAL: Manage Plants -->
-  <div id="plant-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print">
+  <div id="plant-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print backdrop-blur-sm">
     <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl">
       <div class="flex justify-between items-center border-b pb-3 mb-4">
         <h2 class="text-base font-bold text-slate-900">🏢 Manage Plants (3-Digit Codes)</h2>
@@ -703,9 +719,9 @@
       </div>
       <form onsubmit="savePlant(event)" class="flex gap-2 mb-4">
         <input type="hidden" id="edit-plant-old-code" />
-        <input type="text" id="plant-code" required maxlength="3" minlength="3" placeholder="KEN" class="w-24 border border-slate-300 rounded-lg px-3 py-2 text-sm uppercase font-mono" />
-        <input type="text" id="plant-name" required placeholder="Plant Name (e.g. Kentwood Plant)" class="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm" />
-        <button type="submit" id="plant-submit-btn" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-semibold">Add</button>
+        <input type="text" id="plant-code" required maxlength="3" minlength="3" placeholder="KEN" class="w-24 border border-slate-300 rounded-lg px-3 py-2 text-sm uppercase font-mono focus:ring-2 focus:ring-[#4F2D7F]" />
+        <input type="text" id="plant-name" required placeholder="Plant Name (e.g. Kentwood Plant)" class="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#4F2D7F]" />
+        <button type="submit" id="plant-submit-btn" class="bg-[#4F2D7F] hover:bg-[#3D2566] text-white px-4 py-2 rounded-lg text-sm font-semibold">Add</button>
       </form>
       <div class="max-h-64 overflow-y-auto divide-y divide-slate-200 border rounded-xl" id="plant-list"></div>
       <div class="flex justify-end pt-4 mt-4 border-t">
@@ -715,7 +731,7 @@
   </div>
 
   <!-- MODAL: Cloud Sync Configuration -->
-  <div id="cloud-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print">
+  <div id="cloud-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print backdrop-blur-sm">
     <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl">
       <div class="flex justify-between items-center border-b pb-3 mb-4">
         <h2 class="text-base font-bold text-slate-900">☁️ Live Firebase Cloud Database</h2>
@@ -724,7 +740,7 @@
       <form onsubmit="saveCloudConfig(event)" class="space-y-4">
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Active Firebase Database URL</label>
-          <input type="url" id="cloud-url-input" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono bg-slate-50" />
+          <input type="url" id="cloud-url-input" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono bg-slate-50 focus:ring-2 focus:ring-[#4F2D7F]" />
         </div>
         <div class="flex justify-between items-center pt-3 border-t">
           <button type="button" onclick="pushToCloud(true)" class="text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 px-3 py-2 rounded-lg font-semibold">
@@ -732,7 +748,7 @@
           </button>
           <div class="space-x-2">
             <button type="button" onclick="closeCloudModal()" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium">Close</button>
-            <button type="submit" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold">Save & Sync</button>
+            <button type="submit" class="px-4 py-2 rounded-lg bg-[#4F2D7F] hover:bg-[#3D2566] text-white text-sm font-semibold">Save & Sync</button>
           </div>
         </div>
       </form>
@@ -865,7 +881,7 @@
       if (!container) return;
 
       const isOut = notif.type === 'CHECK_OUT';
-      const borderClass = isOut ? 'border-amber-500 bg-slate-900' : 'border-emerald-500 bg-slate-900';
+      const borderClass = isOut ? 'border-amber-500 bg-[#2E1A4D]' : 'border-emerald-500 bg-[#2E1A4D]';
       const icon = isOut ? '📤' : '📥';
 
       const toast = document.createElement('div');
@@ -876,7 +892,7 @@
             <span>${icon} ${escapeHtml(notif.title)}</span>
           </div>
           <p class="text-slate-200 leading-snug">${escapeHtml(notif.message)}</p>
-          ${notif.userEmail ? `<p class="text-[11px] text-blue-300 font-mono">✉️ Alert: ${escapeHtml(notif.userEmail)}</p>` : ''}
+          ${notif.userEmail ? `<p class="text-[11px] text-emerald-300 font-mono">✉️ Alert: ${escapeHtml(notif.userEmail)}</p>` : ''}
         </div>
         <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-white text-lg leading-none">&times;</button>
       `;
@@ -919,6 +935,7 @@
       }
     }
 
+    // Modal Control
     function openNotificationsModal() {
       lastSeenNotifTimestamp = Date.now();
       localStorage.setItem(STORAGE_KEY_SEEN_N, String(lastSeenNotifTimestamp));
@@ -963,10 +980,10 @@
               <span class="text-[11px] font-mono text-slate-400">${new Date(n.timestamp).toLocaleString()}</span>
             </div>
             <p class="text-slate-700">${escapeHtml(n.message)}</p>
-            ${n.userEmail ? `<p class="text-[11px] font-mono text-blue-700">📧 To: <strong>${escapeHtml(n.userEmail)}</strong></p>` : ''}
+            ${n.userEmail ? `<p class="text-[11px] font-mono text-purple-700">📧 To: <strong>${escapeHtml(n.userEmail)}</strong></p>` : ''}
           </div>
           <div class="flex items-center gap-1.5">
-            ${n.mailtoLink ? `<a href="${n.mailtoLink}" class="bg-blue-600 hover:bg-blue-500 text-white px-2.5 py-1.5 rounded-lg font-bold text-[11px]">✉️ Resend</a>` : ''}
+            ${n.mailtoLink ? `<a href="${n.mailtoLink}" class="bg-[#4F2D7F] hover:bg-[#3D2566] text-white px-2.5 py-1.5 rounded-lg font-bold text-[11px]">✉️ Resend</a>` : ''}
             ${n.itemTag ? `<button onclick="closeNotificationsModal(); refreshScannedBanner('${escapeJsStr(n.itemTag)}', true)" class="bg-slate-800 hover:bg-slate-700 text-white px-2.5 py-1.5 rounded-lg font-bold text-[11px]">View Unit</button>` : ''}
           </div>
         `;
@@ -1076,7 +1093,7 @@
       const q = quality || 'Good';
       const styles = {
         'New': 'bg-emerald-50 text-emerald-700 border-emerald-200',
-        'Good': 'bg-blue-50 text-blue-700 border-blue-200',
+        'Good': 'bg-purple-50 text-[#4F2D7F] border-purple-200',
         'Used': 'bg-slate-100 text-slate-700 border-slate-300',
         'Needs Repair': 'bg-amber-50 text-amber-800 border-amber-300',
         'Broken': 'bg-rose-50 text-rose-700 border-rose-300'
@@ -1325,10 +1342,10 @@
         statusPill.className = 'text-[11px] font-bold px-2.5 py-0.5 rounded-md uppercase bg-emerald-100 text-emerald-800 border border-emerald-300';
         statusPill.textContent = '✅ Ready for Check-Out';
 
-        smartPrompt.className = 'mt-4 p-4 rounded-xl border border-amber-400 bg-amber-50/70 flex flex-wrap items-center justify-between gap-4';
-        promptTitle.className = 'font-bold text-sm sm:text-base text-amber-950';
+        smartPrompt.className = 'mt-4 p-4 rounded-xl border border-purple-400 bg-purple-50/70 flex flex-wrap items-center justify-between gap-4';
+        promptTitle.className = 'font-bold text-sm sm:text-base text-purple-950';
         promptTitle.textContent = 'Checking out this unit?';
-        promptDesc.className = 'text-xs text-amber-800 mt-0.5';
+        promptDesc.className = 'text-xs text-purple-850 mt-0.5';
         promptDesc.textContent = 'Tap "Check Out Unit" to enter your name, email, and destination location.';
 
         checkoutBtn.classList.remove('hidden');
@@ -1347,9 +1364,9 @@
           row.innerHTML = `
             <div>
               <span class="font-bold text-slate-900">👤 ${escapeHtml(rec.userName)}</span>
-              ${rec.userEmail ? `<span class="text-blue-700 font-mono ml-1">(${escapeHtml(rec.userEmail)})</span>` : ''}
+              ${rec.userEmail ? `<span class="text-purple-700 font-mono ml-1">(${escapeHtml(rec.userEmail)})</span>` : ''}
               <span class="mx-1.5 text-slate-300">|</span>
-              <span class="font-semibold text-blue-800">📍 ${escapeHtml(rec.destination)}</span>
+              <span class="font-semibold text-purple-850">📍 ${escapeHtml(rec.destination)}</span>
               ${rec.notes ? `<div class="text-slate-600 mt-0.5">Note: ${escapeHtml(rec.notes)}</div>` : ''}
             </div>
             <div class="flex items-center gap-3">
@@ -1461,17 +1478,13 @@
 
       closeCheckOutModal();
 
-      // UI updates immediately first to prioritize checkout
       renderInventory();
       if (activeScannedTag) refreshScannedBanner(activeScannedTag, false);
 
-      // Save state to LocalStorage and Firebase Cloud completely first
       await saveState();
 
-      // Dispatch the email alert AFTER data storage is verified and synchronized
       const mailtoLink = await dispatchCheckoutEmailAlert(item, userName, userEmail, destination, notes, now, shouldSendEmail);
 
-      // Finally, add app notification
       addAppNotification(
         'CHECK_OUT',
         `${item.name} (${item.tag}) Checked Out`,
@@ -1609,7 +1622,7 @@
       logContainer.innerHTML = '';
 
       if (!item.activeCheckouts || item.activeCheckouts.length === 0) {
-        activeContainer.innerHTML = `<p class="text-xs text-emerald-700 font-semibold bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl">✅ Unit is currently in storage (${escapeHtml(item.location)}).</p>`;
+        activeContainer.innerHTML = `<p class="text-xs text-emerald-750 font-semibold bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl">✅ Unit is currently in storage (${escapeHtml(item.location)}).</p>`;
       } else {
         item.activeCheckouts.forEach(rec => {
           const div = document.createElement('div');
@@ -1617,9 +1630,9 @@
           div.innerHTML = `
             <div>
               <span class="font-bold text-slate-900">👤 ${escapeHtml(rec.userName)}</span>
-              ${rec.userEmail ? `<span class="text-blue-700 font-mono ml-1">(${escapeHtml(rec.userEmail)})</span>` : ''}
+              ${rec.userEmail ? `<span class="text-purple-700 font-mono ml-1">(${escapeHtml(rec.userEmail)})</span>` : ''}
               <span class="mx-1.5 text-slate-300">•</span>
-              <span class="font-semibold text-blue-800">📍 ${escapeHtml(rec.destination)}</span>
+              <span class="font-semibold text-purple-800">📍 ${escapeHtml(rec.destination)}</span>
               <div class="text-slate-500 mt-0.5">Checked Out: ${new Date(rec.checkedOutAt).toLocaleString()} ${rec.notes ? `| Note: ${escapeHtml(rec.notes)}` : ''}</div>
             </div>
             <div class="flex items-center gap-3">
@@ -1655,8 +1668,8 @@
               <div class="flex items-center gap-2 flex-wrap">
                 ${badge}
                 <span class="font-bold text-slate-900">👤 ${escapeHtml(entry.userName || 'Unknown')}</span>
-                ${entry.userEmail ? `<span class="text-blue-700 font-mono">(${escapeHtml(entry.userEmail)})</span>` : ''}
-                <span class="text-slate-600">📍 <strong>${escapeHtml(entry.destination || 'Storage')}</strong></span>
+                ${entry.userEmail ? `<span class="text-purple-700 font-mono">(${escapeHtml(entry.userEmail)})</span>` : ''}
+                <span class="text-slate-650">📍 <strong>${escapeHtml(entry.destination || 'Storage')}</strong></span>
                 ${getQualityBadgeHtml(entry.qualityAtEvent)}
                 ${durationText}
               </div>
@@ -1702,7 +1715,6 @@
       renderInventory();
     }
 
-    // Switch view mode directly
     function openAllUnitsView() {
       selectedCategory = null;
       selectedProductName = null;
@@ -1791,22 +1803,22 @@
       const btnOverview = document.getElementById('btn-view-overview');
       const btnAllUnits = document.getElementById('btn-view-all-units');
       if (viewMode === 'OVERVIEW') {
-        btnOverview.className = 'text-xs px-3 py-1.5 rounded-md font-bold bg-white text-slate-900 shadow-sm';
-        btnAllUnits.className = 'text-xs px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-slate-900';
+        btnOverview.className = 'text-xs px-3 py-1.5 rounded-md font-bold bg-white text-[#4F2D7F] shadow-sm border border-purple-100';
+        btnAllUnits.className = 'text-xs px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-[#4F2D7F]';
       } else {
-        btnOverview.className = 'text-xs px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-slate-900';
-        btnAllUnits.className = 'text-xs px-3 py-1.5 rounded-md font-bold bg-white text-slate-900 shadow-sm';
+        btnOverview.className = 'text-xs px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-[#4F2D7F]';
+        btnAllUnits.className = 'text-xs px-3 py-1.5 rounded-md font-bold bg-white text-[#4F2D7F] shadow-sm border border-purple-100';
       }
 
       const breadcrumbBar = document.getElementById('breadcrumb-bar');
-      let crumbsHtml = `<button onclick="resetToOverview()" class="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1">🏠 Overview</button>`;
+      let crumbsHtml = `<button onclick="resetToOverview()" class="text-xs font-bold text-[#4F2D7F] hover:underline flex items-center gap-1">🏠 Overview</button>`;
       if (selectedCategory) {
         crumbsHtml += `<span class="text-slate-300 text-xs">/</span>`;
         crumbsHtml += `<button onclick="selectCategoryView('${escapeJsStr(selectedCategory)}')" class="text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded-md">${escapeHtml(selectedCategory)}</button>`;
       }
       if (selectedProductName) {
         crumbsHtml += `<span class="text-slate-300 text-xs">/</span>`;
-        crumbsHtml += `<span class="text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-md">${escapeHtml(selectedProductName)}</span>`;
+        crumbsHtml += `<span class="text-xs font-bold text-[#4F2D7F] bg-purple-50 border border-purple-200 px-2 py-0.5 rounded-md">${escapeHtml(selectedProductName)}</span>`;
       }
       breadcrumbBar.innerHTML = crumbsHtml;
 
@@ -1830,20 +1842,20 @@
 
       const totalAvailableAll = baseFiltered.filter(i => !i.activeCheckouts || i.activeCheckouts.length === 0).length;
       const allActiveClass = (!selectedCategory && viewMode === 'OVERVIEW')
-        ? 'bg-slate-900 text-white border-slate-900'
+        ? 'bg-[#4F2D7F] text-white border-[#4F2D7F]'
         : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200';
 
       pillsContainer.innerHTML += `
         <button onclick="resetToOverview()" class="px-3 py-1.5 rounded-lg border text-xs font-semibold transition flex items-center gap-1.5 ${allActiveClass}">
           <span>All Categories</span>
-          <span class="px-1.5 py-0.2 rounded bg-emerald-500 text-white text-[10px] font-bold">${totalAvailableAll}/${baseFiltered.length}</span>
+          <span class="px-1.5 py-0.2 rounded bg-[#10B981] text-white text-[10px] font-bold">${totalAvailableAll}/${baseFiltered.length}</span>
         </button>
       `;
 
       Array.from(categoryMap.entries()).sort((a, b) => a[0].localeCompare(b[0])).forEach(([catName, stat]) => {
         const isSelected = selectedCategory === catName;
         const btnClass = isSelected
-          ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+          ? 'bg-[#4F2D7F] text-white border-[#4F2D7F] shadow-sm'
           : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200';
         const badgeClass = isSelected
           ? 'bg-white/20 text-white'
@@ -1891,7 +1903,7 @@
 
       if (filteredByCat.length === 0) {
         grid.innerHTML = `
-          <div class="col-span-full bg-white rounded-2xl p-10 text-center border border-slate-200 text-slate-400 text-sm">
+          <div class="col-span-full bg-white rounded-2xl p-10 text-center border border-slate-200 text-slate-400 text-sm shadow-inner">
             No matching item types found. Click "➕ Add Item" in the top bar to add inventory.
           </div>
         `;
@@ -1929,25 +1941,25 @@
       Array.from(productGroups.values()).forEach(grp => {
         const allGroupSelected = grp.selectedForPrint === grp.total && grp.total > 0;
         const printToggleBtn = allGroupSelected
-          ? `<button onclick="toggleGroupForPrinting('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}', false)" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-semibold py-2 px-2.5 rounded-lg transition" title="Unselect all units of this item type">
+          ? `<button onclick="toggleGroupForPrinting('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}', false)" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-semibold py-2 px-2.5 rounded-lg transition" title="Unselect all units">
                ✕ (${grp.selectedForPrint})
              </button>`
-          : `<button onclick="toggleGroupForPrinting('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}', true)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 text-xs font-semibold py-2 px-2.5 rounded-lg transition" title="Select all units of this item type for QR printing">
+          : `<button onclick="toggleGroupForPrinting('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}', true)" class="bg-slate-100 hover:bg-slate-200 text-slate-750 border border-slate-200 text-xs font-semibold py-2 px-2.5 rounded-lg transition" title="Select all units for QR printing">
                🖨️ ${grp.selectedForPrint > 0 ? `${grp.selectedForPrint}/${grp.total}` : 'QR'}
              </button>`;
 
         const card = document.createElement('div');
-        card.className = 'bg-white rounded-2xl shadow-sm hover:shadow-md border border-slate-200/90 p-5 flex flex-col justify-between transition';
+        card.className = 'bg-white rounded-2xl shadow-sm hover:shadow-lg border-l-4 border-[#4F2D7F] border-y border-r border-slate-200 p-5 flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5';
         card.innerHTML = `
           <div>
             <div class="flex justify-between items-center gap-2">
-              <button onclick="selectCategoryView('${escapeJsStr(grp.category)}')" class="text-[11px] font-semibold bg-blue-50 hover:bg-blue-100 text-blue-700 px-2.5 py-0.5 rounded-md transition truncate">
+              <button onclick="selectCategoryView('${escapeJsStr(grp.category)}')" class="text-[11px] font-bold bg-purple-50 hover:bg-purple-100 text-[#4F2D7F] px-2.5 py-0.5 rounded-md transition truncate">
                 📂 ${escapeHtml(grp.category)}
               </button>
               <span class="text-[11px] font-mono font-bold text-slate-400 shrink-0">🏢 ${Array.from(grp.plants).join(', ')}</span>
             </div>
 
-            <h3 onclick="selectProductTypeView('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}')" class="text-base font-bold text-slate-900 mt-2.5 hover:text-blue-600 cursor-pointer truncate">
+            <h3 onclick="selectProductTypeView('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}')" class="text-base font-bold text-slate-900 mt-2.5 hover:text-[#4F2D7F] cursor-pointer truncate">
               ${escapeHtml(grp.name)}
             </h3>
             <div class="flex items-center justify-between text-[11px] text-slate-400 mt-1 gap-2">
@@ -1955,10 +1967,10 @@
               <span class="font-mono shrink-0">${escapeHtml(grp.sampleCode)}-XXXX</span>
             </div>
 
-            <!-- Clean 3-Stat Pill Box -->
-            <div class="grid grid-cols-3 gap-2 mt-4 p-2.5 rounded-xl bg-slate-50 border border-slate-200/80">
+            <!-- Optimized Stat Display Grid -->
+            <div class="grid grid-cols-3 gap-2 mt-4 p-2.5 rounded-xl bg-[#FDFDFD] border border-slate-100 shadow-inner">
               <div class="text-center">
-                <div class="text-xl font-extrabold ${grp.available > 0 ? 'text-emerald-600' : 'text-rose-600'}">${grp.available}</div>
+                <div class="text-xl font-extrabold ${grp.available > 0 ? 'text-[#10B981]' : 'text-rose-600'}">${grp.available}</div>
                 <div class="text-[10px] font-bold uppercase text-slate-400">Available</div>
               </div>
               <div class="text-center border-x border-slate-200">
@@ -1973,10 +1985,10 @@
           </div>
 
           <div class="mt-4 pt-3 border-t border-slate-100 flex items-center gap-2">
-            <button onclick="selectProductTypeView('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}')" class="flex-1 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold py-2 px-3 rounded-lg transition truncate">
+            <button onclick="selectProductTypeView('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}')" class="flex-1 bg-[#4F2D7F] hover:bg-[#3D2566] text-white text-xs font-bold py-2 px-3 rounded-lg transition truncate shadow-sm">
               View ${grp.total} Unit(s)
             </button>
-            <button onclick="openAddMoreForProductType('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}')" class="bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-bold py-2 px-2.5 rounded-lg transition shrink-0" title="Add more units to this product type">
+            <button onclick="openAddMoreForProductType('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}')" class="bg-purple-50 hover:bg-purple-100 text-[#4F2D7F] border border-purple-200 text-xs font-bold py-2 px-2.5 rounded-lg transition shrink-0" title="Add units">
               + Add
             </button>
             ${printToggleBtn}
@@ -2042,8 +2054,8 @@
         const isCheckedOut = activeList.length > 0;
 
         const statusBadge = isCheckedOut
-          ? `<span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">Out</span>`
-          : `<span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">In Stock</span>`;
+          ? `<span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-amber-50 text-amber-850 border border-amber-200">Out</span>`
+          : `<span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-55 text-emerald-800 border border-emerald-200">In Stock</span>`;
 
         let liveCheckoutHtml = `<span class="text-xs text-slate-400">—</span>`;
         if (isCheckedOut) {
@@ -2065,24 +2077,24 @@
         ).join('');
 
         const primaryActionBtn = isCheckedOut
-          ? `<button onclick="openCheckInModal('${item.id}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-md text-xs font-bold">📥 In</button>`
-          : `<button onclick="openCheckOutModal('${item.id}')" class="bg-amber-600 hover:bg-amber-500 text-white px-2.5 py-1 rounded-md text-xs font-bold">📤 Out</button>`;
+          ? `<button onclick="openCheckInModal('${item.id}')" class="bg-emerald-650 hover:bg-emerald-600 text-white px-2.5 py-1 rounded-md text-xs font-bold transition">📥 In</button>`
+          : `<button onclick="openCheckOutModal('${item.id}')" class="bg-amber-600 hover:bg-amber-500 text-white px-2.5 py-1 rounded-md text-xs font-bold transition">📤 Out</button>`;
 
         const tr = document.createElement('tr');
-        tr.className = 'hover:bg-slate-50/80 transition';
+        tr.className = 'hover:bg-purple-50/30 transition';
         tr.innerHTML = `
           <td class="p-3 text-center">
-            <input type="checkbox" ${isChecked} onchange="toggleItemSelect('${item.id}', this.checked)" class="w-4 h-4 accent-blue-600 cursor-pointer rounded" />
+            <input type="checkbox" ${isChecked} onchange="toggleItemSelect('${item.id}', this.checked)" class="w-4 h-4 accent-[#4F2D7F] cursor-pointer rounded" />
           </td>
           <td class="p-3">
-            <button onclick="openScanViewForItem('${item.id}')" class="font-mono font-bold text-blue-600 hover:underline text-xs sm:text-sm">
+            <button onclick="openScanViewForItem('${item.id}')" class="font-mono font-bold text-[#4F2D7F] hover:underline text-xs sm:text-sm">
               ${escapeHtml(item.tag)}
             </button>
             <div class="text-[11px] font-mono text-slate-500">${escapeHtml(item.itemCode)}</div>
           </td>
           <td class="p-3">
             <div class="font-semibold text-slate-900 text-xs sm:text-sm">${escapeHtml(item.name)}</div>
-            <button onclick="selectCategoryView('${escapeJsStr(item.category)}')" class="text-[11px] text-blue-600 hover:underline">
+            <button onclick="selectCategoryView('${escapeJsStr(item.category)}')" class="text-[11px] text-[#4F2D7F] hover:underline">
               ${escapeHtml(item.category)}
             </button>
           </td>
@@ -2104,10 +2116,10 @@
           <td class="p-3 text-right">
             <div class="flex flex-wrap items-center justify-end gap-1">
               ${primaryActionBtn}
-              <button onclick="openDetailModal('${item.id}')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded-md font-medium">QR</button>
-              <button onclick="openHistoryModal('${item.id}')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded-md font-medium" title="History">📜</button>
-              <button onclick="openItemModal('${item.id}')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded-md font-medium">Edit</button>
-              <button onclick="deleteItem('${item.id}')" class="text-xs bg-rose-50 hover:bg-rose-100 text-rose-600 px-2 py-1 rounded-md font-medium">✕</button>
+              <button onclick="openDetailModal('${item.id}')" class="text-xs bg-slate-150 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded-md font-medium transition">QR</button>
+              <button onclick="openHistoryModal('${item.id}')" class="text-xs bg-slate-150 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded-md font-medium transition" title="History">📜</button>
+              <button onclick="openItemModal('${item.id}')" class="text-xs bg-slate-150 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded-md font-medium transition">Edit</button>
+              <button onclick="deleteItem('${item.id}')" class="text-xs bg-rose-50 hover:bg-rose-100 text-rose-600 px-2 py-1 rounded-md font-medium transition">✕</button>
             </div>
           </td>
         `;
@@ -2357,12 +2369,12 @@
         div.className = 'p-3 flex justify-between items-center text-sm hover:bg-slate-50';
         div.innerHTML = `
           <div>
-            <span class="font-mono font-bold bg-slate-100 border px-2 py-0.5 rounded text-slate-800">${escapeHtml(p.code)}</span>
-            <span class="font-medium text-slate-800 ml-2">${escapeHtml(p.name)}</span>
+            <span class="font-mono font-bold bg-slate-100 border px-2 py-0.5 rounded text-[#4F2D7F]">${escapeHtml(p.code)}</span>
+            <span class="font-semibold text-slate-800 ml-2">${escapeHtml(p.name)}</span>
             <span class="text-xs text-slate-400 ml-1">(${count} units)</span>
           </div>
           <div class="space-x-1">
-            <button onclick="startEditPlant('${p.code}')" class="text-xs bg-blue-50 text-blue-700 px-2.5 py-1 rounded-md hover:bg-blue-100">Edit</button>
+            <button onclick="startEditPlant('${p.code}')" class="text-xs bg-purple-50 text-[#4F2D7F] px-2.5 py-1 rounded-md hover:bg-purple-100">Edit</button>
             <button onclick="deletePlant('${p.code}')" class="text-xs bg-rose-50 text-rose-700 px-2.5 py-1 rounded-md hover:bg-rose-100">Remove</button>
           </div>
         `;
@@ -2560,7 +2572,7 @@
         qrDiv.className = 'flex justify-center my-2';
 
         card.innerHTML = `
-          <div style="font-family: monospace; font-weight: bold; font-size: 14px; color: #1e3a8a;">${escapeHtml(item.tag)}</div>
+          <div style="font-family: monospace; font-weight: bold; font-size: 14px; color: #4F2D7F;">${escapeHtml(item.tag)}</div>
           <div style="font-family: monospace; font-weight: bold; font-size: 11px; color: #0f172a; margin-top: 1px;">Code: ${escapeHtml(item.itemCode)}</div>
           <div style="font-weight: bold; font-size: 12px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(item.name)}</div>
           <div style="font-size: 10px; color: #475569; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Plant: ${escapeHtml(item.plantCode)} | Home: ${escapeHtml(item.location)}</div>
