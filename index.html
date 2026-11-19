@@ -70,7 +70,7 @@
     }
   </style>
 </head>
-<body class="bg-[#F8F9FA] text-slate-800 min-h-screen pb-24 overflow-x-hidden">
+<body class="bg-[#F3F4F6] text-slate-800 min-h-screen pb-24 overflow-x-hidden">
 
   <!-- Live Toast Notification Container -->
   <div id="toast-container" class="fixed top-16 right-4 z-50 space-y-2 max-w-sm w-full pointer-events-none no-print"></div>
@@ -113,7 +113,7 @@
           <span id="notif-unread-badge" class="hidden bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full">0</span>
         </button>
 
-        <!-- Primary Add Button (Themed Trane Purple) -->
+        <!-- Primary Add Button -->
         <button onclick="openItemModal()" class="bg-[#4F2D7F] hover:bg-[#623a9c] text-white px-3.5 py-2 rounded-lg text-xs font-bold transition-all shadow-md hover:shadow-lg flex items-center gap-1.5 active:scale-95">
           <span>➕</span>
           <span>Add Item</span>
@@ -186,7 +186,7 @@
 
   <!-- Dedicated Individual Item QR Scan View -->
   <div id="scanned-banner" class="hidden max-w-5xl mx-auto mt-6 px-4 sm:px-6 no-print">
-    <div class="bg-white border-2 border-[#4F2D7F] rounded-2xl p-5 sm:p-6 shadow-xl relative overflow-hidden">
+    <div class="bg-white border border-[#DCDDE1] rounded-2xl p-5 sm:p-6 shadow-xl relative overflow-hidden">
       <div class="absolute top-0 left-0 w-2 h-full bg-[#4F2D7F]"></div>
       <div class="flex flex-wrap justify-between items-start gap-3 border-b border-slate-100 pb-4 pl-2">
         <div>
@@ -283,7 +283,7 @@
   <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 no-print space-y-5">
 
     <!-- Unified Control Card: Search, Filters & Category Navigation -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200/90 p-4 sm:p-5 space-y-4">
+    <div class="bg-white rounded-2xl shadow-sm border border-[#DCDDE1] p-4 sm:p-5 space-y-4">
       
       <!-- 4-Column Responsive Filter Grid -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -325,7 +325,7 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-1.5">
-          <div class="inline-flex rounded-lg bg-slate-100 p-1 border border-slate-200">
+          <div class="inline-flex rounded-lg bg-slate-100 p-1 border border-slate-250">
             <button id="btn-view-overview" onclick="resetToOverview()" class="text-xs px-3 py-1.5 rounded-md font-semibold transition">
               📦 Product Types
             </button>
@@ -333,7 +333,7 @@
               📋 Individual Units
             </button>
           </div>
-          <button onclick="pullFromCloud(true)" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 font-semibold px-3 py-2 rounded-lg transition active:scale-95" title="Sync with Cloud">
+          <button onclick="pullFromCloud(true)" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-250 font-semibold px-3 py-2 rounded-lg transition active:scale-95" title="Sync with Cloud">
             🔄 Sync
           </button>
           <button id="bar-unselect-all-btn" onclick="clearAllSelectedQRCodes()" class="hidden text-xs bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 px-3 py-2 rounded-lg font-bold transition">
@@ -359,7 +359,7 @@
     </div>
 
     <!-- DRILL-DOWN DISPLAY: Individual Serialized Units Table -->
-    <div id="units-section" class="hidden bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    <div id="units-section" class="hidden bg-white rounded-2xl shadow-md border border-[#DCDDE1] overflow-hidden">
       <div class="bg-[#2E1A4D] text-white px-4 sm:px-5 py-3.5 flex flex-wrap justify-between items-center gap-3">
         <div class="flex items-center gap-3">
           <button onclick="resetToOverview()" class="bg-[#4F2D7F] hover:bg-[#623a9c] border border-purple-500/30 text-xs font-semibold px-3 py-1.5 rounded-lg transition">
@@ -389,7 +389,7 @@
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
           <thead>
-            <tr class="bg-slate-50 text-slate-500 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider">
+            <tr class="bg-slate-100/90 text-slate-600 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider">
               <th class="p-3 w-10 text-center">
                 <input type="checkbox" id="master-checkbox" onchange="toggleSelectAll(this.checked)" class="w-4 h-4 accent-[#4F2D7F] cursor-pointer rounded" />
               </th>
@@ -402,7 +402,7 @@
               <th class="p-3 text-right">Unit Actions</th>
             </tr>
           </thead>
-          <tbody id="inventory-tbody" class="divide-y divide-slate-200/80 text-xs sm:text-sm">
+          <tbody id="inventory-tbody" class="divide-y divide-slate-150 text-xs sm:text-sm bg-white">
             <!-- Populated by JavaScript -->
           </tbody>
         </table>
@@ -443,7 +443,7 @@
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
       <div class="flex justify-between items-center border-b pb-3 mb-3">
         <h3 class="text-base font-bold text-slate-900">📤 Check Out Unit & Send Alert</h3>
-        <button onclick="closeCheckOutModal()" class="text-slate-400 hover:text-slate-750 text-2xl leading-none">&times;</button>
+        <button onclick="closeCheckOutModal()" class="text-slate-400 hover:text-slate-755 text-2xl leading-none">&times;</button>
       </div>
       <p id="checkout-modal-subtitle" class="text-xs font-mono font-bold text-[#4F2D7F] mb-4 bg-purple-50 p-2.5 rounded-lg border border-purple-200"></p>
       <form onsubmit="confirmCheckOut(event)" class="space-y-3.5">
@@ -481,7 +481,7 @@
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
       <div class="flex justify-between items-center border-b pb-3 mb-3">
         <h3 class="text-base font-bold text-slate-900">📥 Check In Unit & Rate Quality</h3>
-        <button onclick="closeCheckInModal()" class="text-slate-400 hover:text-slate-750 text-2xl leading-none">&times;</button>
+        <button onclick="closeCheckInModal()" class="text-slate-400 hover:text-slate-755 text-2xl leading-none">&times;</button>
       </div>
       <p id="checkin-modal-subtitle" class="text-xs font-mono font-bold text-emerald-800 mb-4 bg-emerald-50 p-2.5 rounded-lg border border-emerald-200"></p>
       <form onsubmit="confirmCheckIn(event)" class="space-y-3.5">
@@ -585,7 +585,7 @@
     <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b pb-3 mb-4">
         <h2 id="item-modal-title" class="text-base font-bold text-slate-900">Add Inventory Item(s)</h2>
-        <button onclick="closeItemModal()" class="text-slate-400 hover:text-slate-750 text-2xl leading-none">&times;</button>
+        <button onclick="closeItemModal()" class="text-slate-400 hover:text-slate-755 text-2xl leading-none">&times;</button>
       </div>
       <form id="item-form" onsubmit="saveItem(event)" class="space-y-4">
         <input type="hidden" id="edit-item-id" />
@@ -803,7 +803,6 @@
       localStorage.setItem(STORAGE_KEY_CLOUD, cloudDbUrl);
     }
 
-    // Permanent QR Code URL configuration (Prevents local links from being printed!)
     let permanentQrBaseUrl = localStorage.getItem(STORAGE_KEY_QR_BASE) || '';
 
     let emailConfig = JSON.parse(localStorage.getItem(STORAGE_KEY_EMAIL)) || {
@@ -1009,7 +1008,7 @@
               <span class="text-[11px] font-mono text-slate-400">${new Date(n.timestamp).toLocaleString()}</span>
             </div>
             <p class="text-slate-700">${escapeHtml(n.message)}</p>
-            ${n.userEmail ? `<p class="text-[11px] font-mono text-[#4F2D7F]">📧 To: <strong>${escapeHtml(n.userEmail)}</strong></p>` : ''}
+            ${n.userEmail ? `<p class="text-[11px] font-mono text-purple-700">📧 To: <strong>${escapeHtml(n.userEmail)}</strong></p>` : ''}
           </div>
           <div class="flex items-center gap-1.5">
             ${n.mailtoLink ? `<a href="${n.mailtoLink}" class="bg-[#4F2D7F] hover:bg-[#3D2566] text-white px-2.5 py-1.5 rounded-lg font-bold text-[11px]">✉️ Resend</a>` : ''}
@@ -1079,7 +1078,7 @@
 
       setTimeout(() => {
         window.location.href = mailtoLink;
-      }, 300);
+      }, 350);
 
       return mailtoLink;
     }
@@ -1287,27 +1286,22 @@
     // 5. SMART & PERMANENT QR URL BUILDER & ROUTING
     // ============================================================================
     function buildQRUrl(item) {
-      // 1. If a permanent custom production base URL has been configured, use it!
       if (permanentQrBaseUrl && permanentQrBaseUrl.trim() !== '') {
         let base = permanentQrBaseUrl.trim();
         if (!base.endsWith('/')) base += '/';
         return `${base}?tag=${encodeURIComponent(item.tag)}`;
       }
 
-      // 2. Fallback Smart Check: Avoid building links containing "localhost" or "127.0.0.1" for printed stickers
       const loc = window.location;
       const isDevelopment = loc.hostname === 'localhost' || loc.hostname === '127.0.0.1' || loc.protocol === 'file:';
       
       if (isDevelopment) {
-        // Dev fallback points strictly to the production server so printed physical tags work permanently
         return `${FALLBACK_GITHUB_URL}?tag=${encodeURIComponent(item.tag)}`;
       }
 
-      // 3. Otherwise, use current live production domain path (e.g. your live Netlify site URL)
       return `${loc.origin}${loc.pathname}?tag=${encodeURIComponent(item.tag)}`;
     }
 
-    // Modal Control for Permanent QR Base Domain configuration
     function openQrConfigModal() {
       document.getElementById('qr-base-url-input').value = permanentQrBaseUrl || '';
       const modal = document.getElementById('qr-config-modal');
@@ -1404,8 +1398,8 @@
         promptDesc.className = 'text-xs text-emerald-800 mt-0.5';
         promptDesc.textContent = 'Tap "Check In & Rate Quality" to return it to storage and update its condition.';
 
-        checkoutBtn.classList.add('hidden');
-        checkinBtn.classList.remove('hidden');
+        checkoutBtn.className = 'hidden';
+        checkinBtn.className = 'bg-[#10B981] hover:bg-[#059669] text-white px-4 py-2 rounded-lg font-bold text-xs sm:text-sm shadow transition';
       } else {
         scanQtyEl.className = 'text-xs sm:text-sm font-bold text-[#10B981] mt-0.5';
         scanQtyEl.textContent = 'Available in Storage';
@@ -1419,8 +1413,8 @@
         promptDesc.className = 'text-xs text-purple-850 mt-0.5';
         promptDesc.textContent = 'Tap "Check Out Unit" to enter your name, email, and destination location.';
 
-        checkoutBtn.classList.remove('hidden');
-        checkinBtn.classList.add('hidden');
+        checkoutBtn.className = 'bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-lg font-bold text-xs sm:text-sm shadow transition';
+        checkinBtn.className = 'hidden';
       }
 
       const activeBox = document.getElementById('scan-active-checkouts-box');
@@ -1435,9 +1429,9 @@
           row.innerHTML = `
             <div>
               <span class="font-bold text-slate-900">👤 ${escapeHtml(rec.userName)}</span>
-              ${rec.userEmail ? `<span class="text-purple-700 font-mono ml-1">(${escapeHtml(rec.userEmail)})</span>` : ''}
+              ${rec.userEmail ? `<span class="text-purple-750 font-mono ml-1">(${escapeHtml(rec.userEmail)})</span>` : ''}
               <span class="mx-1.5 text-slate-300">|</span>
-              <span class="font-semibold text-purple-850">📍 ${escapeHtml(rec.destination)}</span>
+              <span class="font-semibold text-purple-800">📍 ${escapeHtml(rec.destination)}</span>
               ${rec.notes ? `<div class="text-slate-600 mt-0.5">Note: ${escapeHtml(rec.notes)}</div>` : ''}
             </div>
             <div class="flex items-center gap-3">
@@ -1744,7 +1738,7 @@
                 ${getQualityBadgeHtml(entry.qualityAtEvent)}
                 ${durationText}
               </div>
-              ${entry.notes ? `<p class="text-slate-600">Note: ${escapeHtml(entry.notes)}</p>` : ''}
+              ${entry.notes ? `<p class="text-slate-650">Note: ${escapeHtml(entry.notes)}</p>` : ''}
             </div>
             <div class="text-right text-[11px] text-slate-400 font-mono">
               ${new Date(entry.timestamp).toLocaleString()}
@@ -1779,6 +1773,7 @@
       renderInventory();
     }
 
+    // Product View
     function selectProductTypeView(categoryName, productName) {
       selectedCategory = categoryName;
       selectedProductName = productName;
@@ -2012,15 +2007,15 @@
       Array.from(productGroups.values()).forEach(grp => {
         const allGroupSelected = grp.selectedForPrint === grp.total && grp.total > 0;
         const printToggleBtn = allGroupSelected
-          ? `<button onclick="toggleGroupForPrinting('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}', false)" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-semibold py-2 px-2.5 rounded-lg transition" title="Unselect all units">
+          ? `<button onclick="toggleGroupForPrinting('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}', false)" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-semibold py-2 px-2.5 rounded-lg transition animate-all" title="Unselect all units">
                ✕ (${grp.selectedForPrint})
              </button>`
-          : `<button onclick="toggleGroupForPrinting('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}', true)" class="bg-slate-100 hover:bg-slate-200 text-slate-750 border border-slate-200 text-xs font-semibold py-2 px-2.5 rounded-lg transition" title="Select all units for QR printing">
+          : `<button onclick="toggleGroupForPrinting('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}', true)" class="bg-slate-100 hover:bg-slate-200 text-slate-750 border border-slate-200 text-xs font-semibold py-2 px-2.5 rounded-lg transition animate-all" title="Select all units for QR printing">
                🖨️ ${grp.selectedForPrint > 0 ? `${grp.selectedForPrint}/${grp.total}` : 'QR'}
              </button>`;
 
         const card = document.createElement('div');
-        card.className = 'bg-white rounded-2xl shadow-sm hover:shadow-lg border-l-4 border-[#4F2D7F] border-y border-r border-slate-200 p-5 flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5';
+        card.className = 'bg-white rounded-2xl shadow-sm hover:shadow-lg border-l-4 border-[#4F2D7F] border-y border-r border-[#DCDDE1] p-5 flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5';
         card.innerHTML = `
           <div>
             <div class="flex justify-between items-center gap-2">
@@ -2113,9 +2108,10 @@
         const activeList = item.activeCheckouts || [];
         const isCheckedOut = activeList.length > 0;
 
+        // Forced 'whitespace-nowrap' and inline-flex layout keeps the status badge strictly on 1 line!
         const statusBadge = isCheckedOut
-          ? `<span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-amber-50 text-amber-850 border border-amber-200">Out</span>`
-          : `<span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-55 text-emerald-800 border border-emerald-200">In Stock</span>`;
+          ? `<span class="whitespace-nowrap inline-flex items-center justify-center px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-50 text-amber-850 border border-amber-200">Out</span>`
+          : `<span class="whitespace-nowrap inline-flex items-center justify-center px-2.5 py-1 rounded-md text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">In Stock</span>`;
 
         let liveCheckoutHtml = `<span class="text-xs text-slate-400">—</span>`;
         if (isCheckedOut) {
@@ -2137,11 +2133,11 @@
         ).join('');
 
         const primaryActionBtn = isCheckedOut
-          ? `<button onclick="openCheckInModal('${item.id}')" class="bg-[#10B981] hover:bg-[#059669] text-white px-2.5 py-1 rounded-md text-xs font-bold transition">📥 In</button>`
+          ? `<button onclick="openCheckInModal('${item.id}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-md text-xs font-bold transition">📥 In</button>`
           : `<button onclick="openCheckOutModal('${item.id}')" class="bg-amber-600 hover:bg-amber-500 text-white px-2.5 py-1 rounded-md text-xs font-bold transition">📤 Out</button>`;
 
         const tr = document.createElement('tr');
-        tr.className = 'hover:bg-purple-50/30 transition';
+        tr.className = 'hover:bg-purple-50/30 transition-colors border-b border-slate-100';
         tr.innerHTML = `
           <td class="p-3 text-center">
             <input type="checkbox" ${isChecked} onchange="toggleItemSelect('${item.id}', this.checked)" class="w-4 h-4 accent-[#4F2D7F] cursor-pointer rounded" />
@@ -2176,9 +2172,9 @@
           <td class="p-3 text-right">
             <div class="flex flex-wrap items-center justify-end gap-1">
               ${primaryActionBtn}
-              <button onclick="openDetailModal('${item.id}')" class="text-xs bg-slate-150 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded-md font-medium transition">QR</button>
-              <button onclick="openHistoryModal('${item.id}')" class="text-xs bg-slate-150 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded-md font-medium transition" title="History">📜</button>
-              <button onclick="openItemModal('${item.id}')" class="text-xs bg-slate-150 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded-md font-medium transition">Edit</button>
+              <button onclick="openDetailModal('${item.id}')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded-md font-medium transition">QR</button>
+              <button onclick="openHistoryModal('${item.id}')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded-md font-medium transition" title="History">📜</button>
+              <button onclick="openItemModal('${item.id}')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded-md font-medium transition">Edit</button>
               <button onclick="deleteItem('${item.id}')" class="text-xs bg-rose-50 hover:bg-rose-100 text-rose-600 px-2 py-1 rounded-md font-medium transition">✕</button>
             </div>
           </td>
@@ -2562,7 +2558,6 @@
       updateSelectedCounter();
     }
 
-    // Toggle Visible
     function toggleSelectAll(checked) {
       const master = document.getElementById('master-checkbox');
       if (master) master.checked = checked;
@@ -2709,7 +2704,6 @@
         .replace(/"/g, '&quot;');
     }
 
-    // JS string clean
     function escapeJsStr(str) {
       return String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
     }
