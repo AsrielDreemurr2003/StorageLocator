@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StorageLocater — Admin Portal</title>
+  <!-- Preload sibling pages for instantaneous zero-lag transitions -->
+  <link rel="prefetch" href="index.html" />
+  <link rel="prefetch" href="support.html" />
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- SheetJS (XLSX) SDK -->
+  <script lang="javascript" src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght=500;700&display=swap');
+    body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+  </style>
+</head>
+<body class="bg-[#FAF9F5] text-slate-800 min-h-screen pb-24 overflow-x-hidden">
+
+  <!-- Corporate Header themed in Trane Deep Purple & Green Accent -->
+  <header class="bg-[#251440] text-white border-b-4 border-[#0D9488] sticky top-0 z-40 shadow-md">
+    <div class="w-full max-w-[96%] sm:max-w-[94%] xl:max-w-[92%] 2xl:max-w-[90%] mx-auto px-2 sm:px-4 h-16 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <a href="index.html">
+          <img src="https://brandlogos.net/wp-content/uploads/2026/02/trane_technologies-logo_brandlogos.net_ct15x-1536x432.png" alt="Trane Technologies Logo" class="h-9 md:h-11 w-auto cursor-pointer rounded-lg bg-white p-1.5 hover:opacity-90 shadow-sm border border-slate-200" />
+        </a>
+        <div>
+          <a href="index.html" class="text-base sm:text-xl font-extrabold tracking-tight cursor-pointer hover:text-emerald-300">
+            StorageLocater Admin Portal
+          </a>
+          <p class="text-[10px] text-slate-300 uppercase tracking-widest font-semibold hidden sm:block">System Administration & Cloud Configuration</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <a href="support.html" class="bg-[#5A358E] hover:bg-[#623a9c] text-white px-3.5 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-md">
+          <span>🙋‍♂️</span> Help Desk
+        </a>
+        <a href="index.html" class="bg-[#0D9488] hover:bg-[#059669] text-white px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-md">
+          <span>⬅️</span> Dashboard
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="w-full max-w-[96%] sm:max-w-[94%] xl:max-w-[92%] 2xl:max-w-[90%] mx-auto px-2 sm:px-4 py-6 space-y-6">
+    
+    <!-- Login Screen -->
+    <div id="login-container" class="max-w-md mx-auto bg-white border border-[#DCDDE1] rounded-2xl p-6 shadow-xl mt-12">
+      <h2 class="text-base font-bold text-slate-900 mb-1 flex items-center gap-2"><span>🔒</span> Administrator Verification</h2>
+      <p class="text-xs text-slate-500 mb-4">Sign in with your administrator credentials to manage plants, users, and system settings.</p>
+      <form id="admin-login-form" onsubmit="handleLogin(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Username / User ID</label>
+          <input type="text" id="username" required placeholder="e.g. admin" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#5A358E] outline-none" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Password</label>
+          <input type="password" id="password" required placeholder="••••••••" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#5A358E] outline-none" />
+        </div>
+        <button type="submit" class="w-full py-2.5 bg-[#5A358E] hover:bg-[#3D2566] text-white rounded-lg text-sm font-bold shadow-md transition">Verify Administrator</button>
+      </form>
+    </div>
+
+    <!-- Admin Panel Structure -->
+    <div id="admin-panel" class="hidden grid grid-cols-1 lg:grid-cols-4 gap-6">
+      
+      <!-- Left sidebar: Tab switches -->
+      <div class="lg:col-span-1 space-y-2">
+        <button onclick="switchTab('plants')" id="tab-btn-plants" class="w-full text-left p-3 rounded-xl border font-bold text-sm transition bg-white border-slate-200 hover:bg-slate-50">🏢 Manage Plants</button>
+        <button onclick="switchTab('users')" id="tab-btn-users" class="w-full text-left p-3 rounded-xl border font-bold text-sm transition bg-white border-slate-200 hover:bg-slate-50">👤 Manage Users & Import</button>
+        <button onclick="switchTab('email')" id="tab-btn-email" class="w-full text-left p-3 rounded-xl border font-bold text-sm transition bg-white border-slate-200 hover:bg-slate-50">✉️ Email Alert Settings</button>
+        <button onclick="switchTab('qr')" id="tab-btn-qr" class="w-full text-left p-3 rounded-xl border font-bold text-sm transition bg-white border-slate-200 hover:bg-slate-50">🔗 Permanent QR URL Config</button>
+        <button onclick="switchTab('cloud')" id="tab-btn-cloud" class="w-full text-left p-3 rounded-xl border font-bold text-sm transition bg-white border-slate-200 hover:bg-slate-50">☁️ Cloud Database Sync</button>
+        <button onclick="switchTab('consumed')" id="tab-btn-consumed" class="w-full text-left p-3 rounded-xl border font-bold text-sm transition bg-white border-slate-200 hover:bg-slate-50">🗑️ Consumed / Single-Use Log</button>
+        <button onclick="switchTab('backup')" id="tab-btn-backup" class="w-full text-left p-3 rounded-xl border font-bold text-sm transition bg-white border-slate-200 hover:bg-slate-50">💾 Backups (JSON)</button>
+        <button onclick="handleLogout()" class="w-full text-left p-3 rounded-xl border border-rose-200 text-rose-600 font-bold text-sm transition hover:bg-rose-50">🔓 Admin Logout</button>
+      </div>
+
+      <!-- Right main area: Tab contents -->
+      <div class="lg:col-span-3 bg-white border border-[#DCDDE1] rounded-2xl p-6 shadow-sm min-h-[450px]">
+        
+        <!-- Tab: Plants -->
+        <div id="tab-plants" class="hidden space-y-4">
+          <h2 class="text-lg font-bold">🏢 Manage Plant Locations (3-Digit Codes)</h2>
+          <p class="text-xs text-slate-500">Add or modify 3-letter plant prefixes used for automatic QR tag serialization.</p>
+          <form onsubmit="savePlant(event)" class="flex flex-wrap gap-2">
+            <input type="text" id="plant-code" required maxlength="3" placeholder="KEN" class="w-28 border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono uppercase" />
+            <input type="text" id="plant-name" required placeholder="Kentwood Plant" class="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+            <button type="submit" class="bg-[#5A358E] hover:bg-[#3D2566] text-white px-5 py-2 rounded-lg text-sm font-semibold">Add / Update Plant</button>
+          </form>
+          <div class="divide-y border rounded-xl overflow-hidden mt-4" id="plant-list"></div>
+        </div>
+
+        <!-- Tab: Users -->
+        <div id="tab-users" class="hidden space-y-4">
+          <h2 class="text-lg font-bold">👤 Manage Users & Excel Import</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-slate-50 p-4 border rounded-xl space-y-3">
+              <h3 class="text-xs font-bold text-purple-900 uppercase">Add Single User</h3>
+              <form onsubmit="addUser(event)" class="space-y-2">
+                <input type="text" id="user-username" required placeholder="User ID (e.g. u123456)" class="w-full border rounded px-3 py-2 text-xs" />
+                <input type="text" id="user-name" required placeholder="Full Name" class="w-full border rounded px-3 py-2 text-xs" />
+                <input type="email" id="user-email" required placeholder="Email Address" class="w-full border rounded px-3 py-2 text-xs" />
+                <input type="password" id="user-password" placeholder="Admin Password (optional)" class="w-full border rounded px-3 py-2 text-xs" />
+                <label class="flex items-center gap-2 text-xs font-semibold text-slate-700 pt-1">
+                  <input type="checkbox" id="user-is-admin" class="accent-[#5A358E]" /> Grant Administrator Privileges
+                </label>
+                <button type="submit" class="w-full bg-[#5A358E] hover:bg-[#3D2566] text-white py-2 rounded text-xs font-semibold">Add User</button>
+              </form>
+            </div>
+            <div class="bg-slate-50 p-4 border rounded-xl flex flex-col justify-between">
+              <div>
+                <h3 class="text-xs font-bold text-[#0D9488] uppercase mb-1">Bulk Excel Import (.xlsx, .csv)</h3>
+                <p class="text-[11px] text-slate-500">Upload a spreadsheet with columns: <code>Username</code>, <code>Name</code>, and <code>Email</code>.</p>
+              </div>
+              <label class="w-full bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 px-4 py-2.5 rounded-lg text-xs font-semibold cursor-pointer flex items-center justify-center gap-2">
+                <span>📊 Select Spreadsheet File</span>
+                <input type="file" id="user-excel-file" class="hidden" accept=".csv, .xlsx, .xls" onchange="importUserFile(event)" />
+              </label>
+            </div>
+          </div>
+          <div class="border rounded-xl p-3">
+            <h3 class="text-xs font-bold uppercase text-purple-800 mb-2">Registered Users (<span id="userbase-count">0</span>)</h3>
+            <div class="overflow-y-auto max-h-72 divide-y" id="userbase-list-container"></div>
+          </div>
+        </div>
+
+        <!-- Tab: Email -->
+        <div id="tab-email" class="hidden space-y-4">
+          <h2 class="text-lg font-bold">✉️ Email Alert Settings</h2>
+          <p class="text-xs text-slate-500">Configure automated EmailJS checkout receipts or direct mailto links.</p>
+          <form onsubmit="saveEmailConfig(event)" class="space-y-4">
+            <div>
+              <label class="block text-xs font-bold uppercase mb-1">Email Delivery Mode</label>
+              <select id="email-mode-select" class="w-full border rounded px-3 py-2 text-sm bg-white">
+                <option value="MAILTO">Direct Client mailto Link</option>
+                <option value="EMAILJS">EmailJS Automated Background Alerts</option>
+              </select>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-bold uppercase mb-1">EmailJS Public Key</label>
+                <input type="text" id="emailjs-public-key" class="w-full border rounded px-3 py-2 text-sm font-mono" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase mb-1">EmailJS Service ID</label>
+                <input type="text" id="emailjs-service-id" class="w-full border rounded px-3 py-2 text-sm font-mono" />
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-bold uppercase mb-1">EmailJS Template ID</label>
+              <input type="text" id="emailjs-template-id" class="w-full border rounded px-3 py-2 text-sm font-mono" />
+            </div>
+            <button type="submit" class="bg-[#5A358E] hover:bg-[#3D2566] text-white px-5 py-2 rounded font-semibold text-sm">Save Email Configuration</button>
+          </form>
+        </div>
+
+        <!-- Tab: QR Base -->
+        <div id="tab-qr" class="hidden space-y-4">
+          <h2 class="text-lg font-bold">🔗 Permanent QR Code Base URL</h2>
+          <p class="text-xs text-slate-500">Provide the production URL of your hosted dashboard (e.g., Netlify) so printed QR stickers always point to your live application.</p>
+          <form onsubmit="saveQrConfig(event)" class="space-y-4">
+            <input type="url" id="qr-base-url-input" placeholder="https://storagelocater.netlify.app" class="w-full border rounded px-3 py-2 text-sm font-mono" />
+            <button type="submit" class="bg-[#5A358E] hover:bg-[#3D2566] text-white px-5 py-2 rounded font-semibold text-sm">Save Permanent URL</button>
+          </form>
+        </div>
+
+        <!-- Tab: Cloud Sync -->
+        <div id="tab-cloud" class="hidden space-y-4">
+          <h2 class="text-lg font-bold">☁️ Firebase Realtime Database Sync</h2>
+          <p class="text-xs text-slate-500">Synchronize inventory, users, and notifications across all plant devices in real time.</p>
+          <form onsubmit="saveCloudConfig(event)" class="space-y-4">
+            <input type="url" id="cloud-url-input" required class="w-full border rounded px-3 py-2 text-sm font-mono" />
+            <div class="flex flex-wrap gap-2">
+              <button type="submit" class="bg-[#5A358E] hover:bg-[#3D2566] text-white px-5 py-2 rounded font-semibold text-sm">Save & Sync</button>
+              <button type="button" onclick="forcePushToCloud()" class="bg-emerald-600 text-white px-5 py-2 rounded font-semibold text-sm hover:bg-emerald-700">Force Upload Local Data to Cloud</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Tab: Consumed History -->
+        <div id="tab-consumed" class="hidden space-y-4">
+          <div class="flex justify-between items-center">
+            <div>
+              <h2 class="text-lg font-bold">🗑️ Consumed / Single-Use Inventory Logs</h2>
+              <p class="text-xs text-slate-500">Traceable archive of units checked out for good.</p>
+            </div>
+            <button onclick="clearConsumedLogs()" class="text-xs bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold px-3 py-1.5 rounded-lg">Clear Archive</button>
+          </div>
+          <div class="divide-y border rounded-xl overflow-hidden max-h-96 overflow-y-auto p-3" id="consumed-list-container"></div>
+        </div>
+
+        <!-- Tab: Backup -->
+        <div id="tab-backup" class="hidden space-y-4">
+          <h2 class="text-lg font-bold">💾 Database Backups (.json)</h2>
+          <p class="text-xs text-slate-500">Download a complete snapshot of plants, items, users, and configurations, or restore from a backup file.</p>
+          <div class="flex flex-wrap gap-3">
+            <button onclick="exportData()" class="bg-[#5A358E] hover:bg-[#3D2566] text-white px-5 py-2.5 rounded-lg font-semibold text-sm">⬇️ Export State (.json)</button>
+            <label class="bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 px-5 py-2.5 rounded-lg font-semibold text-sm cursor-pointer">
+              ⬆️ Import State (.json)
+              <input type="file" id="import-file" class="hidden" accept=".json" onchange="importData(event)" />
+            </label>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    let loggedInUser = JSON.parse(sessionStorage.getItem('LOGGED_IN_ADMIN')) || null;
+
+    const DEFAULT_CLOUD_DB_URL = 'https://storagelocator-405e5-default-rtdb.firebaseio.com/';
+    const STORAGE_KEY_PLANTS = 'PLANT_QR_PLANTS_V8';
+    const STORAGE_KEY_ITEMS  = 'PLANT_QR_ITEMS_V8';
+    const STORAGE_KEY_SEQ    = 'PLANT_QR_SEQ_V8';
+    const STORAGE_KEY_CLOUD  = 'PLANT_QR_CLOUD_URL_V8';
+    const STORAGE_KEY_NOTIFS = 'PLANT_QR_NOTIFS_V8';
+    const STORAGE_KEY_EMAIL  = 'PLANT_QR_EMAIL_CFG_V8';
+    const STORAGE_KEY_QR_BASE = 'PLANT_QR_BASE_URL_V8';
+    const STORAGE_KEY_USERS  = 'PLANT_QR_USERS_V8';
+    const STORAGE_KEY_HELP_LOGS = 'PLANT_QR_HELP_LOGS_V8';
+
+    let plants = JSON.parse(localStorage.getItem(STORAGE_KEY_PLANTS)) || [
+      { code: 'KEN', name: 'Kentwood Plant' },
+      { code: 'DET', name: 'Detroit Assembly' },
+      { code: 'CHI', name: 'Chicago Distribution' }
+    ];
+    let items = JSON.parse(localStorage.getItem(STORAGE_KEY_ITEMS)) || [];
+    let plantSequences = JSON.parse(localStorage.getItem(STORAGE_KEY_SEQ)) || { KEN: 1, DET: 1, CHI: 0 };
+    let appNotifications = JSON.parse(localStorage.getItem(STORAGE_KEY_NOTIFS)) || [];
+    let users = JSON.parse(localStorage.getItem(STORAGE_KEY_USERS)) || [
+      { username: 'u123456', name: 'Jane Doe', email: 'jane.doe@tranetechnologies.com' }
+    ];
+    let cloudDbUrl = localStorage.getItem(STORAGE_KEY_CLOUD) || DEFAULT_CLOUD_DB_URL;
+    let permanentQrBaseUrl = localStorage.getItem(STORAGE_KEY_QR_BASE) || '';
+    let emailConfig = JSON.parse(localStorage.getItem(STORAGE_KEY_EMAIL)) || { mode: 'MAILTO', publicKey: '', serviceId: '', templateId: '' };
+
+    function checkAdminUser() {
+      let master = users.find(u => u.username === 'admin');
+      if (!master) {
+        master = {
+          username: 'admin', name: 'Main Administrator',
+          email: 'natalie.hilliker@tranetechnologies.com', password: 'Trane123', isAdmin: true
+        };
+        users.push(master);
+        localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
+      }
+    }
+
+    function initPage() {
+      checkAdminUser();
+      if (loggedInUser && loggedInUser.isAdmin) {
+        document.getElementById('login-container').classList.add('hidden');
+        document.getElementById('admin-panel').classList.remove('hidden');
+        const params = new URLSearchParams(window.location.search);
+        const activeTab = params.get('tab') || 'plants';
+        switchTab(activeTab);
+      } else {
+        document.getElementById('login-container').classList.remove('hidden');
+        document.getElementById('admin-panel').classList.add('hidden');
+      }
+    }
+
+    function handleLogin(e) {
+      e.preventDefault();
+      const uInput = document.getElementById('username').value.trim();
+      const pInput = document.getElementById('password').value;
+
+      const found = users.find(u => u.username.toLowerCase() === uInput.toLowerCase());
+      if (found && found.password === pInput && found.isAdmin) {
+        loggedInUser = found;
+        sessionStorage.setItem('LOGGED_IN_ADMIN', JSON.stringify(found));
+        initPage();
+      } else {
+        alert('Invalid administrator credentials.');
+      }
+    }
+
+    function handleLogout() {
+      loggedInUser = null;
+      sessionStorage.removeItem('LOGGED_IN_ADMIN');
+      window.location.href = 'index.html';
+    }
+
+    function switchTab(tabId) {
+      const tabs = ['plants', 'users', 'email', 'qr', 'cloud', 'consumed', 'backup'];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`tab-btn-${t}`);
+        const sect = document.getElementById(`tab-${t}`);
+        if (!btn || !sect) return;
+        if (t === tabId) {
+          btn.className = "w-full text-left p-3 rounded-xl border font-bold text-sm transition bg-[#5A358E] text-white border-[#5A358E]";
+          sect.classList.remove('hidden');
+        } else {
+          btn.className = "w-full text-left p-3 rounded-xl border font-bold text-sm transition bg-white border-slate-200 hover:bg-slate-50 text-slate-700";
+          sect.classList.add('hidden');
+        }
+      });
+
+      if (tabId === 'plants') renderPlants();
+      if (tabId === 'users') renderUsers();
+      if (tabId === 'email') populateEmailConfig();
+      if (tabId === 'qr') populateQrConfig();
+      if (tabId === 'cloud') populateCloudConfig();
+      if (tabId === 'consumed') renderConsumed();
+    }
+
+    function renderPlants() {
+      const container = document.getElementById('plant-list');
+      container.innerHTML = '';
+      plants.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'p-3 flex justify-between items-center text-sm bg-white';
+        div.innerHTML = `<div><span class="font-mono font-bold text-[#5A358E] bg-purple-50 px-2 py-0.5 rounded border border-purple-200">${p.code}</span> <span class="ml-2 font-medium">${p.name}</span></div><button onclick="deletePlant('${p.code}')" class="text-xs bg-rose-50 hover:bg-rose-100 text-rose-700 px-2.5 py-1 rounded font-semibold">Remove</button>`;
+        container.appendChild(div);
+      });
+    }
+
+    async function savePlant(e) {
+      e.preventDefault();
+      const code = document.getElementById('plant-code').value.trim().toUpperCase();
+      const name = document.getElementById('plant-name').value.trim();
+      const existing = plants.find(p => p.code === code);
+      if (existing) existing.name = name;
+      else plants.push({ code, name });
+      document.getElementById('plant-code').value = '';
+      document.getElementById('plant-name').value = '';
+      await saveState();
+      renderPlants();
+    }
+
+    async function deletePlant(code) {
+      if (!confirm(`Remove plant ${code}?`)) return;
+      plants = plants.filter(p => p.code !== code);
+      await saveState();
+      renderPlants();
+    }
+
+    function renderUsers() {
+      const container = document.getElementById('userbase-list-container');
+      container.innerHTML = '';
+      document.getElementById('userbase-count').textContent = users.length;
+      users.forEach(u => {
+        const adminBadge = u.isAdmin ? `<span class="bg-purple-100 text-[#5A358E] text-[10px] font-bold px-2 py-0.5 rounded ml-1">ADMIN</span>` : '';
+        const div = document.createElement('div');
+        div.className = 'p-2.5 flex justify-between items-center text-xs';
+        div.innerHTML = `
+          <div>
+            <strong class="font-mono text-slate-900">${u.username}</strong> — ${u.name} <span class="text-slate-500">(${u.email})</span> ${adminBadge}
+          </div>
+          <div class="flex items-center gap-2">
+            ${u.username !== 'admin' ? `<button onclick="deleteUser('${u.username}')" class="text-rose-600 hover:underline font-bold">Delete</button>` : ''}
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    async function addUser(e) {
+      e.preventDefault();
+      const username = document.getElementById('user-username').value.trim();
+      const name = document.getElementById('user-name').value.trim();
+      const email = document.getElementById('user-email').value.trim();
+      const password = document.getElementById('user-password').value;
+      const isAdmin = document.getElementById('user-is-admin').checked;
+
+      const existing = users.find(u => u.username.toLowerCase() === username.toLowerCase());
+      if (existing) {
+        existing.name = name; existing.email = email;
+        if (password) existing.password = password;
+        existing.isAdmin = isAdmin;
+      } else {
+        users.push({ username, name, email, password, isAdmin });
+      }
+      e.target.reset();
+      await saveState();
+      renderUsers();
+    }
+
+    async function deleteUser(uname) {
+      if (uname === 'admin') return;
+      users = users.filter(u => u.username !== uname);
+      await saveState();
+      renderUsers();
+    }
+
+    function importUserFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+          const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+          let added = 0;
+          for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            if (!row || row.length < 3) continue;
+            const username = String(row[0] || '').trim();
+            const name = String(row[1] || '').trim();
+            const email = String(row[2] || '').trim();
+            if (username && name && email && username.toLowerCase() !== 'username') {
+              if (!users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+                users.push({ username, name, email, isAdmin: false });
+                added++;
+              }
+            }
+          }
+          await saveState();
+          renderUsers();
+          alert(`Successfully imported ${added} new user(s).`);
+        } catch (err) {
+          alert('Error processing spreadsheet file.');
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function populateEmailConfig() {
+      document.getElementById('email-mode-select').value = emailConfig.mode || 'MAILTO';
+      document.getElementById('emailjs-public-key').value = emailConfig.publicKey || '';
+      document.getElementById('emailjs-service-id').value = emailConfig.serviceId || '';
+      document.getElementById('emailjs-template-id').value = emailConfig.templateId || '';
+    }
+
+    async function saveEmailConfig(e) {
+      e.preventDefault();
+      emailConfig.mode = document.getElementById('email-mode-select').value;
+      emailConfig.publicKey = document.getElementById('emailjs-public-key').value.trim();
+      emailConfig.serviceId = document.getElementById('emailjs-service-id').value.trim();
+      emailConfig.templateId = document.getElementById('emailjs-template-id').value.trim();
+      await saveState();
+      alert('Email configuration saved.');
+    }
+
+    function populateQrConfig() {
+      document.getElementById('qr-base-url-input').value = permanentQrBaseUrl;
+    }
+
+    async function saveQrConfig(e) {
+      e.preventDefault();
+      permanentQrBaseUrl = document.getElementById('qr-base-url-input').value.trim();
+      await saveState();
+      alert('Permanent QR Base URL saved.');
+    }
+
+    function populateCloudConfig() {
+      document.getElementById('cloud-url-input').value = cloudDbUrl;
+    }
+
+    async function saveCloudConfig(e) {
+      e.preventDefault();
+      cloudDbUrl = document.getElementById('cloud-url-input').value.trim();
+      localStorage.setItem(STORAGE_KEY_CLOUD, cloudDbUrl);
+      await saveState();
+      alert('Cloud Database URL updated and synced.');
+    }
+
+    async function forcePushToCloud() {
+      const cleanUrl = cloudDbUrl.trim();
+      if (!cleanUrl) return;
+      try {
+        const endpoint = cleanUrl.endsWith('/') ? `${cleanUrl}storagelocater_state.json` : `${cleanUrl}/storagelocater_state.json`;
+        const helpLogs = JSON.parse(localStorage.getItem(STORAGE_KEY_HELP_LOGS)) || [];
+        const payload = { plants, items, plantSequences, appNotifications, users, emailConfig, permanentQrBaseUrl, helpLogs, updatedAt: Date.now() };
+        const res = await fetch(endpoint, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        if (res.ok) alert('Forced sync upload completed successfully!');
+      } catch (err) {
+        alert('Forced upload failed.');
+      }
+    }
+
+    function renderConsumed() {
+      const container = document.getElementById('consumed-list-container');
+      const consumed = JSON.parse(localStorage.getItem('PLANT_QR_CONSUMED_H_V8')) || [];
+      container.innerHTML = '';
+      if (consumed.length === 0) {
+        container.innerHTML = '<div class="p-8 text-center text-slate-400">No consumed history found.</div>';
+        return;
+      }
+      consumed.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'p-3 flex justify-between items-start text-xs';
+        div.innerHTML = `<div><strong class="font-mono text-[#5A358E]">${item.tag}</strong> — ${item.name} (${item.itemCode}) consumed by <strong>${item.consumedBy}</strong> to <strong>${item.destination}</strong></div><div class="text-slate-400 font-mono">${new Date(item.consumedAt).toLocaleString()}</div>`;
+        container.appendChild(div);
+      });
+    }
+
+    function clearConsumedLogs() {
+      if (!confirm('Clear consumed archive log?')) return;
+      localStorage.setItem('PLANT_QR_CONSUMED_H_V8', JSON.stringify([]));
+      renderConsumed();
+    }
+
+    function exportData() {
+      const helpLogs = JSON.parse(localStorage.getItem(STORAGE_KEY_HELP_LOGS)) || [];
+      const data = { plants, items, plantSequences, users, emailConfig, permanentQrBaseUrl, helpLogs };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'storagelocater_backup.json';
+      a.click();
+    }
+
+    function importData(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (imported.plants && imported.items) {
+            plants = imported.plants;
+            items = imported.items;
+            if (imported.plantSequences) plantSequences = imported.plantSequences;
+            if (imported.users) users = imported.users;
+            if (imported.helpLogs) localStorage.setItem(STORAGE_KEY_HELP_LOGS, JSON.stringify(imported.helpLogs));
+            await saveState();
+            initPage();
+            alert('Backup restored successfully!');
+          }
+        } catch (err) {
+          alert('Invalid JSON backup file.');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    async function saveState() {
+      localStorage.setItem(STORAGE_KEY_PLANTS, JSON.stringify(plants));
+      localStorage.setItem(STORAGE_KEY_ITEMS, JSON.stringify(items));
+      localStorage.setItem(STORAGE_KEY_SEQ, JSON.stringify(plantSequences));
+      localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
+      localStorage.setItem(STORAGE_KEY_EMAIL, JSON.stringify(emailConfig));
+      localStorage.setItem(STORAGE_KEY_QR_BASE, permanentQrBaseUrl);
+      await forcePushToCloudSilent();
+    }
+
+    async function forcePushToCloudSilent() {
+      const cleanUrl = cloudDbUrl.trim();
+      if (!cleanUrl) return;
+      try {
+        const endpoint = cleanUrl.endsWith('/') ? `${cleanUrl}storagelocater_state.json` : `${cleanUrl}/storagelocater_state.json`;
+        const helpLogs = JSON.parse(localStorage.getItem(STORAGE_KEY_HELP_LOGS)) || [];
+        const payload = { plants, items, plantSequences, appNotifications, users, emailConfig, permanentQrBaseUrl, helpLogs, updatedAt: Date.now() };
+        await fetch(endpoint, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      } catch (e) {}
+    }
+
+    initPage();
+  </script>
+</body>
+</html>
