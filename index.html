@@ -44,7 +44,7 @@
     }
     .qr-card-print {
       page-break-inside: avoid;
-      border: 1.5px solid #4F2D7F;
+      border: 1.5px solid #5A358E;
       border-radius: 8px;
       padding: 8px;
       text-align: center;
@@ -69,24 +69,22 @@
       border-radius: 10px;
     }
     ::-webkit-scrollbar-thumb:hover {
-      background: #4F2D7F;
+      background: #5A358E;
     }
   </style>
 </head>
-<body class="bg-[#F3F4F6] text-slate-800 min-h-screen pb-24 overflow-x-hidden">
+<body class="bg-[#FAF9F5] text-slate-800 min-h-screen pb-24 overflow-x-hidden">
 
   <!-- Live Toast Notification Container -->
   <div id="toast-container" class="fixed top-16 right-4 z-50 space-y-2 max-w-sm w-full pointer-events-none no-print"></div>
 
   <!-- Corporate Header themed in Trane Deep Purple & Green Accent -->
-  <header class="bg-[#2E1A4D] text-white border-b-4 border-[#10B981] sticky top-0 z-40 no-print shadow-md">
+  <header class="bg-[#251440] text-white border-b-4 border-[#0D9488] sticky top-0 z-40 no-print shadow-md">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
       
       <!-- Brand & Live Cloud Status -->
       <div class="flex items-center gap-3 min-w-0">
-        <div onclick="resetToOverview()" class="w-10 h-10 rounded-xl bg-[#4F2D7F] hover:bg-[#623a9c] flex items-center justify-center text-lg shadow-inner cursor-pointer shrink-0 transition-transform active:scale-95">
-          🍃
-        </div>
+        <img onclick="resetToOverview()" src="https://brandlogos.net/wp-content/uploads/2026/02/trane_technologies-logo_brandlogos.net_ct15x-1536x432.png" alt="Trane Technologies Logo" class="h-9 md:h-11 w-auto cursor-pointer rounded-lg bg-white p-1.5 hover:opacity-90 transition active:scale-95 shrink-0 shadow-sm border border-slate-200" />
         <div class="min-w-0">
           <div class="flex items-center gap-2">
             <h1 onclick="resetToOverview()" class="text-base sm:text-xl font-extrabold tracking-tight truncate cursor-pointer hover:text-emerald-300 transition-colors">
@@ -104,27 +102,27 @@
       <!-- Header Action Controls -->
       <div class="flex items-center gap-2 shrink-0">
         <!-- Print Queue Quick Button -->
-        <button onclick="printSelectedQRCodes()" id="header-print-btn" class="hidden sm:inline-flex items-center gap-1.5 bg-[#10B981] hover:bg-[#059669] text-white px-3 py-2 rounded-lg text-xs font-bold transition shadow-sm hover:shadow active:scale-95">
+        <button onclick="printSelectedQRCodes()" id="header-print-btn" class="hidden sm:inline-flex items-center gap-1.5 bg-[#0D9488] hover:bg-[#059669] text-white px-3 py-2 rounded-lg text-xs font-bold transition shadow-sm hover:shadow active:scale-95">
           <span>🖨️ Print QR</span>
           <span id="selected-count" class="bg-black/25 px-1.5 py-0.5 rounded text-[11px] font-mono">0</span>
         </button>
 
         <!-- Notification Bell -->
-        <button onclick="openNotificationsModal()" class="relative bg-[#4F2D7F]/60 hover:bg-[#4F2D7F] text-slate-100 border border-purple-500/30 px-3 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 active:scale-95" title="View Check-Out Alerts">
+        <button onclick="openNotificationsModal()" class="relative bg-[#5A358E]/60 hover:bg-[#5A358E] text-slate-100 border border-purple-500/30 px-3 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 active:scale-95" title="View Check-Out Alerts">
           <span>🔔</span>
           <span class="hidden md:inline">Alerts</span>
           <span id="notif-unread-badge" class="hidden bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full">0</span>
         </button>
 
         <!-- Primary Add Button -->
-        <button onclick="openItemModal()" class="bg-[#4F2D7F] hover:bg-[#623a9c] text-white px-3.5 py-2 rounded-lg text-xs font-bold transition-all shadow-md hover:shadow-lg flex items-center gap-1.5 active:scale-95">
+        <button onclick="openItemModal()" class="bg-[#5A358E] hover:bg-[#623a9c] text-white px-3.5 py-2 rounded-lg text-xs font-bold transition-all shadow-md hover:shadow-lg flex items-center gap-1.5 active:scale-95">
           <span>➕</span>
           <span>Add Item</span>
         </button>
 
         <!-- Clean Dropdown Menu -->
         <div class="relative">
-          <button onclick="toggleSettingsMenu(event)" class="bg-[#3D2566] hover:bg-[#4F2D7F] text-slate-100 border border-purple-500/20 px-3 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-1 active:scale-95">
+          <button onclick="toggleSettingsMenu(event)" class="bg-[#3D2566] hover:bg-[#5A358E] text-slate-100 border border-purple-500/20 px-3 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-1 active:scale-95">
             <span>⚙️</span>
             <span class="hidden sm:inline">Menu</span>
             <span class="text-[10px] text-slate-300 ml-0.5">▼</span>
@@ -172,7 +170,7 @@
   </header>
 
   <!-- Floating Bottom QR Print Selection Bar -->
-  <div id="floating-print-bar" class="hidden fixed bottom-4 inset-x-4 max-w-3xl mx-auto bg-[#2E1A4D] text-white rounded-2xl shadow-2xl border border-purple-500/20 px-5 py-3.5 z-40 no-print flex flex-wrap items-center justify-between gap-3 transition-all duration-300">
+  <div id="floating-print-bar" class="hidden fixed bottom-4 inset-x-4 max-w-3xl mx-auto bg-[#251440] text-white rounded-2xl shadow-2xl border border-purple-500/20 px-5 py-3.5 z-40 no-print flex flex-wrap items-center justify-between gap-3 transition-all duration-300">
     <div class="flex items-center gap-3">
       <span class="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 flex items-center justify-center font-mono font-bold text-sm" id="floating-selected-count">0</span>
       <div>
@@ -184,7 +182,7 @@
       <button onclick="clearAllSelectedQRCodes()" class="bg-rose-600/20 hover:bg-rose-600 border border-rose-500/40 text-rose-200 hover:text-white px-3.5 py-2 rounded-xl text-xs font-bold transition">
         ✕ Unselect All QR
       </button>
-      <button onclick="printSelectedQRCodes()" class="bg-[#10B981] hover:bg-[#059669] text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg transition">
+      <button onclick="printSelectedQRCodes()" class="bg-[#0D9488] hover:bg-[#059669] text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg transition">
         🖨️ Print Selected QR Codes
       </button>
     </div>
@@ -193,16 +191,16 @@
   <!-- Dedicated Individual Item QR Scan View -->
   <div id="scanned-banner" class="hidden max-w-5xl mx-auto mt-6 px-4 sm:px-6 no-print">
     <div class="bg-white border border-[#DCDDE1] rounded-2xl p-5 sm:p-6 shadow-xl relative overflow-hidden">
-      <div class="absolute top-0 left-0 w-2 h-full bg-[#4F2D7F]"></div>
+      <div class="absolute top-0 left-0 w-2 h-full bg-[#5A358E]"></div>
       <div class="flex flex-wrap justify-between items-start gap-3 border-b border-slate-100 pb-4 pl-2">
         <div>
           <div class="flex items-center gap-2 flex-wrap">
-            <span class="bg-[#4F2D7F] text-white text-[11px] font-bold px-2.5 py-0.5 rounded-md uppercase tracking-wider">📱 QR Scan View</span>
+            <span class="bg-[#5A358E] text-white text-[11px] font-bold px-2.5 py-0.5 rounded-md uppercase tracking-wider">📱 QR Scan View</span>
             <span id="scan-status-pill" class="text-[11px] font-bold px-2.5 py-0.5 rounded-md uppercase"></span>
           </div>
           <h2 id="scan-title" class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-2"></h2>
           <div class="flex flex-wrap items-center gap-2 mt-1.5">
-            <span id="scan-tag" class="text-xs font-mono bg-purple-50 text-[#4F2D7F] border border-purple-200 px-2.5 py-0.5 rounded font-bold"></span>
+            <span id="scan-tag" class="text-xs font-mono bg-purple-50 text-[#5A358E] border border-purple-200 px-2.5 py-0.5 rounded font-bold"></span>
             <span id="scan-code" class="text-xs font-mono bg-slate-100 px-2.5 py-0.5 rounded border border-slate-200 text-slate-700 font-bold"></span>
             <span id="scan-serial-pill" class="hidden text-xs font-mono bg-indigo-50 text-indigo-700 px-2.5 py-0.5 rounded border border-indigo-200 font-bold"></span>
           </div>
@@ -222,7 +220,7 @@
           <button id="scan-checkout-btn" class="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-lg font-bold text-xs sm:text-sm shadow transition">
             📤 Check Out Unit
           </button>
-          <button id="scan-checkin-btn" class="bg-[#10B981] hover:bg-[#059669] text-white px-4 py-2 rounded-lg font-bold text-xs sm:text-sm shadow transition">
+          <button id="scan-checkin-btn" class="bg-[#0D9488] hover:bg-[#059669] text-white px-4 py-2 rounded-lg font-bold text-xs sm:text-sm shadow transition">
             📥 Check In & Rate Quality
           </button>
         </div>
@@ -283,7 +281,7 @@
             🔍 QR Code
           </button>
         </div>
-        <button id="scan-edit-btn" class="text-xs bg-purple-50 hover:bg-purple-100 text-[#4F2D7F] px-3 py-1.5 rounded-lg font-semibold transition">
+        <button id="scan-edit-btn" class="text-xs bg-purple-50 hover:bg-purple-100 text-[#5A358E] px-3 py-1.5 rounded-lg font-semibold transition">
           ✏️ Edit Unit
         </button>
       </div>
@@ -300,17 +298,17 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <div>
           <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Search Inventory (Name, S/N, Tag)</label>
-          <input type="text" id="search-input" oninput="renderInventory()" placeholder="Name, S/N, tag, category..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#4F2D7F]" />
+          <input type="text" id="search-input" oninput="renderInventory()" placeholder="Name, S/N, tag, category..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
         </div>
         <div>
           <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Plant Location</label>
-          <select id="filter-plant" onchange="renderInventory()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs sm:text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#4F2D7F]">
+          <select id="filter-plant" onchange="renderInventory()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs sm:text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#5A358E]">
             <option value="ALL">All Plants</option>
           </select>
         </div>
         <div>
           <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Item Quality</label>
-          <select id="filter-quality" onchange="renderInventory()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs sm:text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#4F2D7F]">
+          <select id="filter-quality" onchange="renderInventory()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs sm:text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#5A358E]">
             <option value="ALL">All Qualities</option>
             <option value="New">New</option>
             <option value="Good">Good</option>
@@ -321,7 +319,7 @@
         </div>
         <div>
           <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Availability Status</label>
-          <select id="filter-status" onchange="renderInventory()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs sm:text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#4F2D7F]">
+          <select id="filter-status" onchange="renderInventory()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs sm:text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#5A358E]">
             <option value="ALL">All Units</option>
             <option value="IN_STORAGE">Available In Storage</option>
             <option value="CHECKED_OUT">Currently Checked Out</option>
@@ -371,9 +369,9 @@
 
     <!-- DRILL-DOWN DISPLAY: Individual Serialized Units Table -->
     <div id="units-section" class="hidden bg-white rounded-2xl shadow-md border border-[#DCDDE1] overflow-hidden">
-      <div class="bg-[#2E1A4D] text-white px-4 sm:px-5 py-3.5 flex flex-wrap justify-between items-center gap-3">
+      <div class="bg-[#251440] text-white px-4 sm:px-5 py-3.5 flex flex-wrap justify-between items-center gap-3">
         <div class="flex items-center gap-3">
-          <button onclick="resetToOverview()" class="bg-[#4F2D7F] hover:bg-[#623a9c] border border-purple-500/30 text-xs font-semibold px-3 py-1.5 rounded-lg transition">
+          <button onclick="resetToOverview()" class="bg-[#5A358E] hover:bg-[#623a9c] border border-purple-500/30 text-xs font-semibold px-3 py-1.5 rounded-lg transition">
             ← Back
           </button>
           <div>
@@ -382,13 +380,13 @@
           </div>
         </div>
         <div class="flex flex-wrap items-center gap-2">
-          <button id="units-add-more-btn" class="hidden text-xs bg-[#10B981] hover:bg-[#059669] text-white font-bold px-3 py-1.5 rounded-lg shadow-sm transition">
+          <button id="units-add-more-btn" class="hidden text-xs bg-[#0D9488] hover:bg-[#059669] text-white font-bold px-3 py-1.5 rounded-lg shadow-sm transition">
             ➕ Add More Units
           </button>
-          <button onclick="toggleSelectAll(true)" class="text-xs bg-[#4F2D7F] hover:bg-[#623a9c] border border-purple-500/30 text-slate-200 font-medium px-2.5 py-1.5 rounded-lg transition">
+          <button onclick="toggleSelectAll(true)" class="text-xs bg-[#5A358E] hover:bg-[#623a9c] border border-purple-500/30 text-slate-200 font-medium px-2.5 py-1.5 rounded-lg transition">
             Select Visible
           </button>
-          <button onclick="toggleSelectAll(false)" class="text-xs bg-[#4F2D7F] hover:bg-[#623a9c] border border-purple-500/30 text-slate-200 font-medium px-2.5 py-1.5 rounded-lg transition">
+          <button onclick="toggleSelectAll(false)" class="text-xs bg-[#5A358E] hover:bg-[#623a9c] border border-purple-500/30 text-slate-200 font-medium px-2.5 py-1.5 rounded-lg transition">
             Unselect Visible
           </button>
           <button onclick="clearAllSelectedQRCodes()" class="text-xs bg-rose-600/20 hover:bg-rose-600 border border-rose-500/40 text-rose-200 hover:text-white font-semibold px-2.5 py-1.5 rounded-lg transition">
@@ -402,7 +400,7 @@
           <thead>
             <tr class="bg-slate-100/90 text-slate-600 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider">
               <th class="p-3 w-10 text-center">
-                <input type="checkbox" id="master-checkbox" onchange="toggleSelectAll(this.checked)" class="w-4 h-4 accent-[#4F2D7F] cursor-pointer rounded" />
+                <input type="checkbox" id="master-checkbox" onchange="toggleSelectAll(this.checked)" class="w-4 h-4 accent-[#5A358E] cursor-pointer rounded" />
               </th>
               <th class="p-3">Plant Tag & Code</th>
               <th class="p-3">Item, Category & S/N</th>
@@ -439,11 +437,11 @@
       <form onsubmit="saveQrConfig(event)" class="space-y-4">
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Permanent App Base URL (Netlify Link)</label>
-          <input type="url" id="qr-base-url-input" required placeholder="https://storagelocater.netlify.app" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-[#4F2D7F]" />
+          <input type="url" id="qr-base-url-input" required placeholder="https://storagelocater.netlify.app" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-[#5A358E]" />
         </div>
         <div class="flex justify-end space-x-2 pt-3 border-t">
           <button type="button" onclick="closeQrConfigModal()" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium">Cancel</button>
-          <button type="submit" class="px-4 py-2 rounded-lg bg-[#4F2D7F] hover:bg-[#3D2566] text-white text-sm font-semibold">Save Permanent Domain</button>
+          <button type="submit" class="px-4 py-2 rounded-lg bg-[#5A358E] hover:bg-[#3D2566] text-white text-sm font-semibold">Save Permanent Domain</button>
         </div>
       </form>
     </div>
@@ -456,29 +454,29 @@
         <h3 class="text-base font-bold text-slate-900">📤 Check Out Unit & Send Alert</h3>
         <button onclick="closeCheckOutModal()" class="text-slate-400 hover:text-slate-755 text-2xl leading-none">&times;</button>
       </div>
-      <p id="checkout-modal-subtitle" class="text-xs font-mono font-bold text-[#4F2D7F] mb-4 bg-purple-50 p-2.5 rounded-lg border border-purple-200"></p>
+      <p id="checkout-modal-subtitle" class="text-xs font-mono font-bold text-[#5A358E] mb-4 bg-purple-50 p-2.5 rounded-lg border border-purple-200"></p>
       <form onsubmit="confirmCheckOut(event)" class="space-y-3.5">
         <input type="hidden" id="checkout-item-id" />
         <input type="hidden" id="checkout-user" />
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">User ID *</label>
           <div class="relative">
-            <input type="text" id="checkout-user-id" required placeholder="e.g. u123456" oninput="validateCheckoutUser()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4F2D7F]" />
+            <input type="text" id="checkout-user-id" required placeholder="e.g. u123456" oninput="validateCheckoutUser()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
             <span id="checkout-user-validation-icon" class="absolute right-3 top-2 text-lg"></span>
           </div>
           <p id="checkout-user-validation-msg" class="text-[11px] mt-1 font-semibold text-rose-600"></p>
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Your Email Address *</label>
-          <input type="email" id="checkout-email" required placeholder="e.g. john.smith@company.com" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4F2D7F]" />
+          <input type="email" id="checkout-email" required placeholder="e.g. john.smith@company.com" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Destination Location *</label>
-          <input type="text" id="checkout-destination" required placeholder="e.g. Assembly Line 3, Press Bay 2" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4F2D7F]" />
+          <input type="text" id="checkout-destination" required placeholder="e.g. Assembly Line 3, Press Bay 2" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Additional Notes</label>
-          <textarea id="checkout-note" rows="2" placeholder="Work order #, reason for checkout..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4F2D7F]"></textarea>
+          <textarea id="checkout-note" rows="2" placeholder="Work order #, reason for checkout..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]"></textarea>
         </div>
         <div class="bg-amber-50 border border-amber-200 rounded-lg p-2.5 flex items-center gap-2 text-xs text-amber-900">
           <input type="checkbox" id="checkout-send-email-toggle" checked class="w-4 h-4 accent-amber-600 cursor-pointer" />
@@ -504,7 +502,7 @@
         <input type="hidden" id="checkin-item-id" />
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Checked In By (Name) *</label>
-          <input type="text" id="checkin-user" required placeholder="e.g. John Smith" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4F2D7F]" />
+          <input type="text" id="checkin-user" required placeholder="e.g. John Smith" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Unit Quality Upon Return *</label>
@@ -518,7 +516,7 @@
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Return Notes / Condition Details</label>
-          <textarea id="checkin-note" rows="2" placeholder="Any wear, damage, or restocking notes..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4F2D7F]"></textarea>
+          <textarea id="checkin-note" rows="2" placeholder="Any wear, damage, or restocking notes..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]"></textarea>
         </div>
         <div class="flex justify-end space-x-2 pt-3 border-t">
           <button type="button" onclick="closeCheckInModal()" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium">Cancel</button>
@@ -536,7 +534,7 @@
           <span class="text-xl">🔔</span>
           <div>
             <h2 class="text-base font-bold text-slate-900">Live App Check-Out Notifications</h2>
-            <p class="text-xs text-slate-500">Synced across all connected devices in real time</p>
+            <p class="text-xs text-slate-505">Synced across all connected devices in real time</p>
           </div>
         </div>
         <button onclick="closeNotificationsModal()" class="text-slate-400 hover:text-slate-755 text-2xl leading-none">&times;</button>
@@ -564,33 +562,33 @@
       </div>
       <div class="text-xs text-slate-600 space-y-1.5 mb-4 bg-slate-50 p-3 rounded-xl border">
         <p><strong>1. Default Mode (Zero Setup):</strong> Opens a pre-filled email receipt addressed to the person checking out the unit.</p>
-        <p><strong>2. Silent Automatic Mode (EmailJS):</strong> Enter free <a href="https://www.emailjs.com/" target="_blank" class="text-[#4F2D7F] underline font-semibold">EmailJS</a> keys below to send emails silently in the background.</p>
+        <p><strong>2. Silent Automatic Mode (EmailJS):</strong> Enter free <a href="https://www.emailjs.com/" target="_blank" class="text-[#5A358E] underline font-semibold">EmailJS</a> keys below to send emails silently in the background.</p>
       </div>
       <form onsubmit="saveEmailConfig(event)" class="space-y-3">
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Email Delivery Mode</label>
-          <select id="email-mode-select" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold focus:ring-2 focus:ring-[#4F2D7F]">
+          <select id="email-mode-select" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold focus:ring-2 focus:ring-[#5A358E]">
             <option value="MAILTO">Instant Email Client / Receipt (No Keys Needed)</option>
             <option value="EMAILJS">Silent Automatic Background Email (EmailJS)</option>
           </select>
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">EmailJS Public Key</label>
-          <input type="text" id="emailjs-public-key" placeholder="e.g. user_xxxxxx" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-[#4F2D7F]" />
+          <input type="text" id="emailjs-public-key" placeholder="e.g. user_xxxxxx" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-[#5A358E]" />
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-bold text-slate-600 uppercase mb-1">EmailJS Service ID</label>
-            <input type="text" id="emailjs-service-id" placeholder="e.g. service_xxx" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-[#4F2D7F]" />
+            <input type="text" id="emailjs-service-id" placeholder="e.g. service_xxx" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-[#5A358E]" />
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-600 uppercase mb-1">EmailJS Template ID</label>
-            <input type="text" id="emailjs-template-id" placeholder="e.g. template_xxx" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-[#4F2D7F]" />
+            <input type="text" id="emailjs-template-id" placeholder="e.g. template_xxx" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-[#5A358E]" />
           </div>
         </div>
         <div class="flex justify-end space-x-2 pt-3 border-t">
           <button type="button" onclick="closeEmailConfigModal()" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium">Cancel</button>
-          <button type="submit" class="px-4 py-2 rounded-lg bg-[#4F2D7F] hover:bg-[#3D2566] text-white text-sm font-semibold">Save Settings</button>
+          <button type="submit" class="px-4 py-2 rounded-lg bg-[#5A358E] hover:bg-[#3D2566] text-white text-sm font-semibold">Save Settings</button>
         </div>
       </form>
     </div>
@@ -609,15 +607,15 @@
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
             <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Plant *</label>
-            <select id="item-plant" required onchange="updatePreviewTag()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-[#4F2D7F]"></select>
+            <select id="item-plant" required onchange="updatePreviewTag()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-[#5A358E]"></select>
           </div>
           <div id="batch-count-wrapper">
-            <label class="block text-xs font-bold text-[#4F2D7F] uppercase mb-1">Units to Add *</label>
+            <label class="block text-xs font-bold text-[#5A358E] uppercase mb-1">Units to Add *</label>
             <input type="number" id="item-batch-count" required min="1" max="500" value="1" oninput="updatePreviewTag()" class="w-full border-2 border-purple-500 bg-purple-50/40 rounded-lg px-3 py-1.5 text-sm font-bold text-slate-900 focus:outline-none" />
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Base Code (Optional)</label>
-            <input type="text" id="item-code" oninput="updatePreviewTag()" placeholder="Auto-generated if blank" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono uppercase focus:ring-2 focus:ring-[#4F2D7F]" />
+            <input type="text" id="item-code" oninput="updatePreviewTag()" placeholder="Auto-generated if blank" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono uppercase focus:ring-2 focus:ring-[#5A358E]" />
           </div>
         </div>
 
@@ -626,7 +624,7 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
             <div>
               <span class="font-bold text-slate-400 uppercase block text-[10px]">Assigned Plant Tag(s):</span>
-              <span id="item-tag-preview" class="font-mono font-bold text-[#4F2D7F] text-xs sm:text-sm"></span>
+              <span id="item-tag-preview" class="font-mono font-bold text-[#5A358E] text-xs sm:text-sm"></span>
             </div>
             <div>
               <span class="font-bold text-slate-400 uppercase block text-[10px]">Assigned 4-Digit Item Code(s):</span>
@@ -638,15 +636,15 @@
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
             <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Item Name *</label>
-            <input type="text" id="item-name" required oninput="updatePreviewTag()" placeholder="e.g. Hydraulic Pump" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#4F2D7F]" />
+            <input type="text" id="item-name" required oninput="updatePreviewTag()" placeholder="e.g. Hydraulic Pump" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#5A358E]" />
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Category *</label>
-            <input type="text" id="item-category" required oninput="updatePreviewTag()" placeholder="e.g. Mechanical" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#4F2D7F]" />
+            <input type="text" id="item-category" required oninput="updatePreviewTag()" placeholder="e.g. Mechanical" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#5A358E]" />
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Initial Quality *</label>
-            <select id="item-quality" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold bg-white focus:ring-2 focus:ring-[#4F2D7F]">
+            <select id="item-quality" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold bg-white focus:ring-2 focus:ring-[#5A358E]">
               <option value="New">New</option>
               <option value="Good" selected>Good</option>
               <option value="Used">Used</option>
@@ -660,28 +658,28 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Serial Number (S/N) (Optional)</label>
-            <input type="text" id="item-serial" placeholder="e.g. SN-849204A" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-[#4F2D7F]" />
+            <input type="text" id="item-serial" placeholder="e.g. SN-849204A" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-[#5A358E]" />
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Home Storage Location *</label>
-            <input type="text" id="item-location" required placeholder="e.g. Aisle 4, Rack B, Bin 12" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#4F2D7F]" />
+            <input type="text" id="item-location" required placeholder="e.g. Aisle 4, Rack B, Bin 12" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#5A358E]" />
           </div>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Details & Notes</label>
-            <textarea id="item-notes" rows="2" placeholder="Specs, vendor info, notes..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#4F2D7F]"></textarea>
+            <textarea id="item-notes" rows="2" placeholder="Specs, vendor info, notes..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#5A358E]"></textarea>
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Work Instructions</label>
-            <textarea id="item-instructions" rows="2" placeholder="Safety PPE, torque, handling..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#4F2D7F]"></textarea>
+            <textarea id="item-instructions" rows="2" placeholder="Safety PPE, torque, handling..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#5A358E]"></textarea>
           </div>
         </div>
 
         <div class="flex justify-end space-x-2 pt-3 border-t">
           <button type="button" onclick="closeItemModal()" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium">Cancel</button>
-          <button type="submit" id="item-save-btn" class="px-5 py-2 rounded-lg bg-[#4F2D7F] hover:bg-[#3D2566] text-white text-sm font-semibold shadow-sm">Save & Generate QR</button>
+          <button type="submit" id="item-save-btn" class="px-5 py-2 rounded-lg bg-[#5A358E] hover:bg-[#3D2566] text-white text-sm font-semibold shadow-sm">Save & Generate QR</button>
         </div>
       </form>
     </div>
@@ -692,7 +690,7 @@
     <div class="bg-white rounded-2xl max-w-4xl w-full p-6 shadow-2xl max-h-[90vh] flex flex-col">
       <div class="flex justify-between items-start border-b pb-3 mb-4">
         <div>
-          <span id="history-tag" class="font-mono text-xs font-bold bg-purple-100 text-[#4F2D7F] px-2 py-0.5 rounded"></span>
+          <span id="history-tag" class="font-mono text-xs font-bold bg-purple-100 text-[#5A358E] px-2 py-0.5 rounded"></span>
           <h3 id="history-title" class="text-base font-bold text-slate-900 mt-1">Unit Check-Out & Check-In History</h3>
         </div>
         <button onclick="closeHistoryModal()" class="text-slate-400 hover:text-slate-755 text-2xl leading-none">&times;</button>
@@ -722,7 +720,7 @@
       <div class="flex justify-between items-start border-b pb-3 mb-4">
         <div>
           <div class="flex items-center gap-2">
-            <span id="detail-tag" class="font-mono text-xs font-bold bg-purple-100 text-[#4F2D7F] px-2 py-0.5 rounded"></span>
+            <span id="detail-tag" class="font-mono text-xs font-bold bg-purple-100 text-[#5A358E] px-2 py-0.5 rounded"></span>
             <span id="detail-code" class="font-mono text-xs font-semibold bg-slate-100 text-slate-700 px-2 py-0.5 rounded border"></span>
           </div>
           <h3 id="detail-name" class="text-lg font-bold text-slate-900 mt-1.5"></h3>
@@ -731,8 +729,8 @@
       </div>
       <div class="flex flex-col sm:flex-row gap-5 items-center">
         <div class="flex flex-col items-center">
-          <div id="single-qr-container" class="p-3 border-2 border-[#4F2D7F] rounded-xl bg-white"></div>
-          <a id="detail-qr-link" href="#" target="_blank" class="text-[11px] text-[#4F2D7F] hover:underline mt-2 font-medium">🔗 Open Unit Check-Out Page</a>
+          <div id="single-qr-container" class="p-3 border-2 border-[#5A358E] rounded-xl bg-white"></div>
+          <a id="detail-qr-link" href="#" target="_blank" class="text-[11px] text-[#5A358E] hover:underline mt-2 font-medium">🔗 Open Unit Check-Out Page</a>
         </div>
         <div class="space-y-1.5 text-xs sm:text-sm flex-1">
           <p><strong>Plant:</strong> <span id="detail-plant"></span></p>
@@ -754,7 +752,7 @@
         </div>
       </div>
       <div class="flex justify-between gap-2 mt-4 pt-3 border-t">
-        <button id="detail-open-scan-btn" class="px-4 py-2 rounded-lg bg-[#4F2D7F] hover:bg-[#3D2566] text-white text-xs font-bold">📱 Open Dedicated Unit Page</button>
+        <button id="detail-open-scan-btn" class="px-4 py-2 rounded-lg bg-[#5A358E] hover:bg-[#3D2566] text-white text-xs font-bold">📱 Open Dedicated Unit Page</button>
         <button onclick="closeDetailModal()" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium">Close</button>
       </div>
     </div>
@@ -772,28 +770,28 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <!-- Add User Form -->
         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-          <h3 class="text-xs font-bold text-[#4F2D7F] uppercase mb-2">➕ Add Single User</h3>
+          <h3 class="text-xs font-bold text-[#5A358E] uppercase mb-2">➕ Add Single User</h3>
           <form onsubmit="addUser(event)" class="space-y-2">
             <div>
               <label class="block text-[10px] font-bold text-slate-500 uppercase">User ID *</label>
-              <input type="text" id="user-username" required placeholder="e.g. u123456" class="w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-[#4F2D7F]" />
+              <input type="text" id="user-username" required placeholder="e.g. u123456" class="w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-[#5A358E]" />
             </div>
             <div>
-              <label class="block text-[10px] font-bold text-slate-500 uppercase">User's Name *</label>
-              <input type="text" id="user-name" required placeholder="e.g. Jane Doe" class="w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-[#4F2D7F]" />
+              <label class="block text-[10px] font-bold text-slate-505 uppercase">User's Name *</label>
+              <input type="text" id="user-name" required placeholder="e.g. Jane Doe" class="w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-[#5A358E]" />
             </div>
             <div>
-              <label class="block text-[10px] font-bold text-slate-500 uppercase">Email Address *</label>
-              <input type="email" id="user-email" required placeholder="e.g. jane.doe@tranetechnologies.com" class="w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-[#4F2D7F]" />
+              <label class="block text-[10px] font-bold text-slate-505 uppercase">Email Address *</label>
+              <input type="email" id="user-email" required placeholder="e.g. jane.doe@tranetechnologies.com" class="w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-[#5A358E]" />
             </div>
-            <button type="submit" class="w-full bg-[#4F2D7F] hover:bg-[#3D2566] text-white py-1.5 rounded-lg text-xs font-semibold">Add User</button>
+            <button type="submit" class="w-full bg-[#5A358E] hover:bg-[#3D2566] text-white py-1.5 rounded-lg text-xs font-semibold">Add User</button>
           </form>
         </div>
 
         <!-- Import Excel/CSV Form -->
         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col justify-between">
           <div>
-            <h3 class="text-xs font-bold text-[#10B981] uppercase mb-2">📥 Bulk Import Users (.xlsx, .csv)</h3>
+            <h3 class="text-xs font-bold text-[#0D9488] uppercase mb-2">📥 Bulk Import Users (.xlsx, .csv)</h3>
             <p class="text-[11px] text-slate-500 mb-2">Select an Excel (.xlsx, .xls) or CSV file matching the format of Book (1).xlsx (Columns: <code>Username</code>, <code>User's name</code>, and <code>Email</code>).</p>
           </div>
           <div>
@@ -809,7 +807,7 @@
       <div class="flex-1 flex flex-col min-h-0">
         <div class="flex justify-between items-center mb-2">
           <h3 class="text-xs font-bold uppercase text-purple-800">Current Users (<span id="userbase-count">0</span>)</h3>
-          <input type="text" id="userbase-search" oninput="renderUserList()" placeholder="Search users..." class="border border-slate-300 rounded-lg px-2 py-1 text-xs focus:ring-1 focus:ring-[#4F2D7F] w-48" />
+          <input type="text" id="userbase-search" oninput="renderUserList()" placeholder="Search users..." class="border border-slate-300 rounded-lg px-2 py-1 text-xs focus:ring-1 focus:ring-[#5A358E] w-48" />
         </div>
         <div class="overflow-y-auto border rounded-xl flex-1 max-h-56 divide-y divide-slate-100 bg-white" id="userbase-list-container">
           <!-- Populated by JS -->
@@ -831,9 +829,9 @@
       </div>
       <form onsubmit="savePlant(event)" class="flex gap-2 mb-4">
         <input type="hidden" id="edit-plant-old-code" />
-        <input type="text" id="plant-code" required maxlength="3" minlength="3" placeholder="KEN" class="w-24 border border-slate-300 rounded-lg px-3 py-2 text-sm uppercase font-mono focus:ring-2 focus:ring-[#4F2D7F]" />
-        <input type="text" id="plant-name" required placeholder="Plant Name (e.g. Kentwood Plant)" class="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#4F2D7F]" />
-        <button type="submit" id="plant-submit-btn" class="bg-[#4F2D7F] hover:bg-[#3D2566] text-white px-4 py-2 rounded-lg text-sm font-semibold">Add</button>
+        <input type="text" id="plant-code" required maxlength="3" minlength="3" placeholder="KEN" class="w-24 border border-slate-300 rounded-lg px-3 py-2 text-sm uppercase font-mono focus:ring-2 focus:ring-[#5A358E]" />
+        <input type="text" id="plant-name" required placeholder="Plant Name (e.g. Kentwood Plant)" class="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#5A358E]" />
+        <button type="submit" id="plant-submit-btn" class="bg-[#5A358E] hover:bg-[#3D2566] text-white px-4 py-2 rounded-lg text-sm font-semibold">Add</button>
       </form>
       <div class="max-h-64 overflow-y-auto divide-y divide-slate-200 border rounded-xl" id="plant-list"></div>
       <div class="flex justify-end pt-4 mt-4 border-t">
@@ -852,7 +850,7 @@
       <form onsubmit="saveCloudConfig(event)" class="space-y-4">
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Active Firebase Database URL</label>
-          <input type="url" id="cloud-url-input" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono bg-slate-50 focus:ring-2 focus:ring-[#4F2D7F]" />
+          <input type="url" id="cloud-url-input" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono bg-slate-50 focus:ring-2 focus:ring-[#5A358E]" />
         </div>
         <div class="flex justify-between items-center pt-3 border-t">
           <button type="button" onclick="pushToCloud(true)" class="text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 px-3 py-2 rounded-lg font-semibold">
@@ -860,7 +858,7 @@
           </button>
           <div class="space-x-2">
             <button type="button" onclick="closeCloudModal()" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium">Close</button>
-            <button type="submit" class="px-4 py-2 rounded-lg bg-[#4F2D7F] hover:bg-[#3D2566] text-white text-sm font-semibold">Save & Sync</button>
+            <button type="submit" class="px-4 py-2 rounded-lg bg-[#5A358E] hover:bg-[#3D2566] text-white text-sm font-semibold">Save & Sync</button>
           </div>
         </div>
       </form>
@@ -1010,7 +1008,7 @@
       if (!container) return;
 
       const isOut = notif.type === 'CHECK_OUT';
-      const borderClass = isOut ? 'border-amber-500 bg-[#2E1A4D]' : 'border-emerald-500 bg-[#2E1A4D]';
+      const borderClass = isOut ? 'border-amber-500 bg-[#251440]' : 'border-emerald-500 bg-[#251440]';
       const icon = isOut ? '📤' : '📥';
 
       const toast = document.createElement('div');
@@ -1111,7 +1109,7 @@
             ${n.userEmail ? `<p class="text-[11px] font-mono text-purple-750">📧 To: <strong>${escapeHtml(n.userEmail)}</strong></p>` : ''}
           </div>
           <div class="flex items-center gap-1.5">
-            ${n.mailtoLink ? `<a href="${n.mailtoLink}" class="bg-[#4F2D7F] hover:bg-[#3D2566] text-white px-2.5 py-1.5 rounded-lg font-bold text-[11px]">✉️ Resend</a>` : ''}
+            ${n.mailtoLink ? `<a href="${n.mailtoLink}" class="bg-[#5A358E] hover:bg-[#3D2566] text-white px-2.5 py-1.5 rounded-lg font-bold text-[11px]">✉️ Resend</a>` : ''}
             ${n.itemTag ? `<button onclick="closeNotificationsModal(); refreshScannedBanner('${escapeJsStr(n.itemTag)}', true)" class="bg-slate-800 hover:bg-slate-700 text-white px-2.5 py-1.5 rounded-lg font-bold text-[11px]">View Unit</button>` : ''}
           </div>
         `;
@@ -1192,7 +1190,7 @@
       const q = quality || 'Good';
       const styles = {
         'New': 'bg-emerald-50 text-emerald-700 border-emerald-200',
-        'Good': 'bg-purple-50 text-[#4F2D7F] border-purple-200',
+        'Good': 'bg-purple-50 text-[#5A358E] border-purple-200',
         'Used': 'bg-slate-100 text-slate-700 border-slate-300',
         'Needs Repair': 'bg-amber-50 text-amber-800 border-amber-300',
         'Broken': 'bg-rose-50 text-rose-700 border-rose-300'
@@ -1270,7 +1268,7 @@
         div.className = 'p-2.5 flex justify-between items-center text-xs hover:bg-slate-50';
         div.innerHTML = `
           <div>
-            <span class="font-mono font-bold bg-slate-100 border px-2 py-0.5 rounded text-[#4F2D7F]">${escapeHtml(u.username)}</span>
+            <span class="font-mono font-bold bg-slate-100 border px-2 py-0.5 rounded text-[#5A358E]">${escapeHtml(u.username)}</span>
             <span class="font-semibold text-slate-800 ml-2">${escapeHtml(u.name)}</span>
             ${u.email ? `<span class="text-slate-400 font-mono text-[11px] ml-2">(${escapeHtml(u.email)})</span>` : ''}
           </div>
@@ -1685,16 +1683,16 @@
         promptDesc.textContent = 'Tap "Check In & Rate Quality" to return it to storage and update its condition.';
 
         checkoutBtn.className = 'hidden';
-        checkinBtn.className = 'bg-[#10B981] hover:bg-[#059669] text-white px-4 py-2 rounded-lg font-bold text-xs sm:text-sm shadow transition';
+        checkinBtn.className = 'bg-[#0D9488] hover:bg-[#059669] text-white px-4 py-2 rounded-lg font-bold text-xs sm:text-sm shadow transition';
       } else {
-        scanQtyEl.className = 'text-xs sm:text-sm font-bold text-[#10B981] mt-0.5';
+        scanQtyEl.className = 'text-xs sm:text-sm font-bold text-[#0D9488] mt-0.5';
         scanQtyEl.textContent = 'Available in Storage';
 
         statusPill.className = 'text-[11px] font-bold px-2.5 py-0.5 rounded-md uppercase bg-emerald-100 text-emerald-800 border border-emerald-300';
         statusPill.textContent = '✅ Ready for Check-Out';
 
         smartPrompt.className = 'mt-4 p-4 rounded-xl border border-purple-400 bg-purple-50/70 flex flex-wrap items-center justify-between gap-4';
-        promptTitle.className = 'font-bold text-sm sm:text-base text-purple-950';
+        promptTitle.className = 'font-bold text-sm sm:text-base text-purple-955';
         promptTitle.textContent = 'Checking out this unit?';
         promptDesc.className = 'text-xs text-purple-855 mt-0.5';
         promptDesc.textContent = 'Tap "Check Out Unit" to enter your name, email, and destination location.';
@@ -1986,7 +1984,7 @@
               ${rec.userEmail ? `<span class="text-purple-700 font-mono ml-1">(${escapeHtml(rec.userEmail)})</span>` : ''}
               <span class="mx-1.5 text-slate-300">•</span>
               <span class="font-semibold text-purple-800">📍 ${escapeHtml(rec.destination)}</span>
-              <div class="text-slate-500 mt-0.5">Checked Out: ${new Date(rec.checkedOutAt).toLocaleString()} ${rec.notes ? `| Note: ${escapeHtml(rec.notes)}` : ''}</div>
+              <div class="text-slate-505 mt-0.5">Checked Out: ${new Date(rec.checkedOutAt).toLocaleString()} ${rec.notes ? `| Note: ${escapeHtml(rec.notes)}` : ''}</div>
             </div>
             <div class="flex items-center gap-3">
               <span class="font-mono font-bold text-amber-800 bg-amber-200/70 px-2.5 py-1 rounded-lg" data-live-timer="${rec.checkedOutAt}">
@@ -2159,22 +2157,22 @@
       const btnOverview = document.getElementById('btn-view-overview');
       const btnAllUnits = document.getElementById('btn-view-all-units');
       if (viewMode === 'OVERVIEW') {
-        btnOverview.className = 'text-xs px-3 py-1.5 rounded-md font-bold bg-white text-[#4F2D7F] shadow-sm border border-purple-100';
-        btnAllUnits.className = 'text-xs px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-[#4F2D7F]';
+        btnOverview.className = 'text-xs px-3 py-1.5 rounded-md font-bold bg-white text-[#5A358E] shadow-sm border border-purple-100';
+        btnAllUnits.className = 'text-xs px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-[#5A358E]';
       } else {
-        btnOverview.className = 'text-xs px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-[#4F2D7F]';
-        btnAllUnits.className = 'text-xs px-3 py-1.5 rounded-md font-bold bg-white text-[#4F2D7F] shadow-sm border border-purple-100';
+        btnOverview.className = 'text-xs px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-[#5A358E]';
+        btnAllUnits.className = 'text-xs px-3 py-1.5 rounded-md font-bold bg-white text-[#5A358E] shadow-sm border border-purple-100';
       }
 
       const breadcrumbBar = document.getElementById('breadcrumb-bar');
-      let crumbsHtml = `<button onclick="resetToOverview()" class="text-xs font-bold text-[#4F2D7F] hover:underline flex items-center gap-1">🏠 Overview</button>`;
+      let crumbsHtml = `<button onclick="resetToOverview()" class="text-xs font-bold text-[#5A358E] hover:underline flex items-center gap-1">🏠 Overview</button>`;
       if (selectedCategory) {
         crumbsHtml += `<span class="text-slate-300 text-xs">/</span>`;
         crumbsHtml += `<button onclick="selectCategoryView('${escapeJsStr(selectedCategory)}')" class="text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded-md">${escapeHtml(selectedCategory)}</button>`;
       }
       if (selectedProductName) {
         crumbsHtml += `<span class="text-slate-300 text-xs">/</span>`;
-        crumbsHtml += `<span class="text-xs font-bold text-[#4F2D7F] bg-purple-50 border border-purple-200 px-2 py-0.5 rounded-md">${escapeHtml(selectedProductName)}</span>`;
+        crumbsHtml += `<span class="text-xs font-bold text-[#5A358E] bg-purple-50 border border-purple-200 px-2 py-0.5 rounded-md">${escapeHtml(selectedProductName)}</span>`;
       }
       breadcrumbBar.innerHTML = crumbsHtml;
 
@@ -2198,20 +2196,20 @@
 
       const totalAvailableAll = baseFiltered.filter(i => !i.activeCheckouts || i.activeCheckouts.length === 0).length;
       const allActiveClass = (!selectedCategory && viewMode === 'OVERVIEW')
-        ? 'bg-[#4F2D7F] text-white border-[#4F2D7F]'
+        ? 'bg-[#5A358E] text-white border-[#5A358E]'
         : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200';
 
       pillsContainer.innerHTML += `
         <button onclick="resetToOverview()" class="px-3 py-1.5 rounded-lg border text-xs font-semibold transition flex items-center gap-1.5 ${allActiveClass}">
           <span>All Categories</span>
-          <span class="px-1.5 py-0.2 rounded bg-[#10B981] text-white text-[10px] font-bold">${totalAvailableAll}/${baseFiltered.length}</span>
+          <span class="px-1.5 py-0.2 rounded bg-[#0D9488] text-white text-[10px] font-bold">${totalAvailableAll}/${baseFiltered.length}</span>
         </button>
       `;
 
       Array.from(categoryMap.entries()).sort((a, b) => a[0].localeCompare(b[0])).forEach(([catName, stat]) => {
         const isSelected = selectedCategory === catName;
         const btnClass = isSelected
-          ? 'bg-[#4F2D7F] text-white border-[#4F2D7F] shadow-sm'
+          ? 'bg-[#5A358E] text-white border-[#5A358E] shadow-sm'
           : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200';
         const badgeClass = isSelected
           ? 'bg-white/20 text-white'
@@ -2305,17 +2303,17 @@
              </button>`;
 
         const card = document.createElement('div');
-        card.className = 'bg-white rounded-2xl shadow-sm hover:shadow-lg border-l-4 border-[#4F2D7F] border-y border-r border-[#DCDDE1] p-5 flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5';
+        card.className = 'bg-white rounded-2xl shadow-sm hover:shadow-lg border-l-4 border-[#5A358E] border-y border-r border-[#DCDDE1] p-5 flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5';
         card.innerHTML = `
           <div>
             <div class="flex justify-between items-center gap-2">
-              <button onclick="selectCategoryView('${escapeJsStr(grp.category)}')" class="text-[11px] font-bold bg-purple-50 hover:bg-purple-100 text-[#4F2D7F] px-2.5 py-0.5 rounded-md transition truncate">
+              <button onclick="selectCategoryView('${escapeJsStr(grp.category)}')" class="text-[11px] font-bold bg-purple-50 hover:bg-purple-100 text-[#5A358E] px-2.5 py-0.5 rounded-md transition truncate">
                 📂 ${escapeHtml(grp.category)}
               </button>
               <span class="text-[11px] font-mono font-bold text-slate-400 shrink-0">🏢 ${Array.from(grp.plants).join(', ')}</span>
             </div>
 
-            <h3 onclick="selectProductTypeView('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}')" class="text-base font-bold text-slate-900 mt-2.5 hover:text-[#4F2D7F] cursor-pointer truncate">
+            <h3 onclick="selectProductTypeView('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}')" class="text-base font-bold text-slate-900 mt-2.5 hover:text-[#5A358E] cursor-pointer truncate">
               ${escapeHtml(grp.name)}
             </h3>
             <div class="flex items-center justify-between text-[11px] text-slate-400 mt-1 gap-2">
@@ -2325,7 +2323,7 @@
 
             <div class="grid grid-cols-3 gap-2 mt-4 p-2.5 rounded-xl bg-[#FDFDFD] border border-slate-100 shadow-inner">
               <div class="text-center">
-                <div class="text-xl font-extrabold ${grp.available > 0 ? 'text-[#10B981]' : 'text-rose-600'}">${grp.available}</div>
+                <div class="text-xl font-extrabold ${grp.available > 0 ? 'text-[#0D9488]' : 'text-rose-600'}">${grp.available}</div>
                 <div class="text-[10px] font-bold uppercase text-slate-400">Available</div>
               </div>
               <div class="text-center border-x border-slate-200">
@@ -2340,10 +2338,10 @@
           </div>
 
           <div class="mt-4 pt-3 border-t border-slate-100 flex items-center gap-2">
-            <button onclick="selectProductTypeView('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}')" class="flex-1 bg-[#4F2D7F] hover:bg-[#3D2566] text-white text-xs font-bold py-2 px-3 rounded-lg transition truncate shadow-sm">
+            <button onclick="selectProductTypeView('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}')" class="flex-1 bg-[#5A358E] hover:bg-[#3D2566] text-white text-xs font-bold py-2 px-3 rounded-lg transition truncate shadow-sm">
               View ${grp.total} Unit(s)
             </button>
-            <button onclick="openAddMoreForProductType('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}')" class="bg-purple-50 hover:bg-purple-100 text-[#4F2D7F] border border-purple-200 text-xs font-bold py-2 px-2.5 rounded-lg transition shrink-0" title="Add units">
+            <button onclick="openAddMoreForProductType('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}')" class="bg-purple-50 hover:bg-purple-100 text-[#5A358E] border border-purple-200 text-xs font-bold py-2 px-2.5 rounded-lg transition shrink-0" title="Add units">
               + Add
             </button>
             ${printToggleBtn}
@@ -2432,17 +2430,17 @@
         ).join('');
 
         const primaryActionBtn = isCheckedOut
-          ? `<button onclick="openCheckInModal('${item.id}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-md text-xs font-bold transition">📥 In</button>`
+          ? `<button onclick="openCheckInModal('${item.id}')" class="bg-emerald-650 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-md text-xs font-bold transition">📥 In</button>`
           : `<button onclick="openCheckOutModal('${item.id}')" class="bg-amber-600 hover:bg-amber-500 text-white px-2.5 py-1 rounded-md text-xs font-bold transition">📤 Out</button>`;
 
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-purple-50/30 transition-colors border-b border-slate-100';
         tr.innerHTML = `
           <td class="p-3 text-center">
-            <input type="checkbox" ${isChecked} onchange="toggleItemSelect('${item.id}', this.checked)" class="w-4 h-4 accent-[#4F2D7F] cursor-pointer rounded" />
+            <input type="checkbox" ${isChecked} onchange="toggleItemSelect('${item.id}', this.checked)" class="w-4 h-4 accent-[#5A358E] cursor-pointer rounded" />
           </td>
           <td class="p-3">
-            <button onclick="openScanViewForItem('${item.id}')" class="font-mono font-bold text-[#4F2D7F] hover:underline text-xs sm:text-sm">
+            <button onclick="openScanViewForItem('${item.id}')" class="font-mono font-bold text-[#5A358E] hover:underline text-xs sm:text-sm">
               ${escapeHtml(item.tag)}
             </button>
             <div class="text-[11px] font-mono text-slate-500">${escapeHtml(item.itemCode)}</div>
@@ -2450,7 +2448,7 @@
           <td class="p-3">
             <div class="font-semibold text-slate-900 text-xs sm:text-sm">${escapeHtml(item.name)}</div>
             <div class="flex items-center gap-1.5 flex-wrap mt-0.5">
-              <button onclick="selectCategoryView('${escapeJsStr(item.category)}')" class="text-[11px] text-[#4F2D7F] hover:underline">
+              <button onclick="selectCategoryView('${escapeJsStr(item.category)}')" class="text-[11px] text-[#5A358E] hover:underline">
                 ${escapeHtml(item.category)}
               </button>
               ${item.serialNumber ? `<span class="text-[10px] font-mono text-purple-800 bg-purple-50 border border-purple-200 px-1.5 py-0.2 rounded font-semibold">S/N: ${escapeHtml(item.serialNumber)}</span>` : ''}
@@ -2733,12 +2731,12 @@
         div.className = 'p-3 flex justify-between items-center text-sm hover:bg-slate-50';
         div.innerHTML = `
           <div>
-            <span class="font-mono font-bold bg-slate-100 border px-2 py-0.5 rounded text-[#4F2D7F]">${escapeHtml(p.code)}</span>
+            <span class="font-mono font-bold bg-slate-100 border px-2 py-0.5 rounded text-[#5A358E]">${escapeHtml(p.code)}</span>
             <span class="font-semibold text-slate-800 ml-2">${escapeHtml(p.name)}</span>
             <span class="text-xs text-slate-400 ml-1">(${count} units)</span>
           </div>
           <div class="space-x-1">
-            <button onclick="startEditPlant('${p.code}')" class="text-xs bg-purple-50 text-[#4F2D7F] px-2.5 py-1 rounded-md hover:bg-purple-100">Edit</button>
+            <button onclick="startEditPlant('${p.code}')" class="text-xs bg-purple-50 text-[#5A358E] px-2.5 py-1 rounded-md hover:bg-purple-100">Edit</button>
             <button onclick="deletePlant('${p.code}')" class="text-xs bg-rose-50 text-rose-700 px-2.5 py-1 rounded-md hover:bg-rose-100">Remove</button>
           </div>
         `;
@@ -2854,6 +2852,7 @@
       modal.classList.add('flex');
     }
 
+    // Modal helpers
     function closeDetailModal() {
       const modal = document.getElementById('detail-modal');
       modal.classList.add('hidden');
@@ -2937,9 +2936,9 @@
         card.innerHTML = `
           <div class="flex flex-col justify-between h-full w-full">
             <div>
-              <div style="font-family: monospace; font-weight: bold; font-size: 11px; color: #4F2D7F; line-height: 1.1;">${escapeHtml(item.tag)}</div>
+              <div style="font-family: monospace; font-weight: bold; font-size: 11px; color: #5A358E; line-height: 1.1;">${escapeHtml(item.tag)}</div>
               <div style="font-family: monospace; font-weight: bold; font-size: 9px; color: #0f172a; margin-top: 1px;">Code: ${escapeHtml(item.itemCode)}</div>
-              ${item.serialNumber ? `<div style="font-family: monospace; font-size: 9px; color: #4F2D7F; font-weight: bold;">S/N: ${escapeHtml(item.serialNumber)}</div>` : ''}
+              ${item.serialNumber ? `<div style="font-family: monospace; font-size: 9px; color: #5A358E; font-weight: bold;">S/N: ${escapeHtml(item.serialNumber)}</div>` : ''}
               <div style="font-weight: bold; font-size: 10px; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #000;">${escapeHtml(item.name)}</div>
               <div style="font-size: 8px; color: #475569; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Plant: ${escapeHtml(item.plantCode)} | Loc: ${escapeHtml(item.location)}</div>
             </div>
