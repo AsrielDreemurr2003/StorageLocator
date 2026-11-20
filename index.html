@@ -126,10 +126,16 @@
           <span>Help & Support</span>
         </button>
 
-        <!-- Primary Add Button -->
-        <button onclick="openItemModal()" class="bg-[#5A358E] hover:bg-[#623a9c] text-white px-3.5 py-2 rounded-lg text-xs font-bold transition-all shadow-md hover:shadow-lg flex items-center gap-1.5 active:scale-95">
+        <!-- Primary Add Button (Admin Only) -->
+        <button id="header-add-item-btn" onclick="openItemModal()" class="hidden bg-[#5A358E] hover:bg-[#623a9c] text-white px-3.5 py-2 rounded-lg text-xs font-bold transition-all shadow-md hover:shadow-lg flex items-center gap-1.5 active:scale-95">
           <span>➕</span>
           <span>Add Item</span>
+        </button>
+
+        <!-- Admin Auth Button (Always Visible) -->
+        <button id="header-auth-btn" onclick="openAuthModal()" class="bg-[#5A358E] hover:bg-[#623a9c] text-white px-3.5 py-2 rounded-lg text-xs font-bold transition-all shadow-md hover:shadow-lg flex items-center gap-1.5 active:scale-95">
+          <span id="header-auth-btn-icon">🔑</span>
+          <span id="header-auth-btn-text">Admin Login</span>
         </button>
 
         <!-- Clean Dropdown Menu -->
@@ -143,22 +149,22 @@
           <div id="settings-dropdown" class="hidden absolute right-0 mt-2 w-56 bg-white text-slate-800 rounded-xl shadow-2xl border border-slate-200 py-1.5 z-50 text-xs font-medium">
             <div class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-purple-800">System Management</div>
             <button onclick="closeSettingsMenu(); openHelpModal()" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5"><span>🙋‍♂️</span> Help & Feedback Desk</button>
-            <button onclick="closeSettingsMenu(); openPlantModal()" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5">
+            <button id="menu-plants-btn" onclick="closeSettingsMenu(); openPlantModal()" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5">
               <span>🏢</span> Manage Plants
             </button>
-            <button onclick="closeSettingsMenu(); openUserbaseModal()" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5">
+            <button id="menu-users-btn" onclick="closeSettingsMenu(); openUserbaseModal()" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5">
               <span>👤</span> Manage Users
             </button>
-            <button onclick="closeSettingsMenu(); openEmailConfigModal()" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5">
+            <button id="menu-email-btn" onclick="closeSettingsMenu(); openEmailConfigModal()" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5">
               <span>✉️</span> Email Alert Settings
             </button>
-            <button onclick="closeSettingsMenu(); openQrConfigModal()" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5">
+            <button id="menu-qr-btn" onclick="closeSettingsMenu(); openQrConfigModal()" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5">
               <span>🔗</span> Permanent QR URL Settings
             </button>
-            <button onclick="closeSettingsMenu(); openCloudModal()" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5">
+            <button id="menu-cloud-btn" onclick="closeSettingsMenu(); openCloudModal()" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5">
               <span>☁️</span> Cloud Database Status
             </button>
-            <button onclick="closeSettingsMenu(); openConsumedHistoryModal()" class="w-full text-left px-3.5 py-2 hover:bg-rose-50 text-rose-600 flex items-center gap-2.5 font-bold">
+            <button id="menu-consumed-btn" onclick="closeSettingsMenu(); openConsumedHistoryModal()" class="hidden w-full text-left px-3.5 py-2 hover:bg-rose-50 text-rose-600 flex items-center gap-2.5 font-bold">
               <span>🗑️</span> Consumed / Single-Use Log
             </button>
             <div class="border-t my-1 border-slate-100"></div>
@@ -171,10 +177,10 @@
               <span>✕</span> Unselect All QR Codes
             </button>
             <div class="border-t my-1 border-slate-100"></div>
-            <button onclick="closeSettingsMenu(); exportData()" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5">
+            <button id="menu-export-btn" onclick="closeSettingsMenu(); exportData()" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5">
               <span>💾</span> Export Backup (.json)
             </button>
-            <label class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5 cursor-pointer">
+            <label id="menu-import-btn" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5 cursor-pointer">
               <span>📂</span> Import Backup (.json)
               <input type="file" id="import-file" class="hidden" accept=".json" onchange="importData(event)" />
             </label>
@@ -313,7 +319,7 @@
       <!-- 5-Column Responsive Filter Grid -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
         <div>
-          <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Search Inventory (Name, S/N, Tag)</label>
+          <label class="block block text-[11px] font-bold text-slate-500 uppercase mb-1">Search Inventory (Name, S/N, Tag)</label>
           <input type="text" id="search-input" oninput="renderInventory()" placeholder="Name, S/N, tag, category..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
         </div>
         <div>
@@ -370,7 +376,7 @@
           <button onclick="pullFromCloud(true)" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-250 font-semibold px-3 py-2 rounded-lg transition active:scale-95" title="Sync with Cloud">
             🔄 Sync
           </button>
-          <button id="bar-unselect-all-btn" onclick="clearAllSelectedQRCodes()" class="hidden text-xs bg-[#FFF1F2] hover:bg-rose-100 text-rose-700 border border-rose-200 px-3 py-2 rounded-lg font-bold transition">
+          <button id="bar-unselect-all-btn" onclick="clearAllSelectedQRCodes()" class="hidden text-xs bg-[#FFF1F2] hover:bg-rose-105 text-rose-700 border border-rose-200 px-3 py-2 rounded-lg font-bold transition">
             ✕ Unselect All (<span id="bar-selected-count">0</span>)
           </button>
         </div>
@@ -448,6 +454,57 @@
   <!-- Printable QR Area -->
   <div id="print-area" class="hidden"></div>
 
+  <!-- MODAL: Admin Auth (Login & Registration) -->
+  <div id="auth-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print backdrop-blur-sm">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
+      <div class="flex justify-between items-center border-b pb-3 mb-4">
+        <h2 id="auth-modal-title" class="text-base font-bold text-slate-900 flex items-center gap-2"><span>🔒</span> Admin Portal</h2>
+        <button onclick="closeAuthModal()" class="text-slate-404 hover:text-slate-700 text-2xl leading-none">&times;</button>
+      </div>
+      
+      <!-- Tabs -->
+      <div class="flex border-b mb-4 text-xs font-bold">
+        <button id="auth-tab-login" onclick="switchAuthTab('login')" class="flex-1 pb-2 border-b-2 border-[#5A358E] text-[#5A358E] text-center transition">Login</button>
+        <button id="auth-tab-register" onclick="switchAuthTab('register')" class="flex-1 pb-2 border-b-2 border-transparent text-slate-500 hover:text-slate-800 text-center transition">Create Login</button>
+      </div>
+
+      <!-- Login Form -->
+      <form id="auth-login-form" onsubmit="handleAdminLogin(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Username / User ID</label>
+          <input type="text" id="auth-login-username" required placeholder="e.g. admin or u123456" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#5A358E] outline-none" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Password</label>
+          <input type="password" id="auth-login-password" required placeholder="••••••••" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#5A358E] outline-none" />
+        </div>
+        <button type="submit" class="w-full py-2.5 bg-[#5A358E] hover:bg-[#3D2566] text-white rounded-lg text-sm font-bold shadow-md transition active:scale-[0.98]">Log In as Admin</button>
+      </form>
+
+      <!-- Registration Form -->
+      <form id="auth-register-form" onsubmit="handleAdminRegister(event)" class="space-y-3 hidden">
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Desired Username / User ID *</label>
+          <input type="text" id="auth-reg-username" required placeholder="e.g. u123456" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#5A358E] outline-none" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Full Name *</label>
+          <input type="text" id="auth-reg-name" required placeholder="e.g. Jane Doe" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#5A358E] outline-none" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Email Address *</label>
+          <input type="email" id="auth-reg-email" required placeholder="e.g. jane.doe@tranetechnologies.com" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#5A358E] outline-none" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Password *</label>
+          <input type="password" id="auth-reg-password" required placeholder="••••••••" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#5A358E] outline-none" />
+        </div>
+        <p class="text-[11px] text-slate-500 italic mt-2">Note: Newly created accounts must be marked as Admin by an existing Administrator in "Manage Users" before they can log in.</p>
+        <button type="submit" class="w-full py-2.5 bg-[#0D9488] hover:bg-[#059669] text-white rounded-lg text-sm font-bold shadow-md transition active:scale-[0.98]">Create Account</button>
+      </form>
+    </div>
+  </div>
+
   <!-- MODAL: Permanent QR Code Base URL Settings -->
   <div id="qr-config-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print backdrop-blur-sm">
     <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl">
@@ -489,7 +546,7 @@
             <input type="text" id="checkout-user-id" required placeholder="e.g. u123456" oninput="validateCheckoutUser()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
             <span id="checkout-user-validation-icon" class="absolute right-3 top-2 text-lg"></span>
           </div>
-          <p id="checkout-user-validation-msg" class="text-[11px] mt-1 font-semibold text-rose-600"></p>
+          <p id="checkout-user-validation-msg" class="text-[11px] mt-1 font-semibold text-rose-605"></p>
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Your Email Address *</label>
@@ -583,47 +640,47 @@
       <!-- Device info card -->
       <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3.5">
         <div>
-          <span class="text-[10px] uppercase font-bold text-slate-400">Assigned Unit</span>
+          <span class="text-[10px] uppercase font-bold text-slate-404">Assigned Unit</span>
           <h3 id="receipt-item-name" class="text-lg font-bold text-[#5A358E]"></h3>
         </div>
         
         <div class="grid grid-cols-2 gap-3 text-xs">
           <div>
-            <span class="font-bold text-slate-400 block text-[10px]">PLANT TAG</span>
+            <span class="font-bold text-slate-404 block text-[10px]">PLANT TAG</span>
             <span id="receipt-item-tag" class="font-mono font-bold text-slate-800"></span>
           </div>
           <div>
-            <span class="font-bold text-slate-400 block text-[10px]">ITEM CODE</span>
+            <span class="font-bold text-slate-404 block text-[10px]">ITEM CODE</span>
             <span id="receipt-item-code" class="font-mono font-bold text-slate-800"></span>
           </div>
           <div>
-            <span class="font-bold text-slate-400 block text-[10px]">SERIAL NUMBER (S/N)</span>
+            <span class="font-bold text-slate-404 block text-[10px]">SERIAL NUMBER (S/N)</span>
             <span id="receipt-item-serial" class="font-mono font-bold text-slate-800"></span>
           </div>
           <div>
-            <span class="font-bold text-slate-400 block text-[10px]">HOME STORAGE LOCATION</span>
+            <span class="font-bold text-slate-404 block text-[10px]">HOME STORAGE LOCATION</span>
             <span id="receipt-item-location" class="font-semibold text-slate-800"></span>
           </div>
         </div>
 
         <div class="border-t pt-3 grid grid-cols-2 gap-3 text-xs">
           <div>
-            <span class="font-bold text-slate-400 block text-[10px]">CHECKED OUT TO</span>
+            <span class="font-bold text-slate-404 block text-[10px]">CHECKED OUT TO</span>
             <span id="receipt-user-name" class="font-bold text-slate-800"></span>
           </div>
           <div>
-            <span class="font-bold text-slate-400 block text-[10px]">DESTINATION</span>
+            <span class="font-bold text-slate-404 block text-[10px]">DESTINATION</span>
             <span id="receipt-destination" class="font-bold text-slate-800"></span>
           </div>
         </div>
         
         <div id="receipt-item-notes-box" class="border-t pt-2 text-xs hidden">
-          <span class="font-bold text-slate-400 block text-[10px]">SPECS & STORAGE NOTES</span>
+          <span class="font-bold text-slate-404 block text-[10px]">SPECS & STORAGE NOTES</span>
           <p id="receipt-item-notes" class="text-slate-605 italic mt-0.5"></p>
         </div>
 
         <div id="receipt-item-instructions-box" class="border-t pt-2 text-xs hidden">
-          <span class="font-bold text-slate-400 block text-[10px]">🛠️ WORK INSTRUCTIONS / PPE</span>
+          <span class="font-bold text-slate-404 block text-[10px]">🛠️ WORK INSTRUCTIONS / PPE</span>
           <p id="receipt-item-instructions" class="text-slate-605 whitespace-pre-line mt-0.5"></p>
         </div>
       </div>
@@ -793,11 +850,11 @@
         <div class="bg-slate-50 border border-slate-200 rounded-xl p-3">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
             <div>
-              <span class="font-bold text-slate-400 uppercase block text-[10px]">Assigned Plant Tag(s):</span>
+              <span class="font-bold text-slate-404 uppercase block text-[10px]">Assigned Plant Tag(s):</span>
               <span id="item-tag-preview" class="font-mono font-bold text-[#5A358E] text-xs sm:text-sm"></span>
             </div>
             <div>
-              <span class="font-bold text-slate-400 uppercase block text-[10px]">Assigned 4-Digit Item Code(s):</span>
+              <span class="font-bold text-slate-404 uppercase block text-[10px]">Assigned 4-Digit Item Code(s):</span>
               <span id="item-code-preview" class="font-mono font-bold text-emerald-700 text-xs sm:text-sm"></span>
             </div>
           </div>
@@ -1222,7 +1279,7 @@
                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Submitter User ID *</label>
-                      <input type="text" id="help-inst-user" required placeholder="e.g. u123456" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
+                      <input type="text" id="help-inst-user" required placeholder="e.g. u123456" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]"></input>
                     </div>
                     <div>
                       <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Reason for Improvement *</label>
@@ -1272,6 +1329,186 @@
     // ============================================================================
     // HELP DESK & SUPPORT SYSTEM INTEGRATION (Zero-Delay Inline MODAL)
     // ============================================================================
+    // --- ADMIN AUTH STATE & FUNCTIONS ---
+    let loggedInUser = JSON.parse(sessionStorage.getItem('LOGGED_IN_ADMIN')) || null;
+
+    function checkAdminUser() {
+      // Ensure the master developer account is in users
+      let master = users.find(u => u.username === 'admin');
+      if (!master) {
+        master = {
+          username: 'admin',
+          name: 'Main Administrator',
+          email: 'natalie.hilliker@tranetechnologies.com',
+          password: 'Trane123',
+          isAdmin: true
+        };
+        users.push(master);
+        localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
+      } else {
+        master.isAdmin = true;
+        master.password = 'Trane123';
+      }
+    }
+
+    function updateUiForRole() {
+      const isAdmin = loggedInUser && loggedInUser.isAdmin;
+      
+      // Update header buttons
+      const addBtn = document.getElementById('header-add-item-btn');
+      if (addBtn) {
+        if (isAdmin) addBtn.classList.remove('hidden');
+        else addBtn.classList.add('hidden');
+      }
+
+      const authBtnText = document.getElementById('header-auth-btn-text');
+      const authBtnIcon = document.getElementById('header-auth-btn-icon');
+      if (authBtnText && authBtnIcon) {
+        if (loggedInUser) {
+          authBtnText.textContent = `Logout (${loggedInUser.username})`;
+          authBtnIcon.textContent = '🔓';
+        } else {
+          authBtnText.textContent = 'Admin Login';
+          authBtnIcon.textContent = '🔑';
+        }
+      }
+
+      // Settings Dropdown visibility
+      const adminMenuIds = [
+        'menu-plants-btn',
+        'menu-users-btn',
+        'menu-email-btn',
+        'menu-qr-btn',
+        'menu-cloud-btn',
+        'menu-consumed-btn',
+        'menu-export-btn',
+        'menu-import-btn'
+      ];
+      adminMenuIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          if (isAdmin) el.classList.remove('hidden');
+          else el.classList.add('hidden');
+        }
+      });
+
+      // Individual units add more button
+      const addMoreBtn = document.getElementById('units-add-more-btn');
+      if (addMoreBtn) {
+        if (isAdmin && selectedProductName) addMoreBtn.classList.remove('hidden');
+        else addMoreBtn.classList.add('hidden');
+      }
+
+      // Scan view edit button
+      const scanEditBtn = document.getElementById('scan-edit-btn');
+      if (scanEditBtn) {
+        if (isAdmin) scanEditBtn.classList.remove('hidden');
+        else scanEditBtn.classList.add('hidden');
+      }
+    }
+
+    function openAuthModal() {
+      if (loggedInUser) {
+        // Logout
+        loggedInUser = null;
+        sessionStorage.removeItem('LOGGED_IN_ADMIN');
+        updateUiForRole();
+        renderInventory();
+        alert('Logged out successfully.');
+        return;
+      }
+      switchAuthTab('login');
+      const modal = document.getElementById('auth-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeAuthModal() {
+      const modal = document.getElementById('auth-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function switchAuthTab(tab) {
+      const loginTab = document.getElementById('auth-tab-login');
+      const regTab = document.getElementById('auth-tab-register');
+      const loginForm = document.getElementById('auth-login-form');
+      const regForm = document.getElementById('auth-register-form');
+
+      if (tab === 'login') {
+        loginTab.className = "flex-1 pb-2 border-b-2 border-[#5A358E] text-[#5A358E] text-center";
+        regTab.className = "flex-1 pb-2 border-b-2 border-transparent text-slate-500 hover:text-slate-800 text-center";
+        loginForm.classList.remove('hidden');
+        regForm.classList.add('hidden');
+      } else {
+        regTab.className = "flex-1 pb-2 border-b-2 border-[#5A358E] text-[#5A358E] text-center";
+        loginTab.className = "flex-1 pb-2 border-b-2 border-transparent text-slate-500 hover:text-slate-800 text-center";
+        regForm.classList.remove('hidden');
+        loginForm.classList.add('hidden');
+      }
+    }
+
+    function handleAdminLogin(e) {
+      e.preventDefault();
+      const username = document.getElementById('auth-login-username').value.trim();
+      const pass = document.getElementById('auth-login-password').value;
+
+      checkAdminUser();
+
+      const user = users.find(u => u.username.toLowerCase() === username.toLowerCase());
+      if (user && user.password === pass) {
+        if (user.isAdmin) {
+          loggedInUser = user;
+          sessionStorage.setItem('LOGGED_IN_ADMIN', JSON.stringify(user));
+          closeAuthModal();
+          updateUiForRole();
+          renderInventory();
+          alert(`Welcome back, ${user.name}! Admin mode active.`);
+        } else {
+          alert('You have a login account, but you have not been marked as Admin by the main admin yet. Please request admin access.');
+        }
+      } else {
+        alert('Invalid username or password.');
+      }
+    }
+
+    function handleAdminRegister(e) {
+      e.preventDefault();
+      const username = document.getElementById('auth-reg-username').value.trim();
+      const name = document.getElementById('auth-reg-name').value.trim();
+      const email = document.getElementById('auth-reg-email').value.trim();
+      const password = document.getElementById('auth-reg-password').value;
+
+      if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+        alert('This username already exists.');
+        return;
+      }
+
+      users.push({
+        username,
+        name,
+        email,
+        password,
+        isAdmin: false
+      });
+
+      localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
+      alert('Registration successful! Please ask an existing Admin to mark your account as Admin.');
+      switchAuthTab('login');
+      document.getElementById('auth-login-username').value = username;
+      renderUserList();
+    }
+
+    async function toggleUserAdminState(username, isChecked) {
+      if (username === 'admin') return;
+      const user = users.find(u => u.username === username);
+      if (user) {
+        user.isAdmin = isChecked;
+        await saveState();
+        renderUserList();
+      }
+    }
+
     const STORAGE_KEY_HELP_LOGS = 'PLANT_QR_HELP_LOGS_V8';
     let helpLogs = JSON.parse(localStorage.getItem(STORAGE_KEY_HELP_LOGS)) || [];
 
@@ -1318,6 +1555,11 @@
     }
 
     async function resolveTicket(ticketId) {
+      const isAdmin = loggedInUser && loggedInUser.isAdmin;
+      if (!isAdmin) {
+        alert('You must be logged in as an administrator to resolve tickets.');
+        return;
+      }
       const entry = helpLogs.find(e => e.id === ticketId);
       if (!entry) return;
       if (confirm(`Are you sure you want to resolve Ticket #${entry.ticketNumber}?`)) {
@@ -1540,10 +1782,11 @@
 
         const isResolved = entry.status === 'RESOLVED';
         const statusBadge = isResolved
-          ? `<span class="bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">Resolved</span>`
+          ? `<span class="bg-emerald-650 bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">Resolved</span>`
           : `<span class="bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase animate-pulse">Open</span>`;
 
-        const resolveButton = !isResolved
+        const isAdmin = loggedInUser && loggedInUser.isAdmin;
+        const resolveButton = (!isResolved && isAdmin)
           ? `<button onclick="resolveTicket('${entry.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] px-2.5 py-1 rounded-lg transition shadow-sm">Resolve Ticket</button>`
           : '';
 
@@ -1730,7 +1973,7 @@
       let seq = 1;
       while (tags.length < count) {
         const candidate = `${plantCode}${String(seq).padStart(6, '0')}`;
-        if (!items.some(it => item.tag === candidate) && !tags.includes(candidate)) {
+        if (!items.some(it => it.tag === candidate) && !tags.includes(candidate)) {
           tags.push(candidate);
         }
         seq++;
@@ -2095,7 +2338,7 @@
       list.innerHTML = '';
 
       if (appNotifications.length === 0) {
-        list.innerHTML = `<div class="p-8 text-center text-slate-400 text-sm">No app notifications yet. Check-out and check-in events appear here automatically.</div>`;
+        list.innerHTML = `<div class="p-8 text-center text-slate-404 text-sm">No app notifications yet. Check-out and check-in events appear here automatically.</div>`;
         return;
       }
 
@@ -2277,13 +2520,28 @@
       filtered.forEach(u => {
         const div = document.createElement('div');
         div.className = 'p-2.5 flex justify-between items-center text-xs hover:bg-slate-50';
+        
+        const adminBadgeOrBtn = u.username === 'admin' 
+          ? `<span class="bg-[#5A358E] text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">Main Admin</span>`
+          : `<label class="inline-flex items-center gap-1.5 cursor-pointer">
+               <input type="checkbox" ${u.isAdmin ? 'checked' : ''} onchange="toggleUserAdminState('${escapeJsStr(u.username)}', this.checked)" class="w-3.5 h-3.5 accent-[#5A358E] cursor-pointer" />
+               <span class="text-[10px] font-bold uppercase ${u.isAdmin ? 'text-[#5A358E]' : 'text-slate-404'}">Admin</span>
+             </label>`;
+
+        const deleteBtn = u.username === 'admin'
+          ? ''
+          : `<button onclick="deleteUser('${escapeJsStr(u.username)}')" class="text-rose-600 hover:bg-rose-50 px-2 py-1 rounded">✕</button>`;
+
         div.innerHTML = `
           <div>
             <span class="font-mono font-bold bg-slate-105 border px-2 py-0.5 rounded text-[#5A358E]">${escapeHtml(u.username)}</span>
             <span class="font-semibold text-slate-800 ml-2">${escapeHtml(u.name)}</span>
             ${u.email ? `<span class="text-slate-404 font-mono text-[11px] ml-2">(${escapeHtml(u.email)})</span>` : ''}
           </div>
-          <button onclick="deleteUser('${escapeJsStr(u.username)}')" class="text-rose-600 hover:bg-rose-50 px-2 py-1 rounded">✕</button>
+          <div class="flex items-center gap-4">
+            ${adminBadgeOrBtn}
+            ${deleteBtn}
+          </div>
         `;
         container.appendChild(div);
       });
@@ -2445,7 +2703,7 @@
       if (isCloudActive) {
         badge.className = 'inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shrink-0 hover:bg-emerald-500/25 transition';
       } else {
-        badge.className = 'inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/40 shrink-0';
+        badge.className = 'inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-404/40 shrink-0';
       }
     }
 
@@ -2695,7 +2953,7 @@
         statusPill.className = 'text-[11px] font-bold px-2.5 py-0.5 rounded-md uppercase bg-amber-100 text-amber-808 border border-amber-300';
         statusPill.textContent = `⏱️ Checked Out to ${rec.destination}`;
 
-        smartPrompt.className = 'mt-4 p-4 rounded-xl border border-emerald-400 bg-emerald-50/70 flex flex-wrap items-center justify-between gap-4';
+        smartPrompt.className = 'mt-4 p-4 rounded-xl border border-emerald-404 bg-emerald-50/70 flex flex-wrap items-center justify-between gap-4';
         promptTitle.className = 'font-bold text-sm sm:text-base text-emerald-955';
         promptTitle.textContent = 'Returning this checked-out unit?';
         promptDesc.className = 'text-xs text-emerald-800 mt-0.5';
@@ -3089,7 +3347,7 @@
       }
 
       if (!item.checkoutHistory || item.checkoutHistory.length === 0) {
-        logContainer.innerHTML = `<p class="text-xs text-slate-400 italic">No check-out or check-in history recorded for this unit yet.</p>`;
+        logContainer.innerHTML = `<p class="text-xs text-slate-404 italic">No check-out or check-in history recorded for this unit yet.</p>`;
       } else {
         item.checkoutHistory.forEach(entry => {
           const isOut = entry.type === 'CHECK_OUT';
@@ -3536,8 +3794,8 @@
         ).join('');
 
         const primaryActionBtn = isCheckedOut
-          ? `<button onclick="openCheckInModal('${item.id}')" class="bg-emerald-600 hover:bg-emerald-550 text-white px-2.5 py-1 rounded-md text-xs font-bold transition">📥 In</button>`
-          : `<button onclick="openCheckOutModal('${item.id}')" class="bg-amber-600 hover:bg-amber-550 text-white px-2.5 py-1 rounded-md text-xs font-bold transition">📤 Out</button>`;
+          ? `<button onclick="openCheckInModal('${item.id}')" class="bg-emerald-600 hover:bg-emerald-555 text-white px-2.5 py-1 rounded-md text-xs font-bold transition">📥 In</button>`
+          : `<button onclick="openCheckOutModal('${item.id}')" class="bg-amber-600 hover:bg-amber-555 text-white px-2.5 py-1 rounded-md text-xs font-bold transition">📤 Out</button>`;
 
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-purple-50/30 transition-colors border-b border-slate-100';
@@ -3580,8 +3838,10 @@
               ${primaryActionBtn}
               <button onclick="openDetailModal('${item.id}')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded-md font-medium transition">QR</button>
               <button onclick="openHistoryModal('${item.id}')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded-md font-medium transition" title="History">📜</button>
+              ${(loggedInUser && loggedInUser.isAdmin) ? `
               <button onclick="openItemModal('${item.id}')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded-md font-medium transition">Edit</button>
               <button onclick="deleteItem('${item.id}')" class="text-xs bg-rose-50 hover:bg-rose-105 text-rose-605 px-2 py-1 rounded-md font-medium transition">✕</button>
+              ` : ''}
             </div>
           </td>
         `;
@@ -3798,6 +4058,11 @@
     }
 
     async function deleteItem(itemId) {
+      const isAdmin = loggedInUser && loggedInUser.isAdmin;
+      if (!isAdmin) {
+        alert('Only administrators can delete items.');
+        return;
+      }
       const item = items.find(i => i.id === itemId);
       if (!item) return;
       if (confirm(`Permanently delete unit "${item.name}" (${item.tag} / ${item.itemCode})?`)) {
@@ -3843,7 +4108,7 @@
         div.className = 'p-3 flex justify-between items-center text-sm hover:bg-slate-50';
         div.innerHTML = `
           <div>
-            <span class="font-mono font-bold bg-slate-100 border px-2 py-0.5 rounded text-[#5A358E]">${escapeHtml(p.code)}</span>
+            <span class="font-mono font-bold bg-slate-105 border px-2 py-0.5 rounded text-[#5A358E]">${escapeHtml(p.code)}</span>
             <span class="font-semibold text-slate-800 ml-2">${escapeHtml(p.name)}</span>
             <span class="text-xs text-slate-404 ml-1">(${count} units)</span>
           </div>
@@ -4118,12 +4383,15 @@
         .replace(/"/g, '&quot;');
     }
 
+    // eslint-disable-next-line no-unused-vars
     function escapeJsStr(str) {
-      return String(str || '').replace(/\\\\/g, '\\\\\\\\').replace(/'/g, "\\\\'");
+      return String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
     }
 
     // --- INITIALIZE & AUTO-POLL CLOUD EVERY 6 SECONDS ---
     async function initApp() {
+      checkAdminUser();
+      updateUiForRole();
       populatePlantDropdowns();
       renderInventory();
       await checkUrlForScannedQR();
