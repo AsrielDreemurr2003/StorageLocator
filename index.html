@@ -348,10 +348,12 @@
         </div>
       </div>
 
-      <!-- Clickable Product Categories Bar -->
+      <!-- Clickable Product Categories Bar with Mass QR Select & Category Edit -->
       <div class="pt-2 border-t border-slate-100">
-        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Product Categories (Click to View Items):</p>
-        <div id="category-pills-container" class="flex flex-wrap gap-1.5"></div>
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Product Categories (Click to Filter • 🖨️ Mass Select QR • ✏️ Edit Category & Rename Items):</p>
+        </div>
+        <div id="category-pills-container" class="flex flex-wrap gap-2"></div>
       </div>
     </div>
 
@@ -373,6 +375,9 @@
           </div>
         </div>
         <div class="flex flex-wrap items-center gap-2">
+          <button id="units-edit-cat-btn" onclick="openEditCategoryModal(selectedCategory)" class="hidden text-xs bg-amber-500 hover:bg-amber-600 text-white font-bold px-3 py-1.5 rounded-lg shadow-sm transition">
+            ✏️ Edit Category / Rename Items
+          </button>
           <button id="units-add-more-btn" onclick="openAddMoreUnitsForProduct()" class="hidden text-xs bg-[#0D9488] hover:bg-[#059669] text-white font-bold px-3 py-1.5 rounded-lg shadow-sm transition">
             ➕ Add More Units
           </button>
@@ -413,6 +418,50 @@
 
   <!-- Printable QR Area -->
   <div id="print-area" class="hidden"></div>
+
+  <!-- MODAL: Edit Category & Bulk Rename Items (Preserves Item Codes & QR Codes) -->
+  <div id="edit-category-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print backdrop-blur-sm">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl">
+      <div class="flex justify-between items-center border-b pb-3 mb-4">
+        <div>
+          <h3 class="text-base font-bold text-slate-900">✏️ Edit Category & Bulk Rename Items</h3>
+          <p id="edit-cat-subtitle" class="text-xs text-[#5A358E] font-semibold mt-0.5"></p>
+        </div>
+        <button onclick="closeEditCategoryModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
+      </div>
+
+      <form onsubmit="saveCategoryEdits(event)" class="space-y-4">
+        <input type="hidden" id="edit-cat-original-name" />
+
+        <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-xs text-emerald-900 flex items-start gap-2.5">
+          <span class="text-base leading-none">🔒</span>
+          <div>
+            <strong class="font-bold block">QR Codes & Item Codes Protected</strong>
+            Updating the category or item names below will <u>never</u> alter any unit's Plant Tag (e.g., <code class="font-mono">KEN000001</code>) or 4-Digit Item Code. All existing QR stickers remain 100% valid.
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Category Name *</label>
+          <input type="text" id="edit-cat-new-name" required placeholder="e.g. Motors & Drives" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
+        </div>
+
+        <div class="bg-purple-50/60 border border-purple-200 rounded-xl p-3.5 space-y-2">
+          <div class="flex items-center justify-between">
+            <label for="edit-cat-bulk-item-name" class="block text-xs font-bold text-[#5A358E] uppercase">Rename All Items in This Category (Optional)</label>
+            <span class="text-[10px] font-semibold text-purple-700 bg-purple-100 px-2 py-0.5 rounded">Bulk Update</span>
+          </div>
+          <input type="text" id="edit-cat-bulk-item-name" placeholder="Leave blank to keep current item names, or type a new name for all..." class="w-full border border-purple-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
+          <p class="text-[11px] text-slate-500">If filled in, every unit inside this category will have its Item Name changed to this value while keeping its unique QR Tag and 4-Digit Item Code intact.</p>
+        </div>
+
+        <div class="flex justify-end space-x-2 pt-3 border-t">
+          <button type="button" onclick="closeEditCategoryModal()" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium">Cancel</button>
+          <button type="submit" class="px-5 py-2 rounded-lg bg-[#5A358E] hover:bg-[#3D2566] text-white text-sm font-bold shadow">Save Category Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- MODAL: Check Out Individual Unit -->
   <div id="checkout-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print backdrop-blur-sm">
@@ -909,6 +958,9 @@
       const addMoreBtn = document.getElementById('units-add-more-btn');
       if (addMoreBtn) addMoreBtn.classList.toggle('hidden', !(isAdmin && selectedProductName));
 
+      const editCatBtn = document.getElementById('units-edit-cat-btn');
+      if (editCatBtn) editCatBtn.classList.toggle('hidden', !selectedCategory);
+
       const scanEditBtn = document.getElementById('scan-edit-btn');
       if (scanEditBtn) scanEditBtn.classList.toggle('hidden', !isAdmin);
     }
@@ -1307,6 +1359,96 @@
       appNotifications = [];
       renderNotificationsList();
       updateNotificationBadge();
+      await saveState();
+    }
+
+    // --- MASS SELECT QR CODES BY CATEGORY & PRODUCT GROUP ---
+    function toggleSelectCategoryQRs(categoryName, event) {
+      if (event) event.stopPropagation();
+      const baseFiltered = getFilteredItems();
+      const catItems = baseFiltered.filter(i => (i.category || 'Uncategorized') === categoryName);
+      if (catItems.length === 0) return;
+
+      const allSelected = catItems.every(i => selectedItemIds.has(i.id));
+      catItems.forEach(i => {
+        if (allSelected) selectedItemIds.delete(i.id);
+        else selectedItemIds.add(i.id);
+      });
+      renderInventory();
+    }
+
+    function toggleSelectProductGroupQRs(categoryName, productName, event) {
+      if (event) event.stopPropagation();
+      const baseFiltered = getFilteredItems();
+      const grpItems = baseFiltered.filter(i =>
+        (i.category || 'Uncategorized') === categoryName &&
+        i.name.toLowerCase() === productName.toLowerCase()
+      );
+      if (grpItems.length === 0) return;
+
+      const allSelected = grpItems.every(i => selectedItemIds.has(i.id));
+      grpItems.forEach(i => {
+        if (allSelected) selectedItemIds.delete(i.id);
+        else selectedItemIds.add(i.id);
+      });
+      renderInventory();
+    }
+
+    // --- EDIT CATEGORY & BULK RENAME ITEMS (WITHOUT CHANGING ITEM CODES OR QR CODES) ---
+    function openEditCategoryModal(categoryName, event) {
+      if (event) event.stopPropagation();
+      if (!categoryName) return;
+
+      const matchingItems = items.filter(i => (i.category || 'Uncategorized') === categoryName);
+      const uniqueNames = [...new Set(matchingItems.map(i => i.name))];
+
+      document.getElementById('edit-cat-original-name').value = categoryName;
+      document.getElementById('edit-cat-new-name').value = categoryName;
+      document.getElementById('edit-cat-bulk-item-name').value = uniqueNames.length === 1 ? uniqueNames[0] : '';
+      document.getElementById('edit-cat-subtitle').textContent = `Applies to ${matchingItems.length} unit(s) currently in "${categoryName}"`;
+
+      const modal = document.getElementById('edit-category-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeEditCategoryModal() {
+      document.getElementById('edit-category-modal').classList.add('hidden');
+    }
+
+    async function saveCategoryEdits(e) {
+      e.preventDefault();
+      const oldCategory = document.getElementById('edit-cat-original-name').value;
+      const newCategory = document.getElementById('edit-cat-new-name').value.trim();
+      const bulkNewItemName = document.getElementById('edit-cat-bulk-item-name').value.trim();
+
+      if (!newCategory) return;
+
+      let updatedCount = 0;
+      items.forEach(item => {
+        const currentCat = item.category || 'Uncategorized';
+        if (currentCat === oldCategory) {
+          // Update category name
+          item.category = newCategory;
+          // If a bulk item name was entered, update item name as well
+          if (bulkNewItemName !== '') {
+            item.name = bulkNewItemName;
+          }
+          // NOTE: item.tag and item.itemCode are strictly untouched so QR codes never change!
+          updatedCount++;
+        }
+      });
+
+      if (selectedCategory === oldCategory) {
+        selectedCategory = newCategory;
+        if (selectedProductName && bulkNewItemName !== '') {
+          selectedProductName = bulkNewItemName;
+        }
+      }
+
+      closeEditCategoryModal();
+      renderInventory();
+      if (activeScannedTag) refreshScannedBanner(activeScannedTag, false);
       await saveState();
     }
 
@@ -1983,6 +2125,8 @@
       if (selectedCategory) {
         crumbsHtml += `<span class="text-slate-300 text-xs">/</span>`;
         crumbsHtml += `<button onclick="selectCategoryView('${escapeJsStr(selectedCategory)}')" class="text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded-md">${escapeHtml(selectedCategory)}</button>`;
+        crumbsHtml += `<button onclick="toggleSelectCategoryQRs('${escapeJsStr(selectedCategory)}', event)" class="text-[11px] font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded-md ml-1" title="Mass Select/Unselect all units in this category for QR printing">🖨️ Select Category QR</button>`;
+        crumbsHtml += `<button onclick="openEditCategoryModal('${escapeJsStr(selectedCategory)}', event)" class="text-[11px] font-bold bg-purple-50 hover:bg-purple-100 text-[#5A358E] border border-purple-200 px-2 py-0.5 rounded-md" title="Edit Category Name & Bulk Rename Items">✏️ Edit Category</button>`;
       }
       if (selectedProductName) {
         crumbsHtml += `<span class="text-slate-300 text-xs">/</span>`;
@@ -1993,10 +2137,11 @@
       const categoryMap = new Map();
       baseFiltered.forEach(item => {
         const cat = item.category || 'Uncategorized';
-        if (!categoryMap.has(cat)) categoryMap.set(cat, { total: 0, available: 0 });
+        if (!categoryMap.has(cat)) categoryMap.set(cat, { total: 0, available: 0, selectedCount: 0 });
         const stat = categoryMap.get(cat);
         stat.total++;
         if (!item.activeCheckouts || item.activeCheckouts.length === 0) stat.available++;
+        if (selectedItemIds.has(item.id)) stat.selectedCount++;
       });
 
       const pillsContainer = document.getElementById('category-pills-container');
@@ -2008,8 +2153,29 @@
 
       Array.from(categoryMap.entries()).sort((a, b) => a[0].localeCompare(b[0])).forEach(([catName, stat]) => {
         const isSelected = selectedCategory === catName;
-        const btnClass = isSelected ? 'bg-[#5A358E] text-white border-[#5A358E] shadow-sm' : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200';
-        pillsHtml.push(`<button onclick="selectCategoryView('${escapeJsStr(catName)}')" class="px-3 py-1.5 rounded-lg border text-xs font-semibold transition flex items-center gap-1.5 ${btnClass}"><span>📂 ${escapeHtml(catName)}</span><span class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">${stat.available} Avail</span></button>`);
+        const allCatQrSelected = stat.total > 0 && stat.selectedCount === stat.total;
+        const wrapClass = isSelected ? 'bg-[#5A358E] text-white border-[#5A358E] shadow-sm' : 'bg-white text-slate-700 border-slate-200';
+        const qrBtnClass = allCatQrSelected
+          ? 'bg-emerald-600 text-white border-emerald-700'
+          : (isSelected ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700');
+        const editBtnClass = isSelected
+          ? 'bg-white/20 hover:bg-white/30 text-white'
+          : 'bg-slate-100 hover:bg-purple-50 text-slate-600 hover:text-[#5A358E]';
+
+        pillsHtml.push(`
+          <div class="inline-flex items-center rounded-lg border text-xs font-semibold transition overflow-hidden ${wrapClass}">
+            <button onclick="selectCategoryView('${escapeJsStr(catName)}')" class="px-2.5 py-1.5 flex items-center gap-1.5 hover:opacity-90">
+              <span>📂 ${escapeHtml(catName)}</span>
+              <span class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">${stat.available} Avail</span>
+            </button>
+            <button onclick="toggleSelectCategoryQRs('${escapeJsStr(catName)}', event)" class="px-2 py-1.5 border-l border-slate-200/40 text-[11px] font-bold transition ${qrBtnClass}" title="Mass select/unselect all ${stat.total} QR codes in ${escapeHtml(catName)}">
+              🖨️ ${stat.selectedCount > 0 ? `${stat.selectedCount}/${stat.total}` : 'QR'}
+            </button>
+            <button onclick="openEditCategoryModal('${escapeJsStr(catName)}', event)" class="px-2 py-1.5 border-l border-slate-200/40 text-[11px] transition ${editBtnClass}" title="Edit Category & Bulk Rename Items in ${escapeHtml(catName)}">
+              ✏️
+            </button>
+          </div>
+        `);
       });
       pillsContainer.innerHTML = pillsHtml.join('');
     }
@@ -2056,12 +2222,20 @@
       });
 
       Array.from(productGroups.values()).forEach(grp => {
+        const allGrpSelected = grp.total > 0 && grp.selectedForPrint === grp.total;
+        const qrBtnStyle = allGrpSelected
+          ? 'bg-[#0D9488] text-white border-[#0D9488]'
+          : 'bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 border-slate-200';
+
         const card = document.createElement('div');
         card.className = 'bg-white rounded-2xl shadow-sm border-l-4 border-[#5A358E] border-y border-r border-[#DCDDE1] p-5 flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5';
         card.innerHTML = `
           <div>
             <div class="flex justify-between items-center gap-2">
-              <button onclick="selectCategoryView('${escapeJsStr(grp.category)}')" class="text-[11px] font-bold bg-purple-50 hover:bg-purple-100 text-[#5A358E] px-2.5 py-0.5 rounded-md transition truncate">📂 ${escapeHtml(grp.category)}</button>
+              <div class="flex items-center gap-1 min-w-0">
+                <button onclick="selectCategoryView('${escapeJsStr(grp.category)}')" class="text-[11px] font-bold bg-purple-50 hover:bg-purple-100 text-[#5A358E] px-2.5 py-0.5 rounded-md transition truncate">📂 ${escapeHtml(grp.category)}</button>
+                <button onclick="openEditCategoryModal('${escapeJsStr(grp.category)}', event)" class="text-[11px] bg-slate-100 hover:bg-purple-100 text-slate-600 hover:text-[#5A358E] px-1.5 py-0.5 rounded transition shrink-0" title="Edit Category & Bulk Rename Items">✏️</button>
+              </div>
               <span class="text-[11px] font-mono font-bold text-slate-400 shrink-0">🏢 ${Array.from(grp.plants).join(', ')}</span>
             </div>
             <h3 onclick="selectProductTypeView('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}')" class="text-base font-bold text-slate-900 mt-2.5 hover:text-[#5A358E] cursor-pointer truncate">${escapeHtml(grp.name)}</h3>
@@ -2085,6 +2259,9 @@
           </div>
           <div class="mt-4 pt-3 border-t border-slate-100 flex items-center gap-2">
             <button onclick="selectProductTypeView('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}')" class="flex-1 bg-[#5A358E] hover:bg-[#3D2566] text-white text-xs font-bold py-2 px-3 rounded-lg transition truncate shadow-sm">View ${grp.total} Unit(s)</button>
+            <button onclick="toggleSelectProductGroupQRs('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}', event)" class="border text-xs font-bold py-2 px-2.5 rounded-lg transition shrink-0 ${qrBtnStyle}" title="Select/Unselect all units of this item for QR printing">
+              🖨️ ${grp.selectedForPrint}/${grp.total}
+            </button>
           </div>
         `;
         grid.appendChild(card);
@@ -2165,11 +2342,15 @@
 
     function toggleItemSelect(id, checked) {
       if (checked) selectedItemIds.add(id); else selectedItemIds.delete(id);
-      updateSelectedCounter();
+      renderInventory();
     }
 
     function toggleSelectAll(checked) {
-      const baseFiltered = getFilteredItems();
+      const baseFiltered = getFilteredItems().filter(item => {
+        const matchesCat = !selectedCategory || (item.category || 'Uncategorized') === selectedCategory;
+        const matchesProd = !selectedProductName || item.name === selectedProductName;
+        return matchesCat && matchesProd;
+      });
       baseFiltered.forEach(item => {
         if (checked) selectedItemIds.add(item.id); else selectedItemIds.delete(item.id);
       });
@@ -2186,6 +2367,10 @@
       if (selEl) selEl.textContent = count;
       const menuSelEl = document.getElementById('menu-selected-count');
       if (menuSelEl) menuSelEl.textContent = count;
+      const barBtn = document.getElementById('bar-unselect-all-btn');
+      if (barBtn) barBtn.classList.toggle('hidden', count === 0);
+      const barCount = document.getElementById('bar-selected-count');
+      if (barCount) barCount.textContent = count;
       const floatingBar = document.getElementById('floating-print-bar');
       if (floatingBar) floatingBar.classList.toggle('hidden', count === 0);
       const floatingCountEl = document.getElementById('floating-selected-count');
@@ -2194,7 +2379,7 @@
 
     function printSelectedQRCodes() {
       if (selectedItemIds.size === 0) {
-        alert('Select at least one unit checkbox to print QR labels.');
+        alert('Select at least one unit checkbox or category QR button to print QR labels.');
         return;
       }
       const printArea = document.getElementById('print-area');
