@@ -72,8 +72,6 @@
       background: #5A358E;
     }
   </style>
-  <!-- Prefetch help page and assets for instant navigation -->
-  <link rel="prefetch" href="help.html">
 </head>
 <body class="bg-[#FAF9F5] text-slate-800 min-h-screen pb-24 overflow-x-hidden">
 
@@ -123,10 +121,10 @@
         </button>
 
         <!-- Help & Support Desk Button -->
-        <a href="help.html" class="bg-[#0D9488] hover:bg-[#059669] text-white px-3.5 py-2 rounded-lg text-xs font-bold transition-all shadow-md hover:shadow-lg flex items-center gap-1.5 active:scale-95">
+        <button onclick="openHelpModal()" class="bg-[#0D9488] hover:bg-[#059669] text-white px-3.5 py-2 rounded-lg text-xs font-bold transition-all shadow-md hover:shadow-lg flex items-center gap-1.5 active:scale-95">
           <span>🙋‍♂️</span>
           <span>Help & Support</span>
-        </a>
+        </button>
 
         <!-- Primary Add Button -->
         <button onclick="openItemModal()" class="bg-[#5A358E] hover:bg-[#623a9c] text-white px-3.5 py-2 rounded-lg text-xs font-bold transition-all shadow-md hover:shadow-lg flex items-center gap-1.5 active:scale-95">
@@ -144,7 +142,7 @@
 
           <div id="settings-dropdown" class="hidden absolute right-0 mt-2 w-56 bg-white text-slate-800 rounded-xl shadow-2xl border border-slate-200 py-1.5 z-50 text-xs font-medium">
             <div class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-purple-800">System Management</div>
-            <a href="help.html" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5 text-xs font-medium"><span>🙋‍♂️</span> Help & Feedback Desk</a>
+            <button onclick="closeSettingsMenu(); openHelpModal()" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5"><span>🙋‍♂️</span> Help & Feedback Desk</button>
             <button onclick="closeSettingsMenu(); openPlantModal()" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5">
               <span>🏢</span> Manage Plants
             </button>
@@ -585,7 +583,7 @@
       <!-- Device info card -->
       <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3.5">
         <div>
-          <span class="text-[10px] uppercase font-bold text-slate-400">Assigned Unit</span>
+          <span class="text-[10px] uppercase font-bold text-slate-404">Assigned Unit</span>
           <h3 id="receipt-item-name" class="text-lg font-bold text-[#5A358E]"></h3>
         </div>
         
@@ -696,7 +694,7 @@
           <span class="text-xl">🔔</span>
           <div>
             <h2 class="text-base font-bold text-slate-900">Live App Check-Out Notifications</h2>
-            <p class="text-xs text-slate-550">Synced across all connected devices in real time</p>
+            <p class="text-xs text-slate-555">Synced across all connected devices in real time</p>
           </div>
         </div>
         <button onclick="closeNotificationsModal()" class="text-slate-400 hover:text-slate-755 text-2xl leading-none">&times;</button>
@@ -722,7 +720,7 @@
         <h2 class="text-base font-bold text-slate-900">✉️ Email Alert Configuration</h2>
         <button onclick="closeEmailConfigModal()" class="text-slate-400 hover:text-slate-755 text-2xl leading-none">&times;</button>
       </div>
-      <div class="text-xs text-slate-600 space-y-1.5 mb-4 bg-slate-50 p-3 rounded-xl border">
+      <div class="text-xs text-slate-605 space-y-1.5 mb-4 bg-slate-50 p-3 rounded-xl border">
         <p><strong>1. Default Mode (Zero Setup):</strong> Opens a pre-filled email receipt addressed to the person checking out the unit.</p>
         <p><strong>2. Silent Automatic Mode (EmailJS):</strong> Enter free <a href="https://www.emailjs.com/" target="_blank" class="text-[#5A358E] underline font-semibold">EmailJS</a> keys below to send emails silently in the background.</p>
       </div>
@@ -1027,7 +1025,505 @@
     </div>
   </div>
 
+  <!-- MODAL: Help & Support Desk (Combined Zero-Delay inline) -->
+  <div id="help-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print backdrop-blur-sm">
+    <div class="bg-white rounded-2xl max-w-5xl w-full p-6 shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
+      <!-- Modal Header -->
+      <div class="flex justify-between items-center border-b pb-3 mb-4 shrink-0">
+        <div class="flex items-center gap-2.5">
+          <span class="text-xl">🙋‍♂️</span>
+          <div>
+            <h2 class="text-base font-bold text-slate-900">StorageLocater Support Desk</h2>
+            <p class="text-xs text-slate-500">Report broken items, wishlist new equipment, or optimize safety/torque instructions inline.</p>
+          </div>
+        </div>
+        <button onclick="closeHelpModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
+      </div>
+
+      <!-- Scrollable Main Container -->
+      <div class="overflow-y-auto flex-1 pr-1 space-y-6">
+        <!-- Hero / Intro Banner -->
+        <div class="bg-white rounded-2xl p-5 border border-[#DCDDE1] flex flex-col md:flex-row items-center justify-between gap-6">
+          <div class="space-y-1">
+            <h3 class="text-lg font-bold text-[#251440]">How can we improve your workflow today?</h3>
+            <p class="text-xs text-slate-600 max-w-2xl">Welcome to the Help & Requests Desk. Use this portal to report concerns or broken items, request brand-new tools/inventory, suggest safer and clearer work instructions, or view submitted feedback from other technicians across all plants.</p>
+          </div>
+          <div class="shrink-0 flex gap-2">
+            <button onclick="pullFromCloud(true)" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-250 font-semibold px-3.5 py-2 rounded-lg transition active:scale-95">
+              🔄 Sync Database
+            </button>
+          </div>
+        </div>
+
+        <!-- Main Workspace Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          <!-- Left Column: Forms Navigator Tabs -->
+          <div class="lg:col-span-1 space-y-2">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Select support category</p>
+            <button id="help-tab-concern" onclick="switchHelpTab('concern')" class="w-full text-left p-3.5 rounded-xl border font-bold text-sm transition flex items-center gap-3 bg-[#5A358E] text-white border-[#5A358E]">
+              <span class="text-lg">⚠️</span>
+              <div class="min-w-0">
+                <p class="truncate">Report Issue / Broken Item</p>
+                <p class="text-[11px] font-medium opacity-80 truncate">Flag existing items as broken or needing repair</p>
+              </div>
+            </button>
+            
+            <button id="help-tab-request" onclick="switchHelpTab('request')" class="w-full text-left p-3.5 rounded-xl border font-bold text-sm transition flex items-center gap-3 bg-white hover:bg-slate-50 border-slate-200 text-slate-700">
+              <span class="text-lg">➕</span>
+              <div class="min-w-0">
+                <p class="truncate">Request New Inventory</p>
+                <p class="text-[11px] font-medium text-slate-450 truncate">Wishlist items to be added to stock</p>
+              </div>
+            </button>
+
+            <button id="help-tab-instructions" onclick="switchHelpTab('instructions')" class="w-full text-left p-3.5 rounded-xl border font-bold text-sm transition flex items-center gap-3 bg-white hover:bg-slate-50 border-slate-200 text-slate-700">
+              <span class="text-lg">🛠️</span>
+              <div class="min-w-0">
+                <p class="truncate">Improve Work Instructions</p>
+                <p class="text-[11px] font-medium text-slate-450 truncate">Optimize PPE, steps, and safety guides</p>
+              </div>
+            </button>
+
+            <button id="help-tab-logs" onclick="switchHelpTab('logs')" class="w-full text-left p-3.5 rounded-xl border font-bold text-sm transition flex items-center gap-3 bg-white hover:bg-slate-50 border-slate-200 text-slate-700">
+              <span class="text-lg">📜</span>
+              <div class="min-w-0">
+                <p class="truncate">Live Concerns & Wishlist Log</p>
+                <p class="text-[11px] font-medium text-slate-450 truncate">Monitor active requests & submissions</p>
+              </div>
+            </button>
+          </div>
+
+          <!-- Right Column: Active Form Workspace -->
+          <div class="lg:col-span-2">
+            <div class="bg-white rounded-xl p-5 border border-[#DCDDE1] min-h-[350px]">
+              
+              <!-- SECTION 1: REPORT CONCERN / BROKEN -->
+              <div id="help-section-concern" class="space-y-4">
+                <div>
+                  <h3 class="text-base font-bold text-slate-900">⚠️ Report Issue or Broken Item</h3>
+                  <p class="text-xs text-slate-500">Flag an existing item in inventory that is currently damaged, broken, or has other concerns.</p>
+                </div>
+                <form onsubmit="submitHelpConcern(event)" class="space-y-3.5">
+                  <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Select Existing Item *</label>
+                    <select id="help-concern-item-id" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#5A358E]">
+                      <!-- Populated dynamically -->
+                    </select>
+                  </div>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Select New Quality State *</label>
+                      <select id="help-concern-quality" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#5A358E]">
+                        <option value="Needs Repair">⚠️ Needs Repair</option>
+                        <option value="Broken">❌ Broken / Non-Functional</option>
+                        <option value="Good">Good (Keep same, just general concern)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Your User ID *</label>
+                      <input type="text" id="help-concern-user" required placeholder="e.g. u123456" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
+                    </div>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Describe the Concern / Issue *</label>
+                    <textarea id="help-concern-desc" required rows="3" placeholder="Explain what is wrong with the unit, what parts are broken, or what specific issue exists..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]"></textarea>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">How does this affect the Job at hand? *</label>
+                    <textarea id="help-concern-impact" required rows="2" placeholder="e.g. Assembly line delayed, cannot calibrate main drives safely..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]"></textarea>
+                  </div>
+                  <div class="pt-3 border-t">
+                    <button type="submit" class="bg-[#5A358E] hover:bg-[#3D2566] text-white font-bold text-xs px-6 py-2.5 rounded-lg transition shadow-md">
+                      Submit Concern & Flag Item
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              <!-- SECTION 2: REQUEST NEW INVENTORY -->
+              <div id="help-section-request" class="space-y-4 hidden">
+                <div>
+                  <h3 class="text-base font-bold text-slate-900">➕ Request New Items / Inventory</h3>
+                  <p class="text-xs text-slate-500">Wishlist items or equipment that you wish were available in stock to assist with your job.</p>
+                </div>
+                <form onsubmit="submitHelpInventoryRequest(event)" class="space-y-3.5">
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Requested Item Name *</label>
+                      <input type="text" id="help-req-name" required placeholder="e.g. Digital Caliper 12-inch" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
+                    </div>
+                    <div>
+                      <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Category / Type *</label>
+                      <input type="text" id="help-req-category" required placeholder="e.g. Measurement Tools" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
+                    </div>
+                  </div>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Plant Location Suggested *</label>
+                      <select id="help-req-plant" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#5A358E]">
+                        <!-- Populated dynamically -->
+                      </select>
+                    </div>
+                    <div>
+                      <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Your User ID *</label>
+                      <input type="text" id="help-req-user" required placeholder="e.g. u123456" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
+                    </div>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Explain how this would be helpful to the job at hand *</label>
+                    <textarea id="help-req-reason" required rows="3" placeholder="Describe specifically what task this item is needed for and why the current stock is insufficient..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]"></textarea>
+                  </div>
+                  <div class="pt-3 border-t">
+                    <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-6 py-2.5 rounded-lg transition shadow-md">
+                      Submit Request to Wishlist
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              <!-- SECTION 3: IMPROVE WORK INSTRUCTIONS -->
+              <div id="help-section-instructions" class="space-y-4 hidden">
+                <div>
+                  <h3 class="text-base font-bold text-slate-900">🛠️ Suggest / Update Work Instructions</h3>
+                  <p class="text-xs text-slate-500">Select any tool or asset and propose safer, better work instructions or torque values to help future operators.</p>
+                </div>
+                <form onsubmit="submitHelpWorkInstructions(event)" class="space-y-3.5">
+                  <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Select Target Item *</label>
+                    <select id="help-inst-item-id" required onchange="showHelpCurrentInstructions()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#5A358E]">
+                      <!-- Populated dynamically -->
+                    </select>
+                  </div>
+                  
+                  <!-- Current Work Instructions Display box -->
+                  <div class="bg-slate-50 p-3 rounded-lg border text-xs">
+                    <span class="font-bold text-slate-400 block uppercase tracking-wider mb-1">Current Work Instructions:</span>
+                    <p id="help-inst-current-display" class="text-slate-700 italic whitespace-pre-line">No current instructions.</p>
+                  </div>
+
+                  <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Proposed Better Work Instructions *</label>
+                    <textarea id="help-inst-new-text" required rows="4" placeholder="Step 1. Wear appropriate PPE...\\nStep 2. Calibrate to factory default..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#5A358E]"></textarea>
+                  </div>
+
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Submitter User ID *</label>
+                      <input type="text" id="help-inst-user" required placeholder="e.g. u123456" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
+                    </div>
+                    <div>
+                      <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Reason for Improvement *</label>
+                      <input type="text" id="help-inst-reason" required placeholder="e.g. Added torque specifications and extra safety glove PPE" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
+                    </div>
+                  </div>
+
+                  <div class="pt-3 border-t">
+                    <button type="submit" class="bg-[#5A358E] hover:bg-[#3D2566] text-white font-bold text-xs px-6 py-2.5 rounded-lg transition shadow-md">
+                      Update Work Instructions Directly
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              <!-- SECTION 4: CONCERNS & WISHLIST LOGS -->
+              <div id="help-section-logs" class="space-y-4 hidden">
+                <div class="flex justify-between items-center gap-2">
+                  <div>
+                    <h3 class="text-base font-bold text-slate-900">📜 Submitted Concerns & Wishlist log</h3>
+                    <p class="text-xs text-slate-505">Active requests, broken reports, and suggested work instructions submitted by users.</p>
+                  </div>
+                  <button onclick="clearHelpLogs()" class="text-xs bg-rose-50 text-rose-700 font-bold px-2.5 py-1.5 rounded-lg hover:bg-rose-100 shrink-0">
+                    Clear Log
+                  </button>
+                </div>
+
+                <div id="help-logs-container" class="space-y-3 max-h-[400px] overflow-y-auto pr-1">
+                  <!-- Populated by JS -->
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+      
+      <!-- Modal Footer -->
+      <div class="flex justify-end pt-3 mt-4 border-t shrink-0">
+        <button onclick="closeHelpModal()" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium">Close Support Desk</button>
+      </div>
+    </div>
+  </div>
+
   <script>
+    // ============================================================================
+    // HELP DESK & SUPPORT SYSTEM INTEGRATION (Zero-Delay Inline MODAL)
+    // ============================================================================
+    const STORAGE_KEY_HELP_LOGS = 'PLANT_QR_HELP_LOGS_V8';
+    let helpLogs = JSON.parse(localStorage.getItem(STORAGE_KEY_HELP_LOGS)) || [];
+
+    function openHelpModal() {
+      populateHelpDropdowns();
+      renderHelpLogs();
+      const modal = document.getElementById('help-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeHelpModal() {
+      const modal = document.getElementById('help-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function switchHelpTab(tabId) {
+      const tabs = ['concern', 'request', 'instructions', 'logs'];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`help-tab-${t}`);
+        const sec = document.getElementById(`help-section-${t}`);
+        if (t === tabId) {
+          btn.className = "w-full text-left p-3.5 rounded-xl border font-bold text-sm transition flex items-center gap-3 bg-[#5A358E] text-white border-[#5A358E]";
+          sec.classList.remove('hidden');
+        } else {
+          btn.className = "w-full text-left p-3.5 rounded-xl border font-bold text-sm transition flex items-center gap-3 bg-white hover:bg-slate-50 border-slate-200 text-slate-700";
+          sec.classList.add('hidden');
+        }
+      });
+      if (tabId === 'logs') renderHelpLogs();
+    }
+
+    function populateHelpDropdowns() {
+      const concernSelect = document.getElementById('help-concern-item-id');
+      const instSelect = document.getElementById('help-inst-item-id');
+      const plantSelect = document.getElementById('help-req-plant');
+
+      concernSelect.innerHTML = '';
+      instSelect.innerHTML = '';
+      plantSelect.innerHTML = '';
+
+      items.forEach(item => {
+        const optionText = `📦 ${item.name} [TAG: ${item.tag} / CODE: ${item.itemCode || 'N/A'}]`;
+        concernSelect.innerHTML += `<option value="${item.id}">${optionText}</option>`;
+        instSelect.innerHTML += `<option value="${item.id}">${optionText}</option>`;
+      });
+
+      plants.forEach(p => {
+        plantSelect.innerHTML += `<option value="${p.code}">${p.code} — ${p.name}</option>`;
+      });
+
+      showHelpCurrentInstructions();
+    }
+
+    function showHelpCurrentInstructions() {
+      const instSelect = document.getElementById('help-inst-item-id');
+      const targetId = instSelect.value;
+      const targetItem = items.find(i => i.id === targetId);
+      const displayEl = document.getElementById('help-inst-current-display');
+      const textInput = document.getElementById('help-inst-new-text');
+
+      if (targetItem) {
+        displayEl.textContent = targetItem.instructions || 'No work instructions provided yet.';
+        textInput.value = targetItem.instructions || '';
+      } else {
+        displayEl.textContent = 'No item selected.';
+        textInput.value = '';
+      }
+    }
+
+    async function submitHelpConcern(e) {
+      e.preventDefault();
+      const itemId = document.getElementById('help-concern-item-id').value;
+      const newQuality = document.getElementById('help-concern-quality').value;
+      const submitter = document.getElementById('help-concern-user').value.trim();
+      const desc = document.getElementById('help-concern-desc').value.trim();
+      const impact = document.getElementById('help-concern-impact').value.trim();
+
+      const item = items.find(i => i.id === itemId);
+      if (!item) return;
+
+      item.quality = newQuality;
+
+      const now = Date.now();
+      const logEntry = {
+        id: 'hl-' + now,
+        type: 'CONCERN',
+        itemName: item.name,
+        itemTag: item.tag,
+        itemCode: item.itemCode,
+        quality: newQuality,
+        user: submitter,
+        description: desc,
+        impact: impact,
+        timestamp: now
+      };
+      helpLogs.unshift(logEntry);
+
+      await saveState();
+
+      addAppNotification(
+        'CHECK_IN',
+        `${item.name} Marked as ${newQuality}`,
+        `${submitter} reported concern: "${desc}". Impact: ${impact}`,
+        item.tag
+      );
+
+      alert(`Successfully reported concern! Item ${item.tag} is now flagged as "${newQuality}".`);
+      document.getElementById('help-concern-desc').value = '';
+      document.getElementById('help-concern-impact').value = '';
+      switchHelpTab('logs');
+    }
+
+    async function submitHelpInventoryRequest(e) {
+      e.preventDefault();
+      const name = document.getElementById('help-req-name').value.trim();
+      const category = document.getElementById('help-req-category').value.trim();
+      const plant = document.getElementById('help-req-plant').value;
+      const user = document.getElementById('help-req-user').value.trim();
+      const reason = document.getElementById('help-req-reason').value.trim();
+
+      const now = Date.now();
+      const logEntry = {
+        id: 'hl-' + now,
+        type: 'WISHLIST_REQ',
+        itemName: name,
+        category: category,
+        plantCode: plant,
+        user: user,
+        description: reason,
+        timestamp: now
+      };
+      helpLogs.unshift(logEntry);
+
+      await saveState();
+
+      alert(`Successfully submitted wishlist request for "${name}"!`);
+      document.getElementById('help-req-name').value = '';
+      document.getElementById('help-req-category').value = '';
+      document.getElementById('help-req-reason').value = '';
+      switchHelpTab('logs');
+    }
+
+    async function submitHelpWorkInstructions(e) {
+      e.preventDefault();
+      const itemId = document.getElementById('help-inst-item-id').value;
+      const newText = document.getElementById('help-inst-new-text').value.trim();
+      const user = document.getElementById('help-inst-user').value.trim();
+      const reason = document.getElementById('help-inst-reason').value.trim();
+
+      const item = items.find(i => i.id === itemId);
+      if (!item) return;
+
+      const oldText = item.instructions || 'None';
+      item.instructions = newText;
+
+      const now = Date.now();
+      const logEntry = {
+        id: 'hl-' + now,
+        type: 'WORK_INSTRUCTIONS_UPDATE',
+        itemName: item.name,
+        itemTag: item.tag,
+        itemCode: item.itemCode,
+        user: user,
+        description: `Work instructions updated. Reason: ${reason}`,
+        oldInstructions: oldText,
+        newInstructions: newText,
+        timestamp: now
+      };
+      helpLogs.unshift(logEntry);
+
+      await saveState();
+
+      addAppNotification(
+        'CHECK_IN',
+        `Work Instructions Updated for ${item.name}`,
+        `${user} updated instructions. Reason: ${reason}`,
+        item.tag
+      );
+
+      alert(`Work instructions updated successfully for ${item.tag}!`);
+      document.getElementById('help-inst-reason').value = '';
+      showHelpCurrentInstructions();
+      switchHelpTab('logs');
+    }
+
+    function renderHelpLogs() {
+      const container = document.getElementById('help-logs-container');
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (helpLogs.length === 0) {
+        container.innerHTML = '<div class="p-8 text-center text-slate-400 text-sm">No support reports or requests logged yet.</div>';
+        return;
+      }
+
+      helpLogs.forEach(entry => {
+        const div = document.createElement('div');
+        div.className = 'p-4 rounded-xl border text-xs space-y-2 ';
+        const dateStr = new Date(entry.timestamp).toLocaleString();
+
+        if (entry.type === 'CONCERN') {
+          div.className += 'bg-rose-50/50 border-rose-200';
+          div.innerHTML = `
+            <div class="flex justify-between items-start">
+              <div>
+                <span class="bg-rose-500 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">⚠️ Concern Report</span>
+                <span class="font-bold text-slate-900 ml-2">${escapeHtml(entry.itemName)}</span>
+                <span class="font-mono text-slate-500">(${escapeHtml(entry.itemTag)})</span>
+              </div>
+              <span class="text-[10px] font-mono text-slate-400">${dateStr}</span>
+            </div>
+            <p class="text-slate-700"><strong>Reported Quality:</strong> <span class="text-rose-700 font-bold">${escapeHtml(entry.quality)}</span></p>
+            <p class="text-slate-700"><strong>Concern:</strong> ${escapeHtml(entry.description)}</p>
+            <p class="text-slate-700"><strong>Job Impact:</strong> <span class="italic text-rose-800">${escapeHtml(entry.impact)}</span></p>
+            <div class="text-[10px] text-slate-400">Submitted by: <strong>${escapeHtml(entry.user)}</strong></div>
+          `;
+        } else if (entry.type === 'WISHLIST_REQ') {
+          div.className += 'bg-emerald-50/50 border-emerald-200';
+          div.innerHTML = `
+            <div class="flex justify-between items-start">
+              <div>
+                <span class="bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">➕ Wishlist Request</span>
+                <span class="font-bold text-slate-900 ml-2">${escapeHtml(entry.itemName)}</span>
+                <span class="bg-slate-100 text-slate-600 border px-2 py-0.2 rounded font-mono font-semibold ml-2">${escapeHtml(entry.category)}</span>
+              </div>
+              <span class="text-[10px] font-mono text-slate-400">${dateStr}</span>
+            </div>
+            <p class="text-slate-700"><strong>Plant Location suggested:</strong> 🏢 ${escapeHtml(entry.plantCode)}</p>
+            <p class="text-slate-700"><strong>Workflow Assistance / Benefit:</strong> ${escapeHtml(entry.description)}</p>
+            <div class="text-[10px] text-slate-450">Submitted by: <strong>${escapeHtml(entry.user)}</strong></div>
+          `;
+        } else if (entry.type === 'WORK_INSTRUCTIONS_UPDATE') {
+          div.className += 'bg-purple-50/50 border-purple-200';
+          div.innerHTML = `
+            <div class="flex justify-between items-start">
+              <div>
+                <span class="bg-purple-600 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">🛠️ Instruction Update</span>
+                <span class="font-bold text-slate-900 ml-2">${escapeHtml(entry.itemName)}</span>
+                <span class="font-mono text-slate-500">(${escapeHtml(entry.itemTag)})</span>
+              </div>
+              <span class="text-[10px] font-mono text-slate-400">${dateStr}</span>
+            </div>
+            <p class="text-slate-700"><strong>Reason:</strong> ${escapeHtml(entry.description)}</p>
+            <div class="bg-white border rounded p-2 text-slate-800 font-mono text-[11px] whitespace-pre-line mt-1">
+              <strong>Updated Instructions:</strong>\\n${escapeHtml(entry.newInstructions)}
+            </div>
+            <div class="text-[10px] text-slate-455 mt-1">Updated by: <strong>${escapeHtml(entry.user)}</strong></div>
+          `;
+        }
+
+        container.appendChild(div);
+      });
+    }
+
+    async function clearHelpLogs() {
+      if (!confirm('Permanently clear all support & helpdesk log entries?')) return;
+      helpLogs = [];
+      localStorage.setItem(STORAGE_KEY_HELP_LOGS, JSON.stringify(helpLogs));
+      renderHelpLogs();
+      await saveState();
+    }
+
     // ============================================================================
     // 1. LIVE FIREBASE, EMAIL & GITHUB CONFIGURATION
     // ============================================================================
@@ -1343,7 +1839,7 @@
         div.innerHTML = `
           <div class="space-y-1">
             <div class="flex items-center gap-2 flex-wrap">
-              <span class="bg-rose-500 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">🗑️ Consumed</span>
+              <span class="bg-rose-500 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase font-semibold">🗑️ Consumed</span>
               <span class="font-mono font-bold text-rose-900 bg-rose-15 px-2 py-0.5 rounded border border-rose-200">${escapeHtml(item.tag)}</span>
               <span class="font-bold text-slate-900">${escapeHtml(item.name)}</span>
               <span class="font-mono text-slate-400">(${escapeHtml(item.itemCode)})</span>
@@ -1665,7 +2161,7 @@
       
       filtered.forEach(u => {
         const div = document.createElement('div');
-        div.className = 'p-2.5 flex justify-between items-center text-xs hover:bg-slate-50';
+        div.className = 'p-2.5 flex justify-between items-center text-xs hover:bg-slate-55';
         div.innerHTML = `
           <div>
             <span class="font-mono font-bold bg-slate-100 border px-2 py-0.5 rounded text-[#5A358E]">${escapeHtml(u.username)}</span>
@@ -1745,7 +2241,7 @@
               continue;
             }
             
-            const email = String(row[2] || '').trim();
+            const email = String(row || '').trim();
             
             if (!email) {
               missingEmailCount++;
@@ -1805,11 +2301,10 @@
       const found = users.find(u => u.username.toLowerCase() === typedId);
       if (found) {
         msg.textContent = `✓ Verified: ${found.name}`;
-        msg.className = 'text-[11px] mt-1 font-semibold text-emerald-600';
+        msg.className = 'text-[11px] mt-1 font-semibold text-emerald-605';
         icon.textContent = '✅';
         nameHidden.value = found.name;
         emailInput.value = found.email || '';
-
         submitBtn.disabled = false;
         submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
       } else {
@@ -1843,6 +2338,7 @@
       localStorage.setItem(STORAGE_KEY_EMAIL, JSON.stringify(emailConfig));
       localStorage.setItem(STORAGE_KEY_QR_BASE, permanentQrBaseUrl);
       localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
+      localStorage.setItem(STORAGE_KEY_HELP_LOGS, JSON.stringify(helpLogs));
       await pushToCloud(false);
     }
 
@@ -1859,6 +2355,7 @@
           emailConfig,
           permanentQrBaseUrl,
           users,
+          helpLogs,
           updatedAt: Date.now()
         };
         const res = await fetch(endpoint, {
@@ -1891,6 +2388,10 @@
           users = data.users || [
             { username: 'u123456', name: 'Jane Doe', email: 'jane.doe@tranetechnologies.com' }
           ];
+          if (data.helpLogs) {
+            helpLogs = data.helpLogs;
+            localStorage.setItem(STORAGE_KEY_HELP_LOGS, JSON.stringify(helpLogs));
+          }
           localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
 
           if (Array.isArray(data.appNotifications)) {
@@ -1939,6 +2440,7 @@
       modal.classList.add('flex');
     }
 
+    // Modal Control
     function closeCloudModal() {
       const modal = document.getElementById('cloud-modal');
       modal.classList.add('hidden');
@@ -2336,7 +2838,6 @@
         userName: returnedBy,
         userEmail: previousEmail,
         destination: originDestination,
-        quantity: 1,
         notes,
         qualityAtEvent: quality,
         durationMs,
@@ -2404,13 +2905,13 @@
               ${rec.userEmail ? `<span class="text-purple-755 font-mono ml-1">(${escapeHtml(rec.userEmail)})</span>` : ''}
               <span class="mx-1.5 text-slate-300">•</span>
               <span class="font-semibold text-purple-800">📍 ${escapeHtml(rec.destination)}</span>
-              <div class="text-slate-550 mt-0.5">Checked Out: ${new Date(rec.checkedOutAt).toLocaleString()} ${rec.notes ? `| Note: ${escapeHtml(rec.notes)}` : ''}</div>
+              <div class="text-slate-555 mt-0.5">Checked Out: ${new Date(rec.checkedOutAt).toLocaleString()} ${rec.notes ? `| Note: ${escapeHtml(rec.notes)}` : ''}</div>
             </div>
             <div class="flex items-center gap-3">
               <span class="font-mono font-bold text-amber-850 bg-amber-200/70 px-2.5 py-1 rounded-lg" data-live-timer="${rec.checkedOutAt}">
                 ${formatElapsedDuration(rec.checkedOutAt)}
               </span>
-              <button onclick="closeHistoryModal(); openCheckInModal('${item.id}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-lg font-bold">
+              <button onclick="closeHistoryModal(); openCheckInModal('${item.id}')" class="bg-emerald-650 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-lg font-bold">
                 Check In
               </button>
             </div>
@@ -2605,7 +3106,7 @@
       }
 
       const breadcrumbBar = document.getElementById('breadcrumb-bar');
-      let crumbsHtml = `<button onclick="resetToOverview()" class="text-xs font-bold text-[#5A358E] hover:underline flex items-center gap-1">🏠 Overview</button>`;
+      let crumbsHtml = `<button onclick="resetToOverview()" class="text-xs font-bold text-[#5A358E] hover:underline flex items-center gap-1.5">🏠 Overview</button>`;
       if (selectedCategory) {
         crumbsHtml += `<span class="text-slate-300 text-xs">/</span>`;
         crumbsHtml += `<button onclick="selectCategoryView('${escapeJsStr(selectedCategory)}')" class="text-xs font-semibold text-slate-700 bg-slate-105 hover:bg-slate-200 px-2 py-0.5 rounded-md">${escapeHtml(selectedCategory)}</button>`;
@@ -2635,12 +3136,12 @@
       pillsContainer.innerHTML = '';
 
       const totalAvailableAll = baseFiltered.filter(i => !i.activeCheckouts || i.activeCheckouts.length === 0).length;
-      const allActiveClass = (!selectedCategory && viewMode === 'OVERVIEW')
+      const allActiveStyle = (!selectedCategory && viewMode === 'OVERVIEW')
         ? 'bg-[#5A358E] text-white border-[#5A358E]'
         : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200';
 
       pillsContainer.innerHTML += `
-        <button onclick="resetToOverview()" class="px-3 py-1.5 rounded-lg border text-xs font-semibold transition flex items-center gap-1.5 ${allActiveClass}">
+        <button onclick="resetToOverview()" class="px-3 py-1.5 rounded-lg border text-xs font-semibold transition flex items-center gap-1.5 ${allActiveStyle}">
           <span>All Categories</span>
           <span class="px-1.5 py-0.2 rounded bg-[#0D9488] text-white text-[10px] font-bold">${totalAvailableAll}/${baseFiltered.length}</span>
         </button>
@@ -2756,7 +3257,7 @@
             <h3 onclick="selectProductTypeView('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}')" class="text-base font-bold text-slate-900 mt-2.5 hover:text-[#5A358E] cursor-pointer truncate">
               ${escapeHtml(grp.name)}
             </h3>
-            <div class="flex items-center justify-between text-[11px] text-slate-400 mt-1 gap-2">
+            <div class="flex items-center justify-between text-[11px] text-slate-404 mt-1 gap-2">
               <span class="truncate">📍 ${escapeHtml(Array.from(grp.locations).join(', '))}</span>
               <span class="font-mono shrink-0">${escapeHtml(grp.sampleCode)}-XXXX</span>
             </div>
@@ -2857,7 +3358,7 @@
             <div class="text-xs bg-amber-50/70 border border-amber-200 rounded-lg p-2 max-w-[220px]">
               <div class="font-bold text-slate-900 truncate">👤 ${escapeHtml(latest.userName)} → ${escapeHtml(latest.destination)}</div>
               <div class="flex items-center justify-between mt-0.5">
-                <span class="text-[10px] text-slate-400">Timer:</span>
+                <span class="text-[10px] text-slate-404">Timer:</span>
                 <span class="font-mono font-bold text-amber-700 text-[11px]" data-live-timer="${latest.checkedOutAt}">${formatElapsedDuration(latest.checkedOutAt)}</span>
               </div>
             </div>
@@ -2896,7 +3397,7 @@
           </td>
           <td class="p-3">
             <div class="text-xs font-bold text-slate-700">${escapeHtml(item.plantCode)}</div>
-            <div class="text-[11px] text-slate-505">${escapeHtml(item.location)}</div>
+            <div class="text-[11px] text-slate-555">${escapeHtml(item.location)}</div>
           </td>
           <td class="p-3">
             <select onchange="quickChangeQuality('${item.id}', this.value)" class="text-xs border border-slate-200 rounded-md px-2 py-1 bg-white font-semibold text-slate-700 cursor-pointer">
@@ -3173,16 +3674,16 @@
       plants.forEach(p => {
         const count = items.filter(i => i.plantCode === p.code).length;
         const div = document.createElement('div');
-        div.className = 'p-3 flex justify-between items-center text-sm hover:bg-slate-50';
+        div.className = 'p-3 flex justify-between items-center text-sm hover:bg-slate-55';
         div.innerHTML = `
           <div>
             <span class="font-mono font-bold bg-slate-100 border px-2 py-0.5 rounded text-[#5A358E]">${escapeHtml(p.code)}</span>
             <span class="font-semibold text-slate-800 ml-2">${escapeHtml(p.name)}</span>
-            <span class="text-xs text-slate-404 ml-1">(${count} units)</span>
+            <span class="text-xs text-slate-404 ml-1">( ${count} units)</span>
           </div>
           <div class="space-x-1">
             <button onclick="startEditPlant('${p.code}')" class="text-xs bg-purple-55 text-[#5A358E] px-2.5 py-1 rounded-md hover:bg-purple-100">Edit</button>
-            <button onclick="deletePlant('${p.code}')" class="text-xs bg-rose-50 text-rose-700 px-2.5 py-1 rounded-md hover:bg-rose-100">Remove</button>
+            <button onclick="deletePlant('${p.code}')" class="text-xs bg-rose-50 text-rose-700 px-2.5 py-1 rounded-md hover:bg-rose-105">Remove</button>
           </div>
         `;
         container.appendChild(div);
@@ -3455,7 +3956,7 @@
       return String(str || '').replace(/\\\\/g, '\\\\\\\\').replace(/'/g, "\\\\'");
     }
 
-    // --- INITIALIZE ---
+    // --- INITIALIZE & AUTO-POLL CLOUD EVERY 6 SECONDS ---
     async function initApp() {
       populatePlantDropdowns();
       renderInventory();
