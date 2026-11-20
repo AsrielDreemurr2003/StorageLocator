@@ -115,7 +115,7 @@
           <div id="section-concern" class="space-y-4">
             <div>
               <h3 class="text-lg font-bold text-slate-900">⚠️ Report Issue or Broken Item</h3>
-              <p class="text-xs text-slate-500">Flag an existing item in inventory that is currently damaged, broken, or has other concerns.</p>
+              <p class="text-xs text-slate-505">Flag an existing item in inventory that is currently damaged, broken, or has other concerns.</p>
             </div>
             <form onsubmit="submitConcern(event)" class="space-y-4">
               <div>
@@ -513,7 +513,7 @@
             </div>
             <p class="text-slate-700"><strong>Plant Location suggested:</strong> 🏢 ${escapeHtml(entry.plantCode)}</p>
             <p class="text-slate-700"><strong>Workflow Assistance / Benefit:</strong> ${escapeHtml(entry.description)}</p>
-            <div class="text-[10px] text-slate-450">Submitted by: <strong>${escapeHtml(entry.user)}</strong></div>
+            <div class="text-[10px] text-slate-455">Submitted by: <strong>${escapeHtml(entry.user)}</strong></div>
           `;
         } else if (entry.type === 'WORK_INSTRUCTIONS_UPDATE') {
           div.className += 'bg-purple-50/50 border-purple-200';
@@ -643,12 +643,17 @@
 
     // Init Help Page
     async function initHelp() {
+      // 1. Instantly populate dropdowns and render logs from cached localStorage data (0ms delay)
       populateDropdowns();
-      await pullFromCloud(false);
-      // Auto-refresh every 6 seconds to keep synced with dashboard
+      renderLogs();
+      
+      // 2. Fetch the latest live cloud state in the background without blocking the UI
+      pullFromCloud(false);
+      
+      // 3. Keep the page updated with dashboard events using a faster 2-second background refresh interval
       setInterval(() => {
         pullFromCloud(false);
-      }, 6000);
+      }, 2000);
     }
 
     initHelp();
