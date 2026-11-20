@@ -114,6 +114,12 @@
           <span id="notif-unread-badge" class="hidden bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full">0</span>
         </button>
 
+        <!-- Auto Check-Out Button -->
+        <button onclick="openAutoCheckoutModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-lg text-xs font-bold transition-all shadow-md hover:shadow-lg flex items-center gap-1.5 active:scale-95 mr-1">
+          <span>🎯</span>
+          <span>Auto Check-Out</span>
+        </button>
+
         <!-- Primary Add Button -->
         <button onclick="openItemModal()" class="bg-[#5A358E] hover:bg-[#623a9c] text-white px-3.5 py-2 rounded-lg text-xs font-bold transition-all shadow-md hover:shadow-lg flex items-center gap-1.5 active:scale-95">
           <span>➕</span>
@@ -144,6 +150,9 @@
             </button>
             <button onclick="closeSettingsMenu(); openCloudModal()" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5">
               <span>☁️</span> Cloud Database Status
+            </button>
+            <button onclick="closeSettingsMenu(); openConsumedHistoryModal()" class="w-full text-left px-3.5 py-2 hover:bg-rose-50 text-rose-600 flex items-center gap-2.5 font-bold">
+              <span>🗑️</span> Consumed / Single-Use Log
             </button>
             <div class="border-t my-1 border-slate-100"></div>
             <div class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-purple-800">QR Print & Backup</div>
@@ -294,8 +303,8 @@
     <!-- Unified Control Card: Search, Filters & Category Navigation -->
     <div class="bg-white rounded-2xl shadow-sm border border-[#DCDDE1] p-4 sm:p-5 space-y-4">
       
-      <!-- 4-Column Responsive Filter Grid -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <!-- 5-Column Responsive Filter Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
         <div>
           <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Search Inventory (Name, S/N, Tag)</label>
           <input type="text" id="search-input" oninput="renderInventory()" placeholder="Name, S/N, tag, category..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
@@ -323,6 +332,15 @@
             <option value="ALL">All Units</option>
             <option value="IN_STORAGE">Available In Storage</option>
             <option value="CHECKED_OUT">Currently Checked Out</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold text-slate-550 uppercase mb-1">Sort Items By</label>
+          <select id="filter-sort" onchange="renderInventory()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs sm:text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#5A358E]">
+            <option value="AZ">Alphabetical (A-Z)</option>
+            <option value="ZA">Alphabetical (Z-A)</option>
+            <option value="NEWEST">Newest to Oldest</option>
+            <option value="OLDEST">Oldest to Newest</option>
           </select>
         </div>
       </div>
@@ -482,11 +500,82 @@
           <input type="checkbox" id="checkout-send-email-toggle" checked class="w-4 h-4 accent-amber-600 cursor-pointer" />
           <label for="checkout-send-email-toggle" class="cursor-pointer font-medium">Send Email Alert Receipt to this address</label>
         </div>
+        <div class="bg-rose-50 border border-rose-200 rounded-lg p-2.5 flex items-center gap-2 text-xs text-rose-900 mt-2">
+          <input type="checkbox" id="checkout-for-good-toggle" class="w-4 h-4 accent-rose-600 cursor-pointer" />
+          <label for="checkout-for-good-toggle" class="cursor-pointer font-medium">⚠️ Check Out for Good (Single-Use / Consumable)</label>
+        </div>
         <div class="flex justify-end space-x-2 pt-3 border-t">
           <button type="button" onclick="closeCheckOutModal()" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium">Cancel</button>
           <button type="submit" id="checkout-submit-btn" class="px-5 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-sm font-bold shadow">Check Out & Notify</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Auto Check-Out & Assign -->
+  <div id="auto-checkout-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print backdrop-blur-sm">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
+      <div class="flex justify-between items-center border-b pb-3 mb-3">
+        <h3 class="text-base font-bold text-slate-900">🎯 Auto-Assign & Check Out</h3>
+        <button onclick="closeAutoCheckoutModal()" class="text-slate-400 hover:text-slate-755 text-2xl leading-none">&times;</button>
+      </div>
+      <p class="text-xs text-slate-500 mb-4">Select an item type, and the system will automatically assign you the first available unit.</p>
+      <form onsubmit="confirmAutoCheckOut(event)" class="space-y-3.5">
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Select Item Name / Product Type *</label>
+          <select id="auto-checkout-item-name" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#5A358E]">
+            <!-- Dynamic item names -->
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">User ID *</label>
+          <div class="relative">
+            <input type="text" id="auto-checkout-user-id" required placeholder="e.g. u123456" oninput="validateAutoCheckoutUser()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
+            <span id="auto-checkout-user-validation-icon" class="absolute right-3 top-2 text-lg"></span>
+          </div>
+          <p id="auto-checkout-user-validation-msg" class="text-[11px] mt-1 font-semibold text-rose-600"></p>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Your Email Address *</label>
+          <input type="email" id="auto-checkout-email" required placeholder="e.g. john.smith@company.com" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Destination Location *</label>
+          <input type="text" id="auto-checkout-destination" required placeholder="e.g. Assembly Line 3, Press Bay 2" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Additional Notes</label>
+          <textarea id="auto-checkout-note" rows="2" placeholder="Work order #, reason for checkout..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]"></textarea>
+        </div>
+        <div class="bg-amber-50 border border-amber-200 rounded-lg p-2.5 flex items-center gap-2 text-xs text-amber-900">
+          <input type="checkbox" id="auto-checkout-send-email-toggle" checked class="w-4 h-4 accent-amber-600 cursor-pointer" />
+          <label for="auto-checkout-send-email-toggle" class="cursor-pointer font-medium">Send Email Alert Receipt to this address</label>
+        </div>
+        <div class="bg-rose-50 border border-rose-200 rounded-lg p-2.5 flex items-center gap-2 text-xs text-rose-900 mt-2">
+          <input type="checkbox" id="auto-checkout-for-good-toggle" class="w-4 h-4 accent-rose-600 cursor-pointer" />
+          <label for="auto-checkout-for-good-toggle" class="cursor-pointer font-medium">⚠️ Check Out for Good (Single-Use / Consumable)</label>
+        </div>
+        <div class="flex justify-end space-x-2 pt-3 border-t">
+          <button type="button" onclick="closeAutoCheckoutModal()" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium">Cancel</button>
+          <button type="submit" id="auto-checkout-submit-btn" class="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold shadow">Auto-Assign & Check Out</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Consumed / Single-Use Log -->
+  <div id="consumed-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print backdrop-blur-sm">
+    <div class="bg-white rounded-2xl max-w-4xl w-full p-6 shadow-2xl max-h-[90vh] flex flex-col">
+      <div class="flex justify-between items-center border-b pb-3 mb-4">
+        <h2 class="text-base font-bold text-slate-900 flex items-center gap-2"><span>🗑️</span> Consumed & Checked Out for Good Units</h2>
+        <button onclick="closeConsumedHistoryModal()" class="text-slate-400 hover:text-slate-755 text-2xl leading-none">&times;</button>
+      </div>
+      <div class="overflow-y-auto flex-1 space-y-2.5" id="consumed-list-container">
+        <!-- Populated by JS -->
+      </div>
+      <div class="flex justify-end pt-4 mt-4 border-t">
+        <button onclick="closeConsumedHistoryModal()" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium">Close</button>
+      </div>
     </div>
   </div>
 
@@ -773,15 +862,15 @@
           <h3 class="text-xs font-bold text-[#5A358E] uppercase mb-2">➕ Add Single User</h3>
           <form onsubmit="addUser(event)" class="space-y-2">
             <div>
-              <label class="block text-[10px] font-bold text-slate-505 uppercase">User ID *</label>
+              <label class="block text-[10px] font-bold text-slate-550 uppercase">User ID *</label>
               <input type="text" id="user-username" required placeholder="e.g. u123456" class="w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-[#5A358E]" />
             </div>
             <div>
-              <label class="block text-[10px] font-bold text-slate-505 uppercase">User's Name *</label>
+              <label class="block text-[10px] font-bold text-slate-550 uppercase">User's Name *</label>
               <input type="text" id="user-name" required placeholder="e.g. Jane Doe" class="w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-[#5A358E]" />
             </div>
             <div>
-              <label class="block text-[10px] font-bold text-slate-505 uppercase">Email Address *</label>
+              <label class="block text-[10px] font-bold text-slate-550 uppercase">Email Address *</label>
               <input type="email" id="user-email" required placeholder="e.g. jane.doe@tranetechnologies.com" class="w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-[#5A358E]" />
             </div>
             <button type="submit" class="w-full bg-[#5A358E] hover:bg-[#3D2566] text-white py-1.5 rounded-lg text-xs font-semibold">Add User</button>
@@ -960,6 +1049,209 @@
     let selectedCategory = null;
     let selectedProductName = null;
 
+    // Helper: Find lowest available sequence numbers for a plant that aren't in items
+    function getNextAvailableTags(plantCode, count) {
+      const tags = [];
+      let seq = 1;
+      while (tags.length < count) {
+        const candidate = `${plantCode}${String(seq).padStart(6, '0')}`;
+        if (!items.some(it => it.tag === candidate) && !tags.includes(candidate)) {
+          tags.push(candidate);
+        }
+        seq++;
+      }
+      return tags;
+    }
+
+    // Auto-Assign Check-Out Modal Functions
+    function openAutoCheckoutModal() {
+      const uniqueNames = [...new Set(items.map(i => i.name))].sort();
+      const select = document.getElementById('auto-checkout-item-name');
+      select.innerHTML = '';
+      if (uniqueNames.length === 0) {
+        select.innerHTML = `<option value="">No items found</option>`;
+      }
+      uniqueNames.forEach(name => {
+        const availableCount = items.filter(i => i.name === name && (!i.activeCheckouts || i.activeCheckouts.length === 0)).length;
+        select.innerHTML += `<option value="${name}">📦 ${name} (${availableCount} available)</option>`;
+      });
+
+      document.getElementById('auto-checkout-user-id').value = '';
+      document.getElementById('auto-checkout-email').value = '';
+      document.getElementById('auto-checkout-destination').value = '';
+      document.getElementById('auto-checkout-note').value = '';
+      document.getElementById('auto-checkout-send-email-toggle').checked = false;
+      document.getElementById('auto-checkout-for-good-toggle').checked = false;
+      
+      validateAutoCheckoutUser();
+
+      const modal = document.getElementById('auto-checkout-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeAutoCheckoutModal() {
+      const modal = document.getElementById('auto-checkout-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function validateAutoCheckoutUser() {
+      const idInput = document.getElementById('auto-checkout-user-id');
+      const emailInput = document.getElementById('auto-checkout-email');
+      const msg = document.getElementById('auto-checkout-user-validation-msg');
+      const icon = document.getElementById('auto-checkout-user-validation-icon');
+      const submitBtn = document.getElementById('auto-checkout-submit-btn');
+
+      const typedId = idInput.value.trim().toLowerCase();
+      if (!typedId) {
+        msg.textContent = '';
+        icon.textContent = '';
+        submitBtn.disabled = true;
+        submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        return;
+      }
+
+      const found = users.find(u => u.username.toLowerCase() === typedId);
+      if (found) {
+        msg.textContent = `✓ Verified: ${found.name}`;
+        msg.className = 'text-[11px] mt-1 font-semibold text-emerald-600';
+        icon.textContent = '✅';
+        emailInput.value = found.email || '';
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+      } else {
+        msg.textContent = '✗ User ID not found in system. Please contact administrator.';
+        msg.className = 'text-[11px] mt-1 font-semibold text-rose-600';
+        icon.textContent = '❌';
+        submitBtn.disabled = true;
+        submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+      }
+    }
+
+    async function confirmAutoCheckOut(e) {
+      e.preventDefault();
+      const itemName = document.getElementById('auto-checkout-item-name').value;
+      const userId = document.getElementById('auto-checkout-user-id').value.trim();
+      const email = document.getElementById('auto-checkout-email').value.trim();
+      const destination = document.getElementById('auto-checkout-destination').value.trim();
+      const notes = document.getElementById('auto-checkout-note').value.trim();
+      const shouldSendEmail = document.getElementById('auto-checkout-send-email-toggle').checked;
+      const forGood = document.getElementById('auto-checkout-for-good-toggle').checked;
+
+      const user = users.find(u => u.username.toLowerCase() === userId.toLowerCase());
+      if (!user) return;
+
+      const availableItem = items.find(i => i.name === itemName && (!i.activeCheckouts || i.activeCheckouts.length === 0));
+      if (!availableItem) {
+        alert(`No available items left with name "${itemName}".`);
+        return;
+      }
+
+      const now = Date.now();
+      const checkoutId = 'co-' + now;
+
+      if (forGood) {
+        const consumedHistory = JSON.parse(localStorage.getItem('PLANT_QR_CONSUMED_H_V8')) || [];
+        consumedHistory.unshift({
+          ...availableItem,
+          consumedAt: now,
+          consumedBy: user.name,
+          consumedByEmail: email,
+          destination: destination,
+          notes: notes
+        });
+        localStorage.setItem('PLANT_QR_CONSUMED_H_V8', JSON.stringify(consumedHistory));
+
+        items = items.filter(i => i.id !== availableItem.id);
+        selectedItemIds.delete(availableItem.id);
+      } else {
+        availableItem.quantity = 0;
+        availableItem.activeCheckouts = [{
+          checkoutId,
+          userName: user.name,
+          userEmail: email,
+          destination,
+          quantity: 1,
+          notes,
+          checkedOutAt: now
+        }];
+
+        availableItem.checkoutHistory.unshift({
+          id: 'hist-' + now,
+          checkoutId,
+          type: 'CHECK_OUT',
+          userName: user.name,
+          userEmail: email,
+          destination,
+          quantity: 1,
+          notes,
+          qualityAtEvent: availableItem.quality,
+          timestamp: now,
+          status: 'ACTIVE'
+        });
+      }
+
+      closeAutoCheckoutModal();
+      renderInventory();
+      await saveState();
+
+      const mailtoLink = await dispatchCheckoutEmailAlert(availableItem, user.name, email, destination, notes, now, shouldSendEmail);
+
+      addAppNotification(
+        forGood ? 'CONSUMED' : 'CHECK_OUT',
+        forGood ? `${availableItem.name} (${availableItem.tag}) Checked Out For Good` : `${availableItem.name} (${availableItem.tag}) Checked Out`,
+        forGood ? `${user.name} consumed unit ${availableItem.itemCode}.` : `${user.name} checked out unit ${availableItem.itemCode} to "${destination}".`,
+        forGood ? '' : availableItem.tag,
+        email,
+        mailtoLink
+      );
+
+      alert(`Successfully auto-assigned and checked out unit: ${availableItem.name} (${availableItem.tag})`);
+    }
+
+    // Consumed History Modal Functions
+    function openConsumedHistoryModal() {
+      renderConsumedHistory();
+      const modal = document.getElementById('consumed-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+    function closeConsumedHistoryModal() {
+      const modal = document.getElementById('consumed-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+    function renderConsumedHistory() {
+      const container = document.getElementById('consumed-list-container');
+      const consumed = JSON.parse(localStorage.getItem('PLANT_QR_CONSUMED_H_V8')) || [];
+      container.innerHTML = '';
+      if (consumed.length === 0) {
+        container.innerHTML = '<div class="p-8 text-center text-slate-400 text-sm">No items checked out for good yet.</div>';
+        return;
+      }
+      consumed.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'p-3.5 bg-rose-50/50 border border-rose-100 rounded-xl text-xs flex flex-wrap justify-between items-start gap-2';
+        div.innerHTML = `
+          <div class="space-y-1">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="bg-rose-500 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">🗑️ Consumed</span>
+              <span class="font-mono font-bold text-rose-900 bg-rose-15 px-2 py-0.5 rounded border border-rose-200">${escapeHtml(item.tag)}</span>
+              <span class="font-bold text-slate-900">${escapeHtml(item.name)}</span>
+              <span class="font-mono text-slate-400">(${escapeHtml(item.itemCode)})</span>
+            </div>
+            <p class="text-slate-700">Checked out to <strong>${escapeHtml(item.consumedBy)}</strong> (${escapeHtml(item.consumedByEmail)}) at <strong>${escapeHtml(item.destination)}</strong>.</p>
+            ${item.notes ? `<p class="text-slate-500 italic">Notes: ${escapeHtml(item.notes)}</p>` : ''}
+          </div>
+          <div class="text-right text-[11px] text-slate-400 font-mono">
+            ${new Date(item.consumedAt).toLocaleString()}
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
     // Dropdown menu toggle
     function toggleSettingsMenu(e) {
       e.stopPropagation();
@@ -1094,7 +1386,7 @@
         const cardStyle = isOut ? 'bg-amber-50/70 border-amber-200' : 'bg-emerald-50/70 border-emerald-200';
         const badgeHtml = isOut
           ? `<span class="bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">📤 Checked Out</span>`
-          : `<span class="bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">📥 Checked In</span>`;
+          : `<span class="bg-emerald-650 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">📥 Checked In</span>`;
 
         const div = document.createElement('div');
         div.className = `p-3.5 rounded-xl border ${cardStyle} flex flex-wrap justify-between items-start gap-3 text-xs`;
@@ -1106,7 +1398,7 @@
               <span class="text-[11px] font-mono text-slate-400">${new Date(n.timestamp).toLocaleString()}</span>
             </div>
             <p class="text-slate-700">${escapeHtml(n.message)}</p>
-            ${n.userEmail ? `<p class="text-[11px] font-mono text-purple-750">📧 To: <strong>${escapeHtml(n.userEmail)}</strong></p>` : ''}
+            ${n.userEmail ? `<p class="text-[11px] font-mono text-purple-755">📧 To: <strong>${escapeHtml(n.userEmail)}</strong></p>` : ''}
           </div>
           <div class="flex items-center gap-1.5">
             ${n.mailtoLink ? `<a href="${n.mailtoLink}" class="bg-[#5A358E] hover:bg-[#3D2566] text-white px-2.5 py-1.5 rounded-lg font-bold text-[11px]">✉️ Resend</a>` : ''}
@@ -1618,7 +1910,6 @@
           console.error('Legacy QR error:', e);
         }
       } else {
-        // Explicitly hide the scanned banner at the start if no valid item tag was scanned or passed
         document.getElementById('scanned-banner').classList.add('hidden');
       }
     }
@@ -1681,7 +1972,7 @@
         statusPill.textContent = `⏱️ Checked Out to ${rec.destination}`;
 
         smartPrompt.className = 'mt-4 p-4 rounded-xl border border-emerald-400 bg-emerald-50/70 flex flex-wrap items-center justify-between gap-4';
-        promptTitle.className = 'font-bold text-sm sm:text-base text-emerald-950';
+        promptTitle.className = 'font-bold text-sm sm:text-base text-emerald-955';
         promptTitle.textContent = 'Returning this checked-out unit?';
         promptDesc.className = 'text-xs text-emerald-800 mt-0.5';
         promptDesc.textContent = 'Tap "Check In & Rate Quality" to return it to storage and update its condition.';
@@ -1777,6 +2068,7 @@
       document.getElementById('checkout-destination').value = '';
       document.getElementById('checkout-note').value = '';
       document.getElementById('checkout-send-email-toggle').checked = false;
+      document.getElementById('checkout-for-good-toggle').checked = false;
       document.getElementById('checkout-modal-subtitle').textContent =
         `TAG: ${item.tag} | CODE: ${item.itemCode} ${item.serialNumber ? '| S/N: ' + item.serialNumber : ''} — ${item.name}`;
 
@@ -1799,6 +2091,7 @@
       const destination = document.getElementById('checkout-destination').value.trim();
       const notes = document.getElementById('checkout-note').value.trim();
       const shouldSendEmail = document.getElementById('checkout-send-email-toggle').checked;
+      const forGood = document.getElementById('checkout-for-good-toggle').checked;
 
       const item = items.find(i => i.id === itemId);
       if (!item) return;
@@ -1806,45 +2099,64 @@
       const now = Date.now();
       const checkoutId = 'co-' + now;
 
-      item.quantity = 0;
-      item.activeCheckouts = [{
-        checkoutId,
-        userName,
-        userEmail,
-        destination,
-        quantity: 1,
-        notes,
-        checkedOutAt: now
-      }];
+      if (forGood) {
+        const consumedHistory = JSON.parse(localStorage.getItem('PLANT_QR_CONSUMED_H_V8')) || [];
+        consumedHistory.unshift({
+          ...item,
+          consumedAt: now,
+          consumedBy: userName,
+          consumedByEmail: userEmail,
+          destination: destination,
+          notes: notes
+        });
+        localStorage.setItem('PLANT_QR_CONSUMED_H_V8', JSON.stringify(consumedHistory));
 
-      item.checkoutHistory.unshift({
-        id: 'hist-' + now,
-        checkoutId,
-        type: 'CHECK_OUT',
-        userName,
-        userEmail,
-        destination,
-        quantity: 1,
-        notes,
-        qualityAtEvent: item.quality,
-        timestamp: now,
-        status: 'ACTIVE'
-      });
+        items = items.filter(i => i.id !== item.id);
+        selectedItemIds.delete(item.id);
+      } else {
+        item.quantity = 0;
+        item.activeCheckouts = [{
+          checkoutId,
+          userName,
+          userEmail,
+          destination,
+          quantity: 1,
+          notes,
+          checkedOutAt: now
+        }];
+
+        item.checkoutHistory.unshift({
+          id: 'hist-' + now,
+          checkoutId,
+          type: 'CHECK_OUT',
+          userName,
+          userEmail,
+          destination,
+          quantity: 1,
+          notes,
+          qualityAtEvent: item.quality,
+          timestamp: now,
+          status: 'ACTIVE'
+        });
+      }
 
       closeCheckOutModal();
 
       renderInventory();
-      if (activeScannedTag) refreshScannedBanner(activeScannedTag, false);
+      if (activeScannedTag) {
+        if (forGood) closeScanBanner();
+        else refreshScannedBanner(activeScannedTag, false);
+      }
 
       await saveState();
 
       const mailtoLink = await dispatchCheckoutEmailAlert(item, userName, userEmail, destination, notes, now, shouldSendEmail);
 
       addAppNotification(
-        'CHECK_OUT',
-        `${item.name} (${item.tag}) Checked Out`,
-        `${userName} checked out unit ${item.itemCode} to "${destination}".`,
-        item.tag,
+        forGood ? 'CONSUMED' : 'CHECK_OUT',
+        forGood ? `${item.name} (${item.tag}) Checked Out For Good` : `${item.name} (${item.tag}) Checked Out`,
+        forGood ? `${userName} consumed unit ${item.itemCode}.` : `${userName} checked out unit ${item.itemCode} to "${destination}".`,
+        forGood ? '' : item.tag,
         userEmail,
         mailtoLink
       );
@@ -1988,7 +2300,7 @@
               ${rec.userEmail ? `<span class="text-purple-750 font-mono ml-1">(${escapeHtml(rec.userEmail)})</span>` : ''}
               <span class="mx-1.5 text-slate-300">•</span>
               <span class="font-semibold text-purple-800">📍 ${escapeHtml(rec.destination)}</span>
-              <div class="text-slate-505 mt-0.5">Checked Out: ${new Date(rec.checkedOutAt).toLocaleString()} ${rec.notes ? `| Note: ${escapeHtml(rec.notes)}` : ''}</div>
+              <div class="text-slate-550 mt-0.5">Checked Out: ${new Date(rec.checkedOutAt).toLocaleString()} ${rec.notes ? `| Note: ${escapeHtml(rec.notes)}` : ''}</div>
             </div>
             <div class="flex items-center gap-3">
               <span class="font-mono font-bold text-amber-800 bg-amber-200/70 px-2.5 py-1 rounded-lg" data-live-timer="${rec.checkedOutAt}">
@@ -2056,7 +2368,6 @@
       renderInventory();
     }
 
-    // Drill down category
     function selectCategoryView(categoryName) {
       selectedCategory = categoryName;
       selectedProductName = null;
@@ -2137,8 +2448,9 @@
       const plantFilter = document.getElementById('filter-plant').value;
       const qualityFilter = document.getElementById('filter-quality').value;
       const statusFilter = document.getElementById('filter-status').value;
+      const sortFilter = document.getElementById('filter-sort').value;
 
-      return items.filter(item => {
+      let filtered = items.filter(item => {
         const isCheckedOut = item.activeCheckouts && item.activeCheckouts.length > 0;
         const matchesPlant = plantFilter === 'ALL' || item.plantCode === plantFilter;
         const matchesQuality = qualityFilter === 'ALL' || item.quality === qualityFilter;
@@ -2155,6 +2467,26 @@
           (item.notes && item.notes.toLowerCase().includes(search));
         return matchesPlant && matchesQuality && matchesStatus && matchesSearch;
       });
+
+      if (sortFilter === 'AZ') {
+        filtered.sort((a, b) => a.name.localeCompare(b.name));
+      } else if (sortFilter === 'ZA') {
+        filtered.sort((a, b) => b.name.localeCompare(a.name));
+      } else if (sortFilter === 'NEWEST') {
+        filtered.sort((a, b) => {
+          const idA = String(a.id);
+          const idB = String(b.id);
+          return idB.localeCompare(idA, undefined, { numeric: true, sensitivity: 'base' });
+        });
+      } else if (sortFilter === 'OLDEST') {
+        filtered.sort((a, b) => {
+          const idA = String(a.id);
+          const idB = String(b.id);
+          return idA.localeCompare(idB, undefined, { numeric: true, sensitivity: 'base' });
+        });
+      }
+
+      return filtered;
     }
 
     function renderNavigationAndCategoryPills(baseFiltered) {
@@ -2460,7 +2792,7 @@
           </td>
           <td class="p-3">
             <div class="text-xs font-bold text-slate-700">${escapeHtml(item.plantCode)}</div>
-            <div class="text-[11px] text-slate-500">${escapeHtml(item.location)}</div>
+            <div class="text-[11px] text-slate-505">${escapeHtml(item.location)}</div>
           </td>
           <td class="p-3">
             <select onchange="quickChangeQuality('${item.id}', this.value)" class="text-xs border border-slate-200 rounded-md px-2 py-1 bg-white font-semibold text-slate-700 cursor-pointer">
@@ -2488,7 +2820,7 @@
     }
 
     // ============================================================================
-    // 9. ADD / EDIT ITEM MODAL (WITH SERIAL NUMBER & SEQUENCES)
+    // 9. ADD / EDIT ITEM MODAL (WITH SEQUENCES)
     // ============================================================================
     function openItemModal(itemId = null) {
       populatePlantDropdowns();
@@ -2599,10 +2931,9 @@
         }
       }
 
-      const startSeq = (plantSequences[selectedPlant] || 0) + 1;
-      const endSeq = startSeq + count - 1;
-      const firstTag = `${selectedPlant}${String(startSeq).padStart(6, '0')}`;
-      const lastTag = `${selectedPlant}${String(endSeq).padStart(6, '0')}`;
+      const availableTags = getNextAvailableTags(selectedPlant, count);
+      const firstTag = availableTags[0];
+      const lastTag = availableTags[availableTags.length - 1];
 
       const generatedCodes = buildBatchItemCodes(rawBaseCode, count, selectedPlant, category, itemName);
 
@@ -2643,7 +2974,6 @@
             plantSequences[plantCode] = (plantSequences[plantCode] || 0) + 1;
             tag = `${plantCode}${String(plantSequences[plantCode]).padStart(6, '0')}`;
           }
-          // Maintain original itemCode unless it was explicitly changed in rawBaseCode
           let finalCode = items[idx].itemCode;
           if (rawBaseCode && rawBaseCode.trim().toUpperCase() !== (items[idx].itemCode || '').toUpperCase()) {
             finalCode = rawBaseCode.trim().toUpperCase();
@@ -2665,11 +2995,11 @@
         }
       } else {
         const batchCodes = buildBatchItemCodes(rawBaseCode, count, plantCode, category, name);
+        const availableTags = getNextAvailableTags(plantCode, count);
         const now = Date.now();
 
         for (let i = 0; i < count; i++) {
-          plantSequences[plantCode] = (plantSequences[plantCode] || 0) + 1;
-          const tag = `${plantCode}${String(plantSequences[plantCode]).padStart(6, '0')}`;
+          const tag = availableTags[i];
           const newId = `${now}-${i}-${Math.random().toString(36).substring(2, 6)}`;
 
           items.push({
@@ -2834,7 +3164,7 @@
       document.getElementById('detail-qty').textContent = isCheckedOut
         ? `Checked Out to ${item.activeCheckouts[0].userName} (${item.activeCheckouts[0].destination})`
         : 'Available in Storage';
-      document.getElementById('detail-qty').className = isCheckedOut ? 'font-bold text-amber-700' : 'font-bold text-emerald-650';
+      document.getElementById('detail-qty').className = isCheckedOut ? 'font-bold text-amber-705' : 'font-bold text-emerald-650';
       document.getElementById('detail-notes').textContent = item.notes || 'None provided.';
       document.getElementById('detail-instructions').textContent = item.instructions || 'None provided.';
 
@@ -2860,6 +3190,13 @@
       const modal = document.getElementById('detail-modal');
       modal.classList.add('hidden');
       modal.classList.remove('flex');
+    }
+
+    // --- MASS SELECTION & FLOATING QR PRINT BAR ---
+    function toggleItemSelect(id, checked) {
+      if (checked) selectedItemIds.add(id);
+      else selectedItemIds.delete(id);
+      updateSelectedCounter();
     }
 
     // --- MASS SELECTION & FLOATING QR PRINT BAR ---
@@ -2935,7 +3272,6 @@
         const card = document.createElement('div');
         card.className = 'qr-card-print';
 
-        // We wrap the entire print block in a 100% Flex container to prevent overflow and keep sizing strictly uniform
         card.innerHTML = `
           <div class="flex flex-col justify-between h-full w-full">
             <div>
@@ -2959,7 +3295,7 @@
         const qrDiv = card.querySelector('.qr-code-wrapper');
         new QRCode(qrDiv, {
           text: buildQRUrl(item),
-          width: 80, // Perfect size to guarantee alignment within the compact 180px box height
+          width: 80, 
           height: 80,
           correctLevel: QRCode.CorrectLevel.M
         });
@@ -3018,7 +3354,6 @@
         .replace(/"/g, '&quot;');
     }
 
-    // Escape single quotes
     function escapeJsStr(str) {
       return String(str || '').replace(/\\\\/g, '\\\\\\\\').replace(/'/g, "\\\\'");
     }
