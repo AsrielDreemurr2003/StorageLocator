@@ -72,6 +72,8 @@
       background: #5A358E;
     }
   </style>
+  <!-- Prefetch help page and assets for instant navigation -->
+  <link rel="prefetch" href="help.html">
 </head>
 <body class="bg-[#FAF9F5] text-slate-800 min-h-screen pb-24 overflow-x-hidden">
 
@@ -577,7 +579,7 @@
       <div class="text-center pb-4 mb-4 border-b">
         <span class="text-4xl">🎉</span>
         <h2 class="text-xl font-extrabold text-slate-900 mt-2">Auto-Checkout Confirmed!</h2>
-        <p class="text-xs text-slate-500 mt-1">An item has been successfully assigned and checked out to you.</p>
+        <p class="text-xs text-slate-505 mt-1">An item has been successfully assigned and checked out to you.</p>
       </div>
       
       <!-- Device info card -->
@@ -694,7 +696,7 @@
           <span class="text-xl">🔔</span>
           <div>
             <h2 class="text-base font-bold text-slate-900">Live App Check-Out Notifications</h2>
-            <p class="text-xs text-slate-505">Synced across all connected devices in real time</p>
+            <p class="text-xs text-slate-550">Synced across all connected devices in real time</p>
           </div>
         </div>
         <button onclick="closeNotificationsModal()" class="text-slate-400 hover:text-slate-755 text-2xl leading-none">&times;</button>
@@ -1427,6 +1429,7 @@
       }, 7000);
     }
 
+    // Unified notification adding
     function addAppNotification(type, title, message, itemTag, userEmail = '', mailtoLink = '') {
       const now = Date.now();
       const newNotif = {
@@ -1596,7 +1599,6 @@
       return `<span class="px-2 py-0.5 rounded-md text-[11px] font-bold border ${cls}">${escapeHtml(q)}</span>`;
     }
 
-    // Live duration
     function formatElapsedDuration(startMs, endMs = Date.now()) {
       const diffSec = Math.max(0, Math.floor((endMs - startMs) / 1000));
       const days = Math.floor(diffSec / 86400);
@@ -1668,9 +1670,9 @@
           <div>
             <span class="font-mono font-bold bg-slate-100 border px-2 py-0.5 rounded text-[#5A358E]">${escapeHtml(u.username)}</span>
             <span class="font-semibold text-slate-800 ml-2">${escapeHtml(u.name)}</span>
-            ${u.email ? `<span class="text-slate-400 font-mono text-[11px] ml-2">(${escapeHtml(u.email)})</span>` : ''}
+            ${u.email ? `<span class="text-slate-404 font-mono text-[11px] ml-2">(${escapeHtml(u.email)})</span>` : ''}
           </div>
-          <button onclick="deleteUser('${escapeJsStr(u.username)}')" class="text-rose-600 hover:bg-rose-50 px-2 py-1 rounded">✕</button>
+          <button onclick="deleteUser('${escapeJsStr(u.username)}')" class="text-rose-605 hover:bg-rose-50 px-2 py-1 rounded">✕</button>
         `;
         container.appendChild(div);
       });
@@ -1724,7 +1726,6 @@
           const firstSheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[firstSheetName];
           
-          // Use SheetJS to convert sheet directly to JSON arrays
           const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
           let addedCount = 0;
           let dupCount = 0;
@@ -1751,7 +1752,6 @@
               continue;
             }
             
-            // STRICT DUPLICATE PREVENTION: ONLY ONE USER PER USERNAME
             if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
               dupCount++;
               continue;
@@ -1808,8 +1808,6 @@
         msg.className = 'text-[11px] mt-1 font-semibold text-emerald-600';
         icon.textContent = '✅';
         nameHidden.value = found.name;
-        
-        // Strictly auto-fill email from saved profile
         emailInput.value = found.email || '';
 
         submitBtn.disabled = false;
@@ -1933,6 +1931,7 @@
       }
     }
 
+    // Modal Control
     function openCloudModal() {
       document.getElementById('cloud-url-input').value = cloudDbUrl || DEFAULT_CLOUD_DB_URL;
       const modal = document.getElementById('cloud-modal');
@@ -2751,7 +2750,7 @@
               <button onclick="selectCategoryView('${escapeJsStr(grp.category)}')" class="text-[11px] font-bold bg-purple-50 hover:bg-purple-100 text-[#5A358E] px-2.5 py-0.5 rounded-md transition truncate">
                 📂 ${escapeHtml(grp.category)}
               </button>
-              <span class="text-[11px] font-mono font-bold text-slate-400 shrink-0">🏢 ${Array.from(grp.plants).join(', ')}</span>
+              <span class="text-[11px] font-mono font-bold text-slate-404 shrink-0">🏢 ${Array.from(grp.plants).join(', ')}</span>
             </div>
 
             <h3 onclick="selectProductTypeView('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}')" class="text-base font-bold text-slate-900 mt-2.5 hover:text-[#5A358E] cursor-pointer truncate">
@@ -2851,7 +2850,7 @@
           ? `<span class="whitespace-nowrap inline-flex items-center justify-center px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-50 text-amber-855 border border-amber-200">Out</span>`
           : `<span class="whitespace-nowrap inline-flex items-center justify-center px-2.5 py-1 rounded-md text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">In Stock</span>`;
 
-        let liveCheckoutHtml = `<span class="text-xs text-slate-400">—</span>`;
+        let liveCheckoutHtml = `<span class="text-xs text-slate-404">—</span>`;
         if (isCheckedOut) {
           const latest = activeList[0];
           liveCheckoutHtml = `
@@ -3179,7 +3178,7 @@
           <div>
             <span class="font-mono font-bold bg-slate-100 border px-2 py-0.5 rounded text-[#5A358E]">${escapeHtml(p.code)}</span>
             <span class="font-semibold text-slate-800 ml-2">${escapeHtml(p.name)}</span>
-            <span class="text-xs text-slate-400 ml-1">(${count} units)</span>
+            <span class="text-xs text-slate-404 ml-1">(${count} units)</span>
           </div>
           <div class="space-x-1">
             <button onclick="startEditPlant('${p.code}')" class="text-xs bg-purple-55 text-[#5A358E] px-2.5 py-1 rounded-md hover:bg-purple-100">Edit</button>
@@ -3456,7 +3455,7 @@
       return String(str || '').replace(/\\\\/g, '\\\\\\\\').replace(/'/g, "\\\\'");
     }
 
-    // --- INITIALIZE & AUTO-POLL CLOUD EVERY 6 SECONDS ---
+    // --- INITIALIZE ---
     async function initApp() {
       populatePlantDropdowns();
       renderInventory();
