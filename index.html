@@ -560,7 +560,7 @@
     <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b pb-3 mb-4">
         <h2 class="text-base font-bold text-slate-900">✉️ Email Alert Configuration</h2>
-        <button onclick="closeEmailConfigModal()" class="text-slate-400 hover:text-slate-750 text-2xl leading-none">&times;</button>
+        <button onclick="closeEmailConfigModal()" class="text-slate-400 hover:text-slate-755 text-2xl leading-none">&times;</button>
       </div>
       <div class="text-xs text-slate-600 space-y-1.5 mb-4 bg-slate-50 p-3 rounded-xl border">
         <p><strong>1. Default Mode (Zero Setup):</strong> Opens a pre-filled email receipt addressed to the person checking out the unit.</p>
@@ -695,7 +695,7 @@
           <span id="history-tag" class="font-mono text-xs font-bold bg-purple-100 text-[#4F2D7F] px-2 py-0.5 rounded"></span>
           <h3 id="history-title" class="text-base font-bold text-slate-900 mt-1">Unit Check-Out & Check-In History</h3>
         </div>
-        <button onclick="closeHistoryModal()" class="text-slate-400 hover:text-slate-750 text-2xl leading-none">&times;</button>
+        <button onclick="closeHistoryModal()" class="text-slate-400 hover:text-slate-755 text-2xl leading-none">&times;</button>
       </div>
 
       <div class="overflow-y-auto flex-1 space-y-4">
@@ -783,8 +783,8 @@
               <input type="text" id="user-name" required placeholder="e.g. Jane Doe" class="w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-[#4F2D7F]" />
             </div>
             <div>
-              <label class="block text-[10px] font-bold text-slate-500 uppercase">Email (Optional)</label>
-              <input type="email" id="user-email" placeholder="e.g. jane.doe@tranetechnologies.com" class="w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-[#4F2D7F]" />
+              <label class="block text-[10px] font-bold text-slate-500 uppercase">Email Address *</label>
+              <input type="email" id="user-email" required placeholder="e.g. jane.doe@tranetechnologies.com" class="w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-[#4F2D7F]" />
             </div>
             <button type="submit" class="w-full bg-[#4F2D7F] hover:bg-[#3D2566] text-white py-1.5 rounded-lg text-xs font-semibold">Add User</button>
           </form>
@@ -794,7 +794,7 @@
         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col justify-between">
           <div>
             <h3 class="text-xs font-bold text-[#10B981] uppercase mb-2">📥 Bulk Import Users (.xlsx, .csv)</h3>
-            <p class="text-[11px] text-slate-500 mb-2">Select an Excel (.xlsx, .xls) or CSV file matching the format of Book.xlsx (Columns: <code>Username</code>, <code>User's name</code>, and optional <code>Email</code>).</p>
+            <p class="text-[11px] text-slate-500 mb-2">Select an Excel (.xlsx, .xls) or CSV file matching the format of Book (1).xlsx (Columns: <code>Username</code>, <code>User's name</code>, and <code>Email</code>).</p>
           </div>
           <div>
             <label class="w-full bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 px-4 py-2.5 rounded-lg text-xs font-semibold cursor-pointer flex items-center justify-center gap-2">
@@ -1227,6 +1227,205 @@
       let clean = cloudDbUrl.trim();
       if (!clean.endsWith('/')) clean += '/';
       return `${clean}storagelocater_state.json`;
+    }
+
+    // ============================================================================
+    // USERBASE MANAGEMENT
+    // ============================================================================
+    function openUserbaseModal() {
+      renderUserList();
+      const modal = document.getElementById('userbase-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeUserbaseModal() {
+      const modal = document.getElementById('userbase-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function renderUserList() {
+      const container = document.getElementById('userbase-list-container');
+      const countEl = document.getElementById('userbase-count');
+      const search = document.getElementById('userbase-search').value.toLowerCase();
+      
+      container.innerHTML = '';
+      
+      const filtered = users.filter(u => 
+        u.username.toLowerCase().includes(search) || 
+        u.name.toLowerCase().includes(search) || 
+        (u.email && u.email.toLowerCase().includes(search))
+      );
+      
+      countEl.textContent = users.length;
+      
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="p-4 text-center text-slate-400 text-xs">No users found.</div>`;
+        return;
+      }
+      
+      filtered.forEach(u => {
+        const div = document.createElement('div');
+        div.className = 'p-2.5 flex justify-between items-center text-xs hover:bg-slate-50';
+        div.innerHTML = `
+          <div>
+            <span class="font-mono font-bold bg-slate-100 border px-2 py-0.5 rounded text-[#4F2D7F]">${escapeHtml(u.username)}</span>
+            <span class="font-semibold text-slate-800 ml-2">${escapeHtml(u.name)}</span>
+            ${u.email ? `<span class="text-slate-400 font-mono text-[11px] ml-2">(${escapeHtml(u.email)})</span>` : ''}
+          </div>
+          <button onclick="deleteUser('${escapeJsStr(u.username)}')" class="text-rose-600 hover:bg-rose-50 px-2 py-1 rounded">✕</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    async function addUser(e) {
+      e.preventDefault();
+      const usernameInput = document.getElementById('user-username');
+      const nameInput = document.getElementById('user-name');
+      const emailInput = document.getElementById('user-email');
+      
+      const username = usernameInput.value.trim();
+      const name = nameInput.value.trim();
+      const email = emailInput.value.trim();
+      
+      if (!email) {
+        alert('An email address is required.');
+        return;
+      }
+      
+      if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+        alert('A user with this ID already exists. Duplicates are blocked.');
+        return;
+      }
+      
+      users.push({ username, name, email });
+      usernameInput.value = '';
+      nameInput.value = '';
+      emailInput.value = '';
+      
+      renderUserList();
+      await saveState();
+    }
+
+    async function deleteUser(username) {
+      if (confirm(`Remove user "${username}" from the database?`)) {
+        users = users.filter(u => u.username !== username);
+        renderUserList();
+        await saveState();
+      }
+    }
+
+    function importUserFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+          
+          // Use SheetJS to convert sheet directly to JSON arrays
+          const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+          let addedCount = 0;
+          let dupCount = 0;
+          let missingEmailCount = 0;
+          
+          for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            if (!row || row.length === 0) continue;
+            
+            const username = String(row[0] || '').trim();
+            const name = String(row[1] || '').trim();
+            
+            if (!username || !name) continue;
+            
+            // skip headers
+            if (username.toLowerCase() === 'username' || name.toLowerCase() === "user's name" || name.toLowerCase() === 'name') {
+              continue;
+            }
+            
+            const email = String(row[2] || '').trim();
+            
+            if (!email) {
+              missingEmailCount++;
+              continue;
+            }
+            
+            // STRICT DUPLICATE PREVENTION: ONLY ONE USER PER USERNAME
+            if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+              dupCount++;
+              continue;
+            }
+            
+            users.push({ username, name, email });
+            addedCount++;
+          }
+          
+          renderUserList();
+          await saveState();
+          
+          let alertMsg = `Successfully imported ${addedCount} users!`;
+          if (dupCount > 0 || missingEmailCount > 0) {
+            alertMsg += '\\n';
+            if (dupCount > 0) {
+              alertMsg += `\\n- Blocked ${dupCount} duplicate user ID(s) to guarantee database integrity.`;
+            }
+            if (missingEmailCount > 0) {
+              alertMsg += `\\n- Skipped ${missingEmailCount} record(s) due to missing required email addresses.`;
+            }
+          }
+          alert(alertMsg);
+        } catch (err) {
+          console.error(err);
+          alert('Error parsing sheet. Please make sure it is a valid Excel (.xlsx, .xls) or CSV file.');
+        }
+      };
+      reader.readAsArrayBuffer(file);
+      event.target.value = '';
+    }
+
+    function validateCheckoutUser() {
+      const idInput = document.getElementById('checkout-user-id');
+      const nameHidden = document.getElementById('checkout-user');
+      const emailInput = document.getElementById('checkout-email');
+      const msg = document.getElementById('checkout-user-validation-msg');
+      const icon = document.getElementById('checkout-user-validation-icon');
+      const submitBtn = document.getElementById('checkout-submit-btn');
+
+      const typedId = idInput.value.trim().toLowerCase();
+      if (!typedId) {
+        msg.textContent = '';
+        icon.textContent = '';
+        nameHidden.value = '';
+        submitBtn.disabled = true;
+        submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        return;
+      }
+
+      const found = users.find(u => u.username.toLowerCase() === typedId);
+      if (found) {
+        msg.textContent = `✓ Verified: ${found.name}`;
+        msg.className = 'text-[11px] mt-1 font-semibold text-emerald-600';
+        icon.textContent = '✅';
+        nameHidden.value = found.name;
+        
+        // Strictly auto-fill email from saved profile
+        emailInput.value = found.email || '';
+
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+      } else {
+        msg.textContent = '✗ User ID not found in system. Please contact administrator.';
+        msg.className = 'text-[11px] mt-1 font-semibold text-rose-600';
+        icon.textContent = '❌';
+        nameHidden.value = '';
+        submitBtn.disabled = true;
+        submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+      }
     }
 
     function updateSyncBadge(statusText, isCloudActive) {
@@ -2101,7 +2300,7 @@
           ? `<button onclick="toggleGroupForPrinting('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}', false)" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-semibold py-2 px-2.5 rounded-lg transition animate-all" title="Unselect all units">
                ✕ (${grp.selectedForPrint})
              </button>`
-          : `<button onclick="toggleGroupForPrinting('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}', true)" class="bg-slate-100 hover:bg-slate-200 text-slate-750 border border-slate-200 text-xs font-semibold py-2 px-2.5 rounded-lg transition animate-all" title="Select all units for QR printing">
+          : `<button onclick="toggleGroupForPrinting('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}', true)" class="bg-slate-100 hover:bg-slate-200 text-slate-755 border border-slate-200 text-xs font-semibold py-2 px-2.5 rounded-lg transition animate-all" title="Select all units for QR printing">
                🖨️ ${grp.selectedForPrint > 0 ? `${grp.selectedForPrint}/${grp.total}` : 'QR'}
              </button>`;
 
@@ -2233,7 +2432,7 @@
         ).join('');
 
         const primaryActionBtn = isCheckedOut
-          ? `<button onclick="openCheckInModal('${item.id}')" class="bg-emerald-650 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-md text-xs font-bold transition">📥 In</button>`
+          ? `<button onclick="openCheckInModal('${item.id}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-md text-xs font-bold transition">📥 In</button>`
           : `<button onclick="openCheckOutModal('${item.id}')" class="bg-amber-600 hover:bg-amber-500 text-white px-2.5 py-1 rounded-md text-xs font-bold transition">📤 Out</button>`;
 
         const tr = document.createElement('tr');
@@ -2807,187 +3006,6 @@
         }
       };
       reader.readAsText(file);
-    }
-
-    // ============================================================================
-    // USERBASE MANAGEMENT
-    // ============================================================================
-    function openUserbaseModal() {
-      renderUserList();
-      const modal = document.getElementById('userbase-modal');
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-    }
-
-    function closeUserbaseModal() {
-      const modal = document.getElementById('userbase-modal');
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
-    }
-
-    function renderUserList() {
-      const container = document.getElementById('userbase-list-container');
-      const countEl = document.getElementById('userbase-count');
-      const search = document.getElementById('userbase-search').value.toLowerCase();
-      
-      container.innerHTML = '';
-      
-      const filtered = users.filter(u => 
-        u.username.toLowerCase().includes(search) || 
-        u.name.toLowerCase().includes(search) || 
-        (u.email && u.email.toLowerCase().includes(search))
-      );
-      
-      countEl.textContent = users.length;
-      
-      if (filtered.length === 0) {
-        container.innerHTML = `<div class="p-4 text-center text-slate-400 text-xs">No users found.</div>`;
-        return;
-      }
-      
-      filtered.forEach(u => {
-        const div = document.createElement('div');
-        div.className = 'p-2.5 flex justify-between items-center text-xs hover:bg-slate-50';
-        div.innerHTML = `
-          <div>
-            <span class="font-mono font-bold bg-slate-100 border px-2 py-0.5 rounded text-[#4F2D7F]">${escapeHtml(u.username)}</span>
-            <span class="font-semibold text-slate-800 ml-2">${escapeHtml(u.name)}</span>
-            ${u.email ? `<span class="text-slate-400 font-mono text-[11px] ml-2">(${escapeHtml(u.email)})</span>` : ''}
-          </div>
-          <button onclick="deleteUser('${escapeJsStr(u.username)}')" class="text-rose-600 hover:bg-rose-50 px-2 py-1 rounded">✕</button>
-        `;
-        container.appendChild(div);
-      });
-    }
-
-    async function addUser(e) {
-      e.preventDefault();
-      const usernameInput = document.getElementById('user-username');
-      const nameInput = document.getElementById('user-name');
-      const emailInput = document.getElementById('user-email');
-      
-      const username = usernameInput.value.trim();
-      const name = nameInput.value.trim();
-      const email = emailInput.value.trim() || `${username}@tranetechnologies.com`;
-      
-      if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
-        alert('A user with this ID already exists. Duplicates are blocked.');
-        return;
-      }
-      
-      users.push({ username, name, email });
-      usernameInput.value = '';
-      nameInput.value = '';
-      emailInput.value = '';
-      
-      renderUserList();
-      await saveState();
-    }
-
-    async function deleteUser(username) {
-      if (confirm(`Remove user "${username}" from the database?`)) {
-        users = users.filter(u => u.username !== username);
-        renderUserList();
-        await saveState();
-      }
-    }
-
-    function importUserFile(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = async function(e) {
-        try {
-          const data = new Uint8Array(e.target.result);
-          const workbook = XLSX.read(data, { type: 'array' });
-          const firstSheetName = workbook.SheetNames[0];
-          const worksheet = workbook.Sheets[firstSheetName];
-          
-          // Use SheetJS to convert sheet directly to JSON arrays
-          const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-          let addedCount = 0;
-          let dupCount = 0;
-          
-          for (let i = 0; i < rows.length; i++) {
-            const row = rows[i];
-            if (!row || row.length === 0) continue;
-            
-            const username = String(row[0] || '').trim();
-            const name = String(row[1] || '').trim();
-            
-            if (!username || !name) continue;
-            
-            // skip headers
-            if (username.toLowerCase() === 'username' || name.toLowerCase() === "user's name" || name.toLowerCase() === 'name') {
-              continue;
-            }
-            
-            const email = String(row[2] || '').trim() || `${username}@tranetechnologies.com`;
-            
-            // STRICT DUPLICATE PREVENTION: ONLY ONE USER PER USERNAME
-            if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
-              dupCount++;
-              continue;
-            }
-            
-            users.push({ username, name, email });
-            addedCount++;
-          }
-          
-          renderUserList();
-          await saveState();
-          alert(`Successfully imported ${addedCount} users!\\n${dupCount > 0 ? `Blocked ${dupCount} duplicate user ID(s) to guarantee database integrity.` : ''}`);
-        } catch (err) {
-          console.error(err);
-          alert('Error parsing sheet. Please make sure it is a valid Excel (.xlsx, .xls) or CSV file.');
-        }
-      };
-      reader.readAsArrayBuffer(file);
-      event.target.value = '';
-    }
-
-    function validateCheckoutUser() {
-      const idInput = document.getElementById('checkout-user-id');
-      const nameHidden = document.getElementById('checkout-user');
-      const emailInput = document.getElementById('checkout-email');
-      const msg = document.getElementById('checkout-user-validation-msg');
-      const icon = document.getElementById('checkout-user-validation-icon');
-      const submitBtn = document.getElementById('checkout-submit-btn');
-
-      const typedId = idInput.value.trim().toLowerCase();
-      if (!typedId) {
-        msg.textContent = '';
-        icon.textContent = '';
-        nameHidden.value = '';
-        submitBtn.disabled = true;
-        submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
-        return;
-      }
-
-      const found = users.find(u => u.username.toLowerCase() === typedId);
-      if (found) {
-        msg.textContent = `✓ Verified: ${found.name}`;
-        msg.className = 'text-[11px] mt-1 font-semibold text-emerald-600';
-        icon.textContent = '✅';
-        nameHidden.value = found.name;
-        
-        // Auto-fill email
-        if (found.email) {
-          emailInput.value = found.email;
-        } else {
-          emailInput.value = `${found.username}@tranetechnologies.com`;
-        }
-
-        submitBtn.disabled = false;
-        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-      } else {
-        msg.textContent = '✗ User ID not found in system. Please contact administrator.';
-        msg.className = 'text-[11px] mt-1 font-semibold text-rose-600';
-        icon.textContent = '❌';
-        nameHidden.value = '';
-        submitBtn.disabled = true;
-        submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
-      }
     }
 
     function escapeHtml(str) {
