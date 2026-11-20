@@ -90,7 +90,7 @@
             <h1 onclick="resetToOverview()" class="text-base sm:text-xl font-extrabold tracking-tight truncate cursor-pointer hover:text-emerald-300 transition-colors">
               StorageLocater
             </h1>
-            <button id="sync-badge" onclick="openCloudModal()" class="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shrink-0 hover:bg-emerald-500/25 transition" title="Cloud Sync Status">
+            <button id="sync-badge" onclick="openCloudModal()" class="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-305 border border-emerald-505/30 shrink-0 hover:bg-emerald-500/25 transition" title="Cloud Sync Status">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-404 animate-pulse"></span>
               <span id="sync-badge-text" class="hidden sm:inline">Connecting...</span>
             </button>
@@ -319,7 +319,7 @@
       <!-- 5-Column Responsive Filter Grid -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
         <div>
-          <label class="block block text-[11px] font-bold text-slate-500 uppercase mb-1">Search Inventory (Name, S/N, Tag)</label>
+          <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Search Inventory (Name, S/N, Tag)</label>
           <input type="text" id="search-input" oninput="renderInventory()" placeholder="Name, S/N, tag, category..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
         </div>
         <div>
@@ -454,20 +454,14 @@
   <!-- Printable QR Area -->
   <div id="print-area" class="hidden"></div>
 
-  <!-- MODAL: Admin Auth (Login & Registration) -->
+  <!-- MODAL: Admin Auth (Login Only) -->
   <div id="auth-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print backdrop-blur-sm">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
       <div class="flex justify-between items-center border-b pb-3 mb-4">
-        <h2 id="auth-modal-title" class="text-base font-bold text-slate-900 flex items-center gap-2"><span>🔒</span> Admin Portal</h2>
+        <h2 id="auth-modal-title" class="text-base font-bold text-slate-900 flex items-center gap-2"><span>🔒</span> Admin Portal Login</h2>
         <button onclick="closeAuthModal()" class="text-slate-404 hover:text-slate-700 text-2xl leading-none">&times;</button>
       </div>
       
-      <!-- Tabs -->
-      <div class="flex border-b mb-4 text-xs font-bold">
-        <button id="auth-tab-login" onclick="switchAuthTab('login')" class="flex-1 pb-2 border-b-2 border-[#5A358E] text-[#5A358E] text-center transition">Login</button>
-        <button id="auth-tab-register" onclick="switchAuthTab('register')" class="flex-1 pb-2 border-b-2 border-transparent text-slate-500 hover:text-slate-800 text-center transition">Create Login</button>
-      </div>
-
       <!-- Login Form -->
       <form id="auth-login-form" onsubmit="handleAdminLogin(event)" class="space-y-4">
         <div>
@@ -480,33 +474,11 @@
         </div>
         <button type="submit" class="w-full py-2.5 bg-[#5A358E] hover:bg-[#3D2566] text-white rounded-lg text-sm font-bold shadow-md transition active:scale-[0.98]">Log In as Admin</button>
       </form>
-
-      <!-- Registration Form -->
-      <form id="auth-register-form" onsubmit="handleAdminRegister(event)" class="space-y-3 hidden">
-        <div>
-          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Desired Username / User ID *</label>
-          <input type="text" id="auth-reg-username" required placeholder="e.g. u123456" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#5A358E] outline-none" />
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Full Name *</label>
-          <input type="text" id="auth-reg-name" required placeholder="e.g. Jane Doe" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#5A358E] outline-none" />
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Email Address *</label>
-          <input type="email" id="auth-reg-email" required placeholder="e.g. jane.doe@tranetechnologies.com" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#5A358E] outline-none" />
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Password *</label>
-          <input type="password" id="auth-reg-password" required placeholder="••••••••" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#5A358E] outline-none" />
-        </div>
-        <p class="text-[11px] text-slate-500 italic mt-2">Note: Newly created accounts must be marked as Admin by an existing Administrator in "Manage Users" before they can log in.</p>
-        <button type="submit" class="w-full py-2.5 bg-[#0D9488] hover:bg-[#059669] text-white rounded-lg text-sm font-bold shadow-md transition active:scale-[0.98]">Create Account</button>
-      </form>
     </div>
   </div>
 
   <!-- MODAL: Permanent QR Code Base URL Settings -->
-  <div id="qr-config-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print backdrop-blur-sm">
+  <div id="qr-config-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-55 p-4 no-print backdrop-blur-sm">
     <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl">
       <div class="flex justify-between items-center border-b pb-3 mb-4">
         <h2 class="text-base font-bold text-slate-900">🔗 Permanent QR Code Base URL</h2>
@@ -621,7 +593,7 @@
         </div>
         <div class="flex justify-end space-x-2 pt-3 border-t">
           <button type="button" onclick="closeAutoCheckoutModal()" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium">Cancel</button>
-          <button type="submit" id="auto-checkout-submit-btn" class="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-550 text-white text-sm font-bold shadow">Auto-Assign & Check Out</button>
+          <button type="submit" id="auto-checkout-submit-btn" class="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-555 text-white text-sm font-bold shadow">Auto-Assign & Check Out</button>
         </div>
       </form>
     </div>
@@ -970,11 +942,11 @@
       </div>
       <div class="mt-4 space-y-2.5 bg-slate-50 p-3.5 rounded-xl border text-xs sm:text-sm">
         <div>
-          <p class="text-[10px] font-bold text-slate-400 uppercase">Details & Notes</p>
+          <p class="text-[10px] font-bold text-slate-404 uppercase">Details & Notes</p>
           <p id="detail-notes" class="text-slate-700 whitespace-pre-line"></p>
         </div>
         <div class="border-t pt-2">
-          <p class="text-[10px] font-bold text-slate-400 uppercase">Work Instructions</p>
+          <p class="text-[10px] font-bold text-slate-404 uppercase">Work Instructions</p>
           <p id="detail-instructions" class="text-slate-700 whitespace-pre-line"></p>
         </div>
       </div>
@@ -997,10 +969,10 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <!-- Add User Form -->
         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-          <h3 class="text-xs font-bold text-[#5A358E] uppercase mb-2">➕ Add Single User</h3>
+          <h3 class="text-xs font-bold text-[#5A358E] uppercase mb-2">➕ Add Single User / Admin</h3>
           <form onsubmit="addUser(event)" class="space-y-2">
             <div>
-              <label class="block text-[10px] font-bold text-slate-550 uppercase">User ID *</label>
+              <label class="block text-[10px] font-bold text-slate-550 uppercase">User ID (Username) *</label>
               <input type="text" id="user-username" required placeholder="e.g. u123456" class="w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-[#5A358E]" />
             </div>
             <div>
@@ -1010,6 +982,14 @@
             <div>
               <label class="block text-[10px] font-bold text-slate-550 uppercase">Email Address *</label>
               <input type="email" id="user-email" required placeholder="e.g. jane.doe@tranetechnologies.com" class="w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-[#5A358E]" />
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-550 uppercase">Password (For Admin Logins) *</label>
+              <input type="password" id="user-password" required placeholder="e.g. securePass123" class="w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-[#5A358E]" />
+            </div>
+            <div class="flex items-center gap-2 py-1">
+              <input type="checkbox" id="user-is-admin" class="w-4 h-4 accent-[#5A358E] cursor-pointer" />
+              <label for="user-is-admin" class="text-xs font-semibold text-slate-700 cursor-pointer">Make Admin directly</label>
             </div>
             <button type="submit" class="w-full bg-[#5A358E] hover:bg-[#3D2566] text-white py-1.5 rounded-lg text-xs font-semibold">Add User</button>
           </form>
@@ -1254,7 +1234,7 @@
               <div id="help-section-instructions" class="space-y-4 hidden">
                 <div>
                   <h3 class="text-base font-bold text-slate-900">🛠️ Suggest / Update Work Instructions</h3>
-                  <p class="text-xs text-slate-500">Select any tool or asset and propose safer, better work instructions or torque values to help future operators.</p>
+                  <p class="text-xs text-slate-505">Select any tool or asset and propose safer, better work instructions or torque values to help future operators.</p>
                 </div>
                 <form onsubmit="submitHelpWorkInstructions(event)" class="space-y-3.5">
                   <div>
@@ -1417,7 +1397,6 @@
         alert('Logged out successfully.');
         return;
       }
-      switchAuthTab('login');
       const modal = document.getElementById('auth-modal');
       modal.classList.remove('hidden');
       modal.classList.add('flex');
@@ -1427,25 +1406,6 @@
       const modal = document.getElementById('auth-modal');
       modal.classList.add('hidden');
       modal.classList.remove('flex');
-    }
-
-    function switchAuthTab(tab) {
-      const loginTab = document.getElementById('auth-tab-login');
-      const regTab = document.getElementById('auth-tab-register');
-      const loginForm = document.getElementById('auth-login-form');
-      const regForm = document.getElementById('auth-register-form');
-
-      if (tab === 'login') {
-        loginTab.className = "flex-1 pb-2 border-b-2 border-[#5A358E] text-[#5A358E] text-center";
-        regTab.className = "flex-1 pb-2 border-b-2 border-transparent text-slate-500 hover:text-slate-800 text-center";
-        loginForm.classList.remove('hidden');
-        regForm.classList.add('hidden');
-      } else {
-        regTab.className = "flex-1 pb-2 border-b-2 border-[#5A358E] text-[#5A358E] text-center";
-        loginTab.className = "flex-1 pb-2 border-b-2 border-transparent text-slate-500 hover:text-slate-800 text-center";
-        regForm.classList.remove('hidden');
-        loginForm.classList.add('hidden');
-      }
     }
 
     function handleAdminLogin(e) {
@@ -1472,33 +1432,6 @@
       }
     }
 
-    function handleAdminRegister(e) {
-      e.preventDefault();
-      const username = document.getElementById('auth-reg-username').value.trim();
-      const name = document.getElementById('auth-reg-name').value.trim();
-      const email = document.getElementById('auth-reg-email').value.trim();
-      const password = document.getElementById('auth-reg-password').value;
-
-      if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
-        alert('This username already exists.');
-        return;
-      }
-
-      users.push({
-        username,
-        name,
-        email,
-        password,
-        isAdmin: false
-      });
-
-      localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
-      alert('Registration successful! Please ask an existing Admin to mark your account as Admin.');
-      switchAuthTab('login');
-      document.getElementById('auth-login-username').value = username;
-      renderUserList();
-    }
-
     async function toggleUserAdminState(username, isChecked) {
       if (username === 'admin') return;
       const user = users.find(u => u.username === username);
@@ -1506,6 +1439,22 @@
         user.isAdmin = isChecked;
         await saveState();
         renderUserList();
+      }
+    }
+
+    async function changeUserPassword(username) {
+      if (username === 'admin') {
+        alert('The primary admin password cannot be changed from this screen.');
+        return;
+      }
+      const user = users.find(u => u.username === username);
+      if (!user) return;
+      const newPass = prompt(`Enter new password for ${user.username} (${user.name}):`, user.password || '');
+      if (newPass !== null) {
+        user.password = newPass.trim();
+        await saveState();
+        renderUserList();
+        alert('Password updated successfully.');
       }
     }
 
@@ -1767,7 +1716,7 @@
       container.innerHTML = '';
 
       if (helpLogs.length === 0) {
-        container.innerHTML = '<div class="p-8 text-center text-slate-400 text-sm">No support reports or requests logged yet.</div>';
+        container.innerHTML = '<div class="p-8 text-center text-slate-404 text-sm">No support reports or requests logged yet.</div>';
         return;
       }
 
@@ -1809,7 +1758,7 @@
             <p class="text-slate-700"><strong>Concern:</strong> ${escapeHtml(entry.description)}</p>
             <p class="text-slate-700"><strong>Job Impact:</strong> <span class="italic text-rose-805">${escapeHtml(entry.impact)}</span></p>
             <div class="flex justify-between items-center mt-2 pt-2 border-t border-slate-100">
-              <div class="text-[10px] text-slate-400">Submitted by: <strong>${escapeHtml(entry.user)}</strong></div>
+              <div class="text-[10px] text-slate-404">Submitted by: <strong>${escapeHtml(entry.user)}</strong></div>
               ${resolveButton}
             </div>
           `;
@@ -2188,7 +2137,7 @@
       const consumed = JSON.parse(localStorage.getItem('PLANT_QR_CONSUMED_H_V8')) || [];
       container.innerHTML = '';
       if (consumed.length === 0) {
-        container.innerHTML = '<div class="p-8 text-center text-slate-400 text-sm">No items checked out for good yet.</div>';
+        container.innerHTML = '<div class="p-8 text-center text-slate-404 text-sm">No items checked out for good yet.</div>';
         return;
       }
       consumed.forEach(item => {
@@ -2513,13 +2462,13 @@
       countEl.textContent = users.length;
       
       if (filtered.length === 0) {
-        container.innerHTML = `<div class="p-4 text-center text-slate-400 text-xs">No users found.</div>`;
+        container.innerHTML = `<div class="p-4 text-center text-slate-404 text-xs">No users found.</div>`;
         return;
       }
       
       filtered.forEach(u => {
         const div = document.createElement('div');
-        div.className = 'p-2.5 flex justify-between items-center text-xs hover:bg-slate-50';
+        div.className = 'p-2.5 flex justify-between items-center text-xs hover:bg-slate-50 border-b border-slate-100/50';
         
         const adminBadgeOrBtn = u.username === 'admin' 
           ? `<span class="bg-[#5A358E] text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">Main Admin</span>`
@@ -2530,7 +2479,11 @@
 
         const deleteBtn = u.username === 'admin'
           ? ''
-          : `<button onclick="deleteUser('${escapeJsStr(u.username)}')" class="text-rose-600 hover:bg-rose-50 px-2 py-1 rounded">✕</button>`;
+          : `<button onclick="deleteUser('${escapeJsStr(u.username)}')" class="text-rose-600 hover:bg-rose-50 px-2 py-1 rounded transition" title="Delete User">✕</button>`;
+
+        const passBtn = u.username === 'admin'
+          ? ''
+          : `<button onclick="changeUserPassword('${escapeJsStr(u.username)}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded font-semibold text-[10px] transition">🔑 Password</button>`;
 
         div.innerHTML = `
           <div>
@@ -2538,7 +2491,8 @@
             <span class="font-semibold text-slate-800 ml-2">${escapeHtml(u.name)}</span>
             ${u.email ? `<span class="text-slate-404 font-mono text-[11px] ml-2">(${escapeHtml(u.email)})</span>` : ''}
           </div>
-          <div class="flex items-center gap-4">
+          <div class="flex items-center gap-3">
+            ${passBtn}
             ${adminBadgeOrBtn}
             ${deleteBtn}
           </div>
@@ -2552,10 +2506,14 @@
       const usernameInput = document.getElementById('user-username');
       const nameInput = document.getElementById('user-name');
       const emailInput = document.getElementById('user-email');
+      const passwordInput = document.getElementById('user-password');
+      const isAdminInput = document.getElementById('user-is-admin');
       
       const username = usernameInput.value.trim();
       const name = nameInput.value.trim();
       const email = emailInput.value.trim();
+      const password = passwordInput.value;
+      const isAdmin = isAdminInput.checked;
       
       if (!email) {
         alert('An email address is required.');
@@ -2567,10 +2525,12 @@
         return;
       }
       
-      users.push({ username, name, email });
+      users.push({ username, name, email, password, isAdmin });
       usernameInput.value = '';
       nameInput.value = '';
       emailInput.value = '';
+      passwordInput.value = '';
+      isAdminInput.checked = false;
       
       renderUserList();
       await saveState();
@@ -2701,7 +2661,7 @@
       if (!badge || !textEl) return;
       textEl.textContent = statusText;
       if (isCloudActive) {
-        badge.className = 'inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shrink-0 hover:bg-emerald-500/25 transition';
+        badge.className = 'inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-305 border border-emerald-500/30 shrink-0 hover:bg-emerald-500/25 transition';
       } else {
         badge.className = 'inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-404/40 shrink-0';
       }
@@ -2968,7 +2928,7 @@
         statusPill.className = 'text-[11px] font-bold px-2.5 py-0.5 rounded-md uppercase bg-emerald-100 text-emerald-800 border border-emerald-300';
         statusPill.textContent = '✅ Ready for Check-Out';
 
-        smartPrompt.className = 'mt-4 p-4 rounded-xl border border-purple-400 bg-purple-50/70 flex flex-wrap items-center justify-between gap-4';
+        smartPrompt.className = 'mt-4 p-4 rounded-xl border border-purple-404 bg-purple-50/70 flex flex-wrap items-center justify-between gap-4';
         promptTitle.className = 'font-bold text-sm sm:text-base text-purple-955';
         promptTitle.textContent = 'Checking out this unit?';
         promptDesc.className = 'text-xs text-purple-855 mt-0.5';
@@ -3337,7 +3297,7 @@
               <span class="font-mono font-bold text-amber-855 bg-amber-200/70 px-2.5 py-1 rounded-lg" data-live-timer="${rec.checkedOutAt}">
                 ${formatElapsedDuration(rec.checkedOutAt)}
               </span>
-              <button onclick="closeHistoryModal(); openCheckInModal('${item.id}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-lg font-bold">
+              <button onclick="closeHistoryModal(); openCheckInModal('${item.id}')" class="bg-emerald-600 hover:bg-emerald-550 text-white px-2.5 py-1 rounded-lg font-bold">
                 Check In
               </button>
             </div>
@@ -3356,7 +3316,7 @@
             : `<span class="bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold px-2 py-0.5 rounded text-[10px]">📥 CHECK IN</span>`;
 
           const durationText = entry.durationMs
-            ? `<span class="font-mono text-[11px] text-slate-600 bg-slate-200 px-2 py-0.5 rounded">Time Out: ${formatElapsedDuration(0, entry.durationMs)}</span>`
+            ? `<span class="font-mono text-[11px] text-slate-605 bg-slate-200 px-2 py-0.5 rounded">Time Out: ${formatElapsedDuration(0, entry.durationMs)}</span>`
             : '';
 
           const row = document.createElement('div');
@@ -3688,15 +3648,15 @@
             <div class="grid grid-cols-3 gap-2 mt-4 p-2.5 rounded-xl bg-[#FDFDFD] border border-slate-105 shadow-inner">
               <div class="text-center">
                 <div class="text-xl font-extrabold ${grp.available > 0 ? 'text-[#0D9488]' : 'text-rose-600'}">${grp.available}</div>
-                <div class="text-[10px] font-bold uppercase text-slate-400">Available</div>
+                <div class="text-[10px] font-bold uppercase text-slate-404">Available</div>
               </div>
               <div class="text-center border-x border-slate-200">
                 <div class="text-xl font-bold text-amber-600">${grp.checkedOut}</div>
-                <div class="text-[10px] font-bold uppercase text-slate-400">Out</div>
+                <div class="text-[10px] font-bold uppercase text-slate-404">Out</div>
               </div>
               <div class="text-center">
                 <div class="text-xl font-bold text-slate-700">${grp.total}</div>
-                <div class="text-[10px] font-bold uppercase text-slate-400">Total</div>
+                <div class="text-[10px] font-bold uppercase text-slate-404">Total</div>
               </div>
             </div>
           </div>
@@ -3705,7 +3665,7 @@
             <button onclick="selectProductTypeView('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}')" class="flex-1 bg-[#5A358E] hover:bg-[#3D2566] text-white text-xs font-bold py-2 px-3 rounded-lg transition truncate shadow-sm">
               View ${grp.total} Unit(s)
             </button>
-            <button onclick="openAddMoreForProductType('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}')" class="bg-purple-50 hover:bg-purple-100 text-[#5A358E] border border-purple-200 text-xs font-bold py-2 px-2.5 rounded-lg transition shrink-0" title="Add units">
+            <button onclick="openAddMoreForProductType('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}')" class="bg-purple-50 hover:bg-purple-105 text-[#5A358E] border border-purple-200 text-xs font-bold py-2 px-2.5 rounded-lg transition shrink-0" title="Add units">
               + Add
             </button>
             ${printToggleBtn}
@@ -3761,7 +3721,7 @@
       }
 
       if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-400">No matching units found in this view.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-404">No matching units found in this view.</td></tr>`;
         return;
       }
 
@@ -3781,7 +3741,7 @@
             <div class="text-xs bg-amber-50/70 border border-amber-200 rounded-lg p-2 max-w-[220px]">
               <div class="font-bold text-slate-900 truncate">👤 ${escapeHtml(latest.userName)} → ${escapeHtml(latest.destination)}</div>
               <div class="flex items-center justify-between mt-0.5">
-                <span class="text-[10px] text-slate-400">Timer:</span>
+                <span class="text-[10px] text-slate-404">Timer:</span>
                 <span class="font-mono font-bold text-amber-700 text-[11px]" data-live-timer="${latest.checkedOutAt}">${formatElapsedDuration(latest.checkedOutAt)}</span>
               </div>
             </div>
@@ -3840,7 +3800,7 @@
               <button onclick="openHistoryModal('${item.id}')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded-md font-medium transition" title="History">📜</button>
               ${(loggedInUser && loggedInUser.isAdmin) ? `
               <button onclick="openItemModal('${item.id}')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded-md font-medium transition">Edit</button>
-              <button onclick="deleteItem('${item.id}')" class="text-xs bg-rose-50 hover:bg-rose-105 text-rose-605 px-2 py-1 rounded-md font-medium transition">✕</button>
+              <button onclick="deleteItem('${item.id}')" class="text-xs bg-rose-50 hover:bg-rose-105 text-rose-655 px-2 py-1 rounded-md font-medium transition">✕</button>
               ` : ''}
             </div>
           </td>
@@ -4251,6 +4211,7 @@
       renderInventory();
     }
 
+    // eslint-disable-next-line no-unused-vars
     function clearAllSelectedQRCodes() {
       if (selectedItemIds.size === 0) return;
       selectedItemIds.clear();
@@ -4383,7 +4344,6 @@
         .replace(/"/g, '&quot;');
     }
 
-    // eslint-disable-next-line no-unused-vars
     function escapeJsStr(str) {
       return String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
     }
