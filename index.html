@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>StorageLocater — Trane Technologies Asset & Quality Tracker</title>
   <!-- Preload sibling pages for instantaneous zero-lag transitions -->
+  <link rel="prefetch" href="deployments.html" />
   <link rel="prefetch" href="admin.html" />
   <link rel="prefetch" href="support.html" />
   <!-- Tailwind CSS -->
@@ -75,24 +76,30 @@
           <span id="notif-unread-badge" class="hidden bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full">0</span>
         </button>
 
-        <button onclick="openAutoCheckoutModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-lg text-xs font-bold transition-all shadow-md hover:shadow-lg flex items-center gap-1.5 active:scale-95 mr-1">
+        <!-- Active Areas & Custodian Roster Link -->
+        <a href="deployments.html" class="bg-amber-600 hover:bg-amber-500 text-white px-3.5 py-2 rounded-lg text-xs font-bold transition-all shadow-md hover:shadow-lg flex items-center gap-1.5 active:scale-95">
+          <span>📍</span>
+          <span class="hidden sm:inline">Active Areas</span>
+        </a>
+
+        <button onclick="openAutoCheckoutModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-lg text-xs font-bold transition-all shadow-md hover:shadow-lg flex items-center gap-1.5 active:scale-95">
           <span>🎯</span>
-          <span>Auto Check-Out</span>
+          <span class="hidden md:inline">Auto Check-Out</span>
         </button>
 
         <a href="support.html" class="bg-[#0D9488] hover:bg-[#059669] text-white px-3.5 py-2 rounded-lg text-xs font-bold transition-all shadow-md hover:shadow-lg flex items-center gap-1.5 active:scale-95">
           <span>🙋‍♂️</span>
-          <span>Help & Support</span>
+          <span class="hidden lg:inline">Help & Support</span>
         </a>
 
         <button id="header-add-item-btn" onclick="openItemModal()" class="hidden bg-[#5A358E] hover:bg-[#623a9c] text-white px-3.5 py-2 rounded-lg text-xs font-bold transition-all shadow-md hover:shadow-lg flex items-center gap-1.5 active:scale-95">
           <span>➕</span>
-          <span>Add Item</span>
+          <span class="hidden sm:inline">Add Item</span>
         </button>
 
         <a id="header-auth-btn" href="admin.html" class="bg-[#5A358E] hover:bg-[#623a9c] text-white px-3.5 py-2 rounded-lg text-xs font-bold transition-all shadow-md hover:shadow-lg flex items-center gap-1.5 active:scale-95">
           <span id="header-auth-btn-icon">🔑</span>
-          <span id="header-auth-btn-text">Admin Login</span>
+          <span id="header-auth-btn-text" class="hidden sm:inline">Admin Login</span>
         </a>
 
         <!-- Clean Dropdown Menu -->
@@ -104,26 +111,31 @@
           </button>
 
           <div id="settings-dropdown" class="hidden absolute right-0 mt-2 w-56 bg-white text-slate-800 rounded-xl shadow-2xl border border-slate-200 py-1.5 z-50 text-xs font-medium">
-            <div class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-purple-800">System Management</div>
-            <a href="support.html" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5"><span>🙋‍♂️</span> Help & Feedback Desk</a>
-            <a id="menu-plants-btn" href="admin.html?tab=plants" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5">
+            <div class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-purple-800">System Views & Support</div>
+            <a href="deployments.html" class="w-full text-left px-3.5 py-2 hover:bg-amber-50 text-amber-800 font-bold flex items-center gap-2.5">
+              <span>📍</span> Active Areas & Roster
+            </a>
+            <a href="support.html" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5">
+              <span>🙋‍♂️</span> Help & Feedback Desk
+            </a>
+            <button id="menu-plants-btn" onclick="window.location.href='admin.html?tab=plants'" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5">
               <span>🏢</span> Manage Plants
-            </a>
-            <a id="menu-users-btn" href="admin.html?tab=users" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5">
+            </button>
+            <button id="menu-users-btn" onclick="window.location.href='admin.html?tab=users'" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5">
               <span>👤</span> Manage Users
-            </a>
-            <a id="menu-email-btn" href="admin.html?tab=email" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5">
+            </button>
+            <button id="menu-email-btn" onclick="window.location.href='admin.html?tab=email'" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5">
               <span>✉️</span> Email Alert Settings
-            </a>
-            <a id="menu-qr-btn" href="admin.html?tab=qr" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5">
+            </button>
+            <button id="menu-qr-btn" onclick="window.location.href='admin.html?tab=qr'" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5">
               <span>🔗</span> Permanent QR URL Settings
-            </a>
-            <a id="menu-cloud-btn" href="admin.html?tab=cloud" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5">
+            </button>
+            <button id="menu-cloud-btn" onclick="window.location.href='admin.html?tab=cloud'" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5">
               <span>☁️</span> Cloud Database Status
-            </a>
-            <a id="menu-consumed-btn" href="admin.html?tab=consumed" class="hidden w-full text-left px-3.5 py-2 hover:bg-rose-50 text-rose-600 flex items-center gap-2.5 font-bold">
+            </button>
+            <button id="menu-consumed-btn" onclick="window.location.href='admin.html?tab=consumed'" class="hidden w-full text-left px-3.5 py-2 hover:bg-rose-50 text-rose-600 flex items-center gap-2.5 font-bold">
               <span>🗑️</span> Consumed / Single-Use Log
-            </a>
+            </button>
             <div class="border-t my-1 border-slate-100"></div>
             <div class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-purple-800">QR Print & Backup</div>
             <button onclick="closeSettingsMenu(); printSelectedQRCodes()" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center justify-between">
@@ -324,6 +336,9 @@
               📋 Individual Units
             </button>
           </div>
+          <a href="deployments.html" class="text-xs bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-bold px-3 py-2 rounded-lg transition active:scale-95">
+            📍 Active Areas
+          </a>
           <button onclick="pullFromCloud(true)" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 font-semibold px-3 py-2 rounded-lg transition active:scale-95" title="Sync with Cloud">
             🔄 Sync
           </button>
