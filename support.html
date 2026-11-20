@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StorageLocater — Help & Support Desk</title>
+  <!-- Preload sibling pages for instantaneous zero-lag transitions -->
+  <link rel="prefetch" href="index.html" />
+  <link rel="prefetch" href="admin.html" />
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght=500;700&display=swap');
+    body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+  </style>
+</head>
+<body class="bg-[#FAF9F5] text-slate-800 min-h-screen pb-24 overflow-x-hidden">
+
+  <!-- Corporate Header themed in Trane Deep Purple & Green Accent -->
+  <header class="bg-[#251440] text-white border-b-4 border-[#0D9488] sticky top-0 z-40 shadow-md">
+    <div class="w-full max-w-[96%] sm:max-w-[94%] xl:max-w-[92%] 2xl:max-w-[90%] mx-auto px-2 sm:px-4 h-16 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <a href="index.html">
+          <img src="https://brandlogos.net/wp-content/uploads/2026/02/trane_technologies-logo_brandlogos.net_ct15x-1536x432.png" alt="Trane Technologies Logo" class="h-9 md:h-11 w-auto cursor-pointer rounded-lg bg-white p-1.5 hover:opacity-90 shadow-sm border border-slate-200" />
+        </a>
+        <div>
+          <a href="index.html" class="text-base sm:text-xl font-extrabold tracking-tight cursor-pointer hover:text-emerald-300">
+            StorageLocater Help & Support Desk
+          </a>
+          <p class="text-[10px] text-slate-300 uppercase tracking-widest font-semibold hidden sm:block">Quality Reporting, Wishlist & Work Instructions</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <a href="admin.html" class="bg-[#5A358E] hover:bg-[#623a9c] text-white px-3.5 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-md">
+          <span>🔑</span> Admin Portal
+        </a>
+        <a href="index.html" class="bg-[#0D9488] hover:bg-[#059669] text-white px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-md">
+          <span>⬅️</span> Dashboard
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="w-full max-w-[96%] sm:max-w-[94%] xl:max-w-[92%] 2xl:max-w-[90%] mx-auto px-2 sm:px-4 py-6 space-y-6">
+    <div class="bg-white rounded-2xl p-5 border border-[#DCDDE1] flex flex-col md:flex-row items-center justify-between gap-6">
+      <div class="space-y-1">
+        <h3 class="text-lg font-bold text-[#251440]">How can we improve your workflow today?</h3>
+        <p class="text-xs text-slate-600 max-w-2xl">Use this portal to report concerns or broken items, request brand-new tools/inventory, suggest safer and clearer work instructions, or view submitted feedback from other technicians across all plants.</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Forms Tab Navigation -->
+      <div class="lg:col-span-1 space-y-2">
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Select support category</p>
+        <button id="help-tab-concern" onclick="switchHelpTab('concern')" class="w-full text-left p-3.5 rounded-xl border font-bold text-sm transition flex items-center gap-3 bg-[#5A358E] text-white border-[#5A358E]">
+          <span class="text-lg">⚠️</span>
+          <div class="min-w-0">
+            <p class="truncate">Report Issue / Broken Item</p>
+          </div>
+        </button>
+        <button id="help-tab-request" onclick="switchHelpTab('request')" class="w-full text-left p-3.5 rounded-xl border font-bold text-sm transition flex items-center gap-3 bg-white hover:bg-slate-50 border-slate-200 text-slate-700">
+          <span class="text-lg">➕</span>
+          <div class="min-w-0">
+            <p class="truncate">Request New Inventory</p>
+          </div>
+        </button>
+        <button id="help-tab-instructions" onclick="switchHelpTab('instructions')" class="w-full text-left p-3.5 rounded-xl border font-bold text-sm transition flex items-center gap-3 bg-white hover:bg-slate-50 border-slate-200 text-slate-700">
+          <span class="text-lg">🛠️</span>
+          <div class="min-w-0">
+            <p class="truncate">Improve Work Instructions</p>
+          </div>
+        </button>
+        <button id="help-tab-logs" onclick="switchHelpTab('logs')" class="w-full text-left p-3.5 rounded-xl border font-bold text-sm transition flex items-center gap-3 bg-white hover:bg-slate-50 border-slate-200 text-slate-700">
+          <span class="text-lg">📜</span>
+          <div class="min-w-0">
+            <p class="truncate">Live Concerns & Wishlist Log</p>
+          </div>
+        </button>
+      </div>
+
+      <!-- Active Form Workspace -->
+      <div class="lg:col-span-2">
+        <div class="bg-white rounded-xl p-5 border border-[#DCDDE1] min-h-[380px]">
+          
+          <!-- Report Concern -->
+          <div id="help-section-concern" class="space-y-4">
+            <div>
+              <h3 class="text-base font-bold text-slate-900">⚠️ Report Issue or Broken Item</h3>
+              <p class="text-xs text-slate-500">Flag an existing item in inventory that is currently damaged, broken, or has other concerns.</p>
+            </div>
+            <form onsubmit="submitHelpConcern(event)" class="space-y-3.5">
+              <div>
+                <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Select Existing Item *</label>
+                <input type="text" id="help-concern-search" oninput="filterHelpConcernItems()" placeholder="🔍 Type to search name or item code..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs mb-1.5" />
+                <select id="help-concern-item-id" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"></select>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Select New Quality State *</label>
+                  <select id="help-concern-quality" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white">
+                    <option value="Needs Repair">⚠️ Needs Repair</option>
+                    <option value="Broken">❌ Broken / Non-Functional</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Your User ID *</label>
+                  <input type="text" id="help-concern-user" required placeholder="e.g. u123456" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Describe the Concern *</label>
+                <textarea id="help-concern-desc" required rows="3" placeholder="Explain what is wrong with the unit..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"></textarea>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Job Impact *</label>
+                <textarea id="help-concern-impact" required rows="2" placeholder="e.g. Delay, safety hazard..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"></textarea>
+              </div>
+              <button type="submit" class="bg-[#5A358E] hover:bg-[#3D2566] text-white font-bold text-xs px-6 py-2.5 rounded-lg">Submit Concern</button>
+            </form>
+          </div>
+
+          <!-- Request New Inventory -->
+          <div id="help-section-request" class="space-y-4 hidden">
+            <div>
+              <h3 class="text-base font-bold text-slate-900">➕ Request New Items / Inventory</h3>
+              <p class="text-xs text-slate-500">Suggest new tools or items to add to stock.</p>
+            </div>
+            <form onsubmit="submitHelpInventoryRequest(event)" class="space-y-3.5">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <input type="text" id="help-req-name" required placeholder="Requested Item Name" class="w-full border rounded px-3 py-2 text-sm" />
+                <input type="text" id="help-req-category" required placeholder="Category / Type" class="w-full border rounded px-3 py-2 text-sm" />
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <select id="help-req-plant" required class="w-full border rounded px-3 py-2 text-sm bg-white"></select>
+                <input type="text" id="help-req-user" required placeholder="Your User ID" class="w-full border rounded px-3 py-2 text-sm" />
+              </div>
+              <textarea id="help-req-reason" required rows="3" placeholder="Explain how this would be helpful..." class="w-full border rounded px-3 py-2 text-sm"></textarea>
+              <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-6 py-2.5 rounded-lg">Submit Wishlist Request</button>
+            </form>
+          </div>
+
+          <!-- Suggest Work Instructions -->
+          <div id="help-section-instructions" class="space-y-4 hidden">
+            <div>
+              <h3 class="text-base font-bold text-slate-900">🛠️ Suggest / Update Work Instructions</h3>
+              <p class="text-xs text-slate-500">Propose safer or better torque/usage steps.</p>
+            </div>
+            <form onsubmit="submitHelpWorkInstructions(event)" class="space-y-3.5">
+              <div>
+                <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Select Item *</label>
+                <select id="help-inst-item-id" required onchange="showCurrentInstructions()" class="w-full border rounded px-3 py-2 text-sm bg-white"></select>
+              </div>
+              <div class="bg-slate-50 p-3 rounded-lg border text-xs">
+                <span class="font-bold text-slate-400 uppercase block text-[10px]">Current Work Instructions:</span>
+                <p id="help-current-inst-preview" class="text-slate-700 whitespace-pre-line mt-1"></p>
+              </div>
+              <textarea id="help-inst-new-text" required rows="4" placeholder="Proposed better instructions..." class="w-full border rounded px-3 py-2 text-sm font-mono"></textarea>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <input type="text" id="help-inst-user" required placeholder="Submitter User ID" class="w-full border rounded px-3 py-2 text-sm" />
+                <input type="text" id="help-inst-reason" required placeholder="Reason for update" class="w-full border rounded px-3 py-2 text-sm" />
+              </div>
+              <button type="submit" class="bg-[#5A358E] hover:bg-[#3D2566] text-white font-bold text-xs px-6 py-2.5 rounded-lg">Update Work Instructions</button>
+            </form>
+          </div>
+
+          <!-- Concerns & Wishlist Logs -->
+          <div id="help-section-logs" class="space-y-4 hidden">
+            <div class="flex justify-between items-center">
+              <h3 class="text-base font-bold">📜 Live Concerns & Requests Log</h3>
+              <button id="clear-logs-btn" onclick="clearHelpLogs()" class="hidden text-xs bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold px-3 py-1.5 rounded-lg">🗑️ Clear All Logs</button>
+            </div>
+            <div id="help-logs-container" class="space-y-3 max-h-[420px] overflow-y-auto"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let loggedInUser = JSON.parse(sessionStorage.getItem('LOGGED_IN_ADMIN')) || null;
+
+    const DEFAULT_CLOUD_DB_URL = 'https://storagelocator-405e5-default-rtdb.firebaseio.com/';
+    const STORAGE_KEY_PLANTS = 'PLANT_QR_PLANTS_V8';
+    const STORAGE_KEY_ITEMS  = 'PLANT_QR_ITEMS_V8';
+    const STORAGE_KEY_SEQ    = 'PLANT_QR_SEQ_V8';
+    const STORAGE_KEY_CLOUD  = 'PLANT_QR_CLOUD_URL_V8';
+    const STORAGE_KEY_NOTIFS = 'PLANT_QR_NOTIFS_V8';
+    const STORAGE_KEY_EMAIL  = 'PLANT_QR_EMAIL_CFG_V8';
+    const STORAGE_KEY_QR_BASE = 'PLANT_QR_BASE_URL_V8';
+    const STORAGE_KEY_USERS  = 'PLANT_QR_USERS_V8';
+    const STORAGE_KEY_HELP_LOGS = 'PLANT_QR_HELP_LOGS_V8';
+
+    let cloudDbUrl = localStorage.getItem(STORAGE_KEY_CLOUD) || DEFAULT_CLOUD_DB_URL;
+    let plants = JSON.parse(localStorage.getItem(STORAGE_KEY_PLANTS)) || [
+      { code: 'KEN', name: 'Kentwood Plant' },
+      { code: 'DET', name: 'Detroit Assembly' },
+      { code: 'CHI', name: 'Chicago Distribution' }
+    ];
+    let items = JSON.parse(localStorage.getItem(STORAGE_KEY_ITEMS)) || [];
+    let helpLogs = JSON.parse(localStorage.getItem(STORAGE_KEY_HELP_LOGS)) || [];
+
+    function switchHelpTab(tabId) {
+      const tabs = ['concern', 'request', 'instructions', 'logs'];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`help-tab-${t}`);
+        const sec = document.getElementById(`help-section-${t}`);
+        if (t === tabId) {
+          btn.className = "w-full text-left p-3.5 rounded-xl border font-bold text-sm transition flex items-center gap-3 bg-[#5A358E] text-white border-[#5A358E]";
+          sec.classList.remove('hidden');
+        } else {
+          btn.className = "w-full text-left p-3.5 rounded-xl border font-bold text-sm transition flex items-center gap-3 bg-white hover:bg-slate-50 border-slate-200 text-slate-700";
+          sec.classList.add('hidden');
+        }
+      });
+      if (tabId === 'logs') renderHelpLogs();
+    }
+
+    function filterHelpConcernItems() {
+      const query = document.getElementById('help-concern-search').value.toLowerCase();
+      const select = document.getElementById('help-concern-item-id');
+      const filtered = items.filter(item =>
+        item.name.toLowerCase().includes(query) ||
+        item.tag.toLowerCase().includes(query) ||
+        (item.itemCode && item.itemCode.toLowerCase().includes(query))
+      );
+      select.innerHTML = filtered.map(item => `<option value="${item.id}">${item.name} [${item.tag} — ${item.itemCode || ''}]</option>`).join('');
+    }
+
+    function showCurrentInstructions() {
+      const itemId = document.getElementById('help-inst-item-id').value;
+      const item = items.find(i => i.id === itemId);
+      document.getElementById('help-current-inst-preview').textContent = (item && item.instructions) ? item.instructions : 'None provided.';
+    }
+
+    function populateDropdowns() {
+      const concernSelect = document.getElementById('help-concern-item-id');
+      const instSelect = document.getElementById('help-inst-item-id');
+      const plantSelect = document.getElementById('help-req-plant');
+
+      const itemsHtml = items.map(item => `<option value="${item.id}">${item.name} [${item.tag} — ${item.itemCode || ''}]</option>`).join('');
+      concernSelect.innerHTML = itemsHtml;
+      instSelect.innerHTML = itemsHtml;
+      plantSelect.innerHTML = plants.map(p => `<option value="${p.code}">${p.code} — ${p.name}</option>`).join('');
+      showCurrentInstructions();
+
+      const clearBtn = document.getElementById('clear-logs-btn');
+      if (clearBtn) clearBtn.classList.toggle('hidden', !(loggedInUser && loggedInUser.isAdmin));
+    }
+
+    function generateTicketNumber() {
+      let maxTk = helpLogs.reduce((max, entry) => {
+        if (entry.ticketNumber && entry.ticketNumber.startsWith('TK-')) {
+          const num = parseInt(entry.ticketNumber.split('-')[1], 10);
+          if (!isNaN(num) && num > max) return num;
+        }
+        return max;
+      }, 1000);
+      return 'TK-' + (maxTk + 1);
+    }
+
+    async function syncSupportState() {
+      localStorage.setItem(STORAGE_KEY_ITEMS, JSON.stringify(items));
+      localStorage.setItem(STORAGE_KEY_HELP_LOGS, JSON.stringify(helpLogs));
+      if (!cloudDbUrl) return;
+      try {
+        const cleanUrl = cloudDbUrl.trim();
+        const endpoint = cleanUrl.endsWith('/') ? `${cleanUrl}storagelocater_state.json` : `${cleanUrl}/storagelocater_state.json`;
+        const plantSequences = JSON.parse(localStorage.getItem(STORAGE_KEY_SEQ)) || {};
+        const appNotifications = JSON.parse(localStorage.getItem(STORAGE_KEY_NOTIFS)) || [];
+        const users = JSON.parse(localStorage.getItem(STORAGE_KEY_USERS)) || [];
+        const emailConfig = JSON.parse(localStorage.getItem(STORAGE_KEY_EMAIL)) || {};
+        const permanentQrBaseUrl = localStorage.getItem(STORAGE_KEY_QR_BASE) || '';
+        await fetch(endpoint, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ plants, items, plantSequences, appNotifications, users, emailConfig, permanentQrBaseUrl, helpLogs, updatedAt: Date.now() })
+        });
+      } catch (e) {}
+    }
+
+    async function submitHelpConcern(e) {
+      e.preventDefault();
+      const itemId = document.getElementById('help-concern-item-id').value;
+      const newQuality = document.getElementById('help-concern-quality').value;
+      const submitter = document.getElementById('help-concern-user').value.trim();
+      const desc = document.getElementById('help-concern-desc').value.trim();
+      const impact = document.getElementById('help-concern-impact').value.trim();
+
+      const item = items.find(i => i.id === itemId);
+      if (item) {
+        item.quality = newQuality;
+        const now = Date.now();
+        helpLogs.unshift({
+          id: 'hl-' + now, ticketNumber: generateTicketNumber(), type: 'CONCERN',
+          itemName: item.name, itemTag: item.tag, itemCode: item.itemCode,
+          quality: newQuality, user: submitter, description: desc, impact, timestamp: now, status: 'OPEN'
+        });
+        e.target.reset();
+        await syncSupportState();
+        alert('Concern submitted and item quality updated!');
+        switchHelpTab('logs');
+      }
+    }
+
+    async function submitHelpInventoryRequest(e) {
+      e.preventDefault();
+      const name = document.getElementById('help-req-name').value.trim();
+      const category = document.getElementById('help-req-category').value.trim();
+      const plant = document.getElementById('help-req-plant').value;
+      const user = document.getElementById('help-req-user').value.trim();
+      const reason = document.getElementById('help-req-reason').value.trim();
+
+      const now = Date.now();
+      helpLogs.unshift({
+        id: 'hl-' + now, ticketNumber: generateTicketNumber(), type: 'WISHLIST_REQ',
+        itemName: name, category, plantCode: plant, user, description: reason, timestamp: now, status: 'OPEN'
+      });
+      e.target.reset();
+      await syncSupportState();
+      alert('Inventory request submitted!');
+      switchHelpTab('logs');
+    }
+
+    async function submitHelpWorkInstructions(e) {
+      e.preventDefault();
+      const itemId = document.getElementById('help-inst-item-id').value;
+      const newText = document.getElementById('help-inst-new-text').value.trim();
+      const user = document.getElementById('help-inst-user').value.trim();
+      const reason = document.getElementById('help-inst-reason').value.trim();
+
+      const item = items.find(i => i.id === itemId);
+      if (item) {
+        item.instructions = newText;
+        const now = Date.now();
+        helpLogs.unshift({
+          id: 'hl-' + now, ticketNumber: generateTicketNumber(), type: 'WORK_INSTRUCTIONS_UPDATE',
+          itemName: item.name, itemTag: item.tag, user, description: `Updated because: ${reason}`,
+          newInstructions: newText, timestamp: now, status: 'OPEN'
+        });
+        e.target.reset();
+        showCurrentInstructions();
+        await syncSupportState();
+        alert('Work instructions updated!');
+        switchHelpTab('logs');
+      }
+    }
+
+    async function resolveTicket(ticketId) {
+      const entry = helpLogs.find(h => h.id === ticketId);
+      if (!entry) return;
+      entry.status = 'RESOLVED';
+      entry.resolvedAt = Date.now();
+      await syncSupportState();
+      renderHelpLogs();
+    }
+
+    async function clearHelpLogs() {
+      if (!confirm('Clear all support logs?')) return;
+      helpLogs = [];
+      await syncSupportState();
+      renderHelpLogs();
+    }
+
+    function renderHelpLogs() {
+      const container = document.getElementById('help-logs-container');
+      container.innerHTML = '';
+      if (helpLogs.length === 0) {
+        container.innerHTML = '<div class="p-8 text-center text-slate-400">No support logs recorded yet.</div>';
+        return;
+      }
+      const isAdmin = loggedInUser && loggedInUser.isAdmin;
+      helpLogs.forEach(entry => {
+        const isResolved = entry.status === 'RESOLVED';
+        const statusBadge = isResolved
+          ? `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded">✅ RESOLVED</span>`
+          : `<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded">⏳ OPEN</span>`;
+
+        const resolveBtn = (!isResolved && isAdmin)
+          ? `<button onclick="resolveTicket('${entry.id}')" class="bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold px-2.5 py-1 rounded">Mark Resolved</button>`
+          : '';
+
+        const div = document.createElement('div');
+        div.className = 'p-4 rounded-xl border text-xs bg-slate-50 flex flex-wrap justify-between items-start gap-3';
+        div.innerHTML = `
+          <div class="space-y-1 flex-1">
+            <div class="flex items-center gap-2 flex-wrap">
+              <strong class="font-mono text-[#5A358E]">#${entry.ticketNumber || 'TK'}</strong>
+              <span class="font-bold text-slate-800">[${entry.type}]</span>
+              ${statusBadge}
+              <span class="font-semibold text-slate-900">${entry.itemName || ''} ${entry.itemTag ? `(${entry.itemTag})` : ''}</span>
+              <span class="text-slate-400">by <strong>${entry.user}</strong> • ${new Date(entry.timestamp).toLocaleString()}</span>
+            </div>
+            <p class="text-slate-700">${entry.description || ''}</p>
+            ${entry.impact ? `<p class="text-rose-700 font-medium">Impact: ${entry.impact}</p>` : ''}
+          </div>
+          <div>${resolveBtn}</div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    populateDropdowns();
+  </script>
+</body>
+</html>
