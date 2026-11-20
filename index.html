@@ -134,7 +134,7 @@
 
         <!-- Clean Dropdown Menu -->
         <div class="relative">
-          <button onclick="toggleSettingsMenu(event)" class="bg-[#3D2566] hover:bg-[#5A358E] text-slate-100 border border-purple-500/20 px-3 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-1 active:scale-95">
+          <button onclick="toggleSettingsMenu(event)" class="bg-[#3D2566] hover:bg-[#5A358E] text-slate-105 border border-purple-500/20 px-3 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-1 active:scale-95">
             <span>⚙️</span>
             <span class="hidden sm:inline">Menu</span>
             <span class="text-[10px] text-slate-300 ml-0.5">▼</span>
@@ -245,7 +245,7 @@
       <!-- Item Specs Grid -->
       <div class="grid grid-cols-2 sm:grid-cols-6 gap-3 mt-4 bg-slate-50 p-4 rounded-xl border border-slate-200/80">
         <div>
-          <p class="text-[10px] text-slate-400 uppercase font-bold">Plant</p>
+          <p class="text-[10px] text-slate-404 uppercase font-bold">Plant</p>
           <p id="scan-plant" class="font-semibold text-slate-800 text-xs sm:text-sm mt-0.5"></p>
         </div>
         <div>
@@ -564,14 +564,14 @@
         </div>
         <div class="flex justify-end space-x-2 pt-3 border-t">
           <button type="button" onclick="closeAutoCheckoutModal()" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium">Cancel</button>
-          <button type="submit" id="auto-checkout-submit-btn" class="px-5 py-2 rounded-lg bg-emerald-650 hover:bg-emerald-500 text-white text-sm font-bold shadow">Auto-Assign & Check Out</button>
+          <button type="submit" id="auto-checkout-submit-btn" class="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold shadow">Auto-Assign & Check Out</button>
         </div>
       </form>
     </div>
   </div>
 
   <!-- MODAL: Auto Check-Out Success Receipt -->
-  <div id="auto-checkout-success-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print backdrop-blur-sm">
+  <div id="auto-checkout-success-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-55 p-4 no-print backdrop-blur-sm">
     <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl relative overflow-hidden">
       <div class="absolute top-0 left-0 w-full h-2 bg-emerald-500"></div>
       <div class="text-center pb-4 mb-4 border-b">
@@ -583,7 +583,7 @@
       <!-- Device info card -->
       <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3.5">
         <div>
-          <span class="text-[10px] uppercase font-bold text-slate-404">Assigned Unit</span>
+          <span class="text-[10px] uppercase font-bold text-slate-400">Assigned Unit</span>
           <h3 id="receipt-item-name" class="text-lg font-bold text-[#5A358E]"></h3>
         </div>
         
@@ -680,7 +680,7 @@
         </div>
         <div class="flex justify-end space-x-2 pt-3 border-t">
           <button type="button" onclick="closeCheckInModal()" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium">Cancel</button>
-          <button type="submit" class="px-5 py-2 rounded-lg bg-emerald-650 hover:bg-emerald-500 text-white text-sm font-bold shadow">Complete Check-In</button>
+          <button type="submit" class="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold shadow">Complete Check-In</button>
         </div>
       </form>
     </div>
@@ -694,7 +694,7 @@
           <span class="text-xl">🔔</span>
           <div>
             <h2 class="text-base font-bold text-slate-900">Live App Check-Out Notifications</h2>
-            <p class="text-xs text-slate-555">Synced across all connected devices in real time</p>
+            <p class="text-xs text-slate-505">Synced across all connected devices in real time</p>
           </div>
         </div>
         <button onclick="closeNotificationsModal()" class="text-slate-400 hover:text-slate-755 text-2xl leading-none">&times;</button>
@@ -720,7 +720,7 @@
         <h2 class="text-base font-bold text-slate-900">✉️ Email Alert Configuration</h2>
         <button onclick="closeEmailConfigModal()" class="text-slate-400 hover:text-slate-755 text-2xl leading-none">&times;</button>
       </div>
-      <div class="text-xs text-slate-605 space-y-1.5 mb-4 bg-slate-50 p-3 rounded-xl border">
+      <div class="text-xs text-slate-600 space-y-1.5 mb-4 bg-slate-50 p-3 rounded-xl border">
         <p><strong>1. Default Mode (Zero Setup):</strong> Opens a pre-filled email receipt addressed to the person checking out the unit.</p>
         <p><strong>2. Silent Automatic Mode (EmailJS):</strong> Enter free <a href="https://www.emailjs.com/" target="_blank" class="text-[#5A358E] underline font-semibold">EmailJS</a> keys below to send emails silently in the background.</p>
       </div>
@@ -880,7 +880,7 @@
       <div class="flex justify-between items-start border-b pb-3 mb-4">
         <div>
           <div class="flex items-center gap-2">
-            <span id="detail-tag" class="font-mono text-xs font-bold bg-purple-100 text-[#5A358E] px-2 py-0.5 rounded"></span>
+            <span id="detail-tag" class="font-mono text-xs font-bold bg-purple-105 text-[#5A358E] px-2 py-0.5 rounded"></span>
             <span id="detail-code" class="font-mono text-xs font-semibold bg-slate-100 text-slate-700 px-2 py-0.5 rounded border"></span>
           </div>
           <h3 id="detail-name" class="text-lg font-bold text-slate-900 mt-1.5"></h3>
@@ -1013,7 +1013,7 @@
           <input type="url" id="cloud-url-input" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono bg-slate-50 focus:ring-2 focus:ring-[#5A358E]" />
         </div>
         <div class="flex justify-between items-center pt-3 border-t">
-          <button type="button" onclick="pushToCloud(true)" class="text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 px-3 py-2 rounded-lg font-semibold">
+          <button type="button" onclick="pushToCloud(true)" class="text-xs bg-[#EAF7F4] hover:bg-emerald-100 text-emerald-800 border border-emerald-200 px-3 py-2 rounded-lg font-semibold">
             ⬆️ Force Upload Local Data
           </button>
           <div class="space-x-2">
@@ -1145,7 +1145,7 @@
               <div id="help-section-request" class="space-y-4 hidden">
                 <div>
                   <h3 class="text-base font-bold text-slate-900">➕ Request New Items / Inventory</h3>
-                  <p class="text-xs text-slate-500">Wishlist items or equipment that you wish were available in stock to assist with your job.</p>
+                  <p class="text-xs text-slate-505">Wishlist items or equipment that you wish were available in stock to assist with your job.</p>
                 </div>
                 <form onsubmit="submitHelpInventoryRequest(event)" class="space-y-3.5">
                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1271,6 +1271,7 @@
       modal.classList.add('flex');
     }
 
+    // Modal Control
     function closeHelpModal() {
       const modal = document.getElementById('help-modal');
       modal.classList.add('hidden');
@@ -1483,9 +1484,9 @@
           div.innerHTML = `
             <div class="flex justify-between items-start">
               <div>
-                <span class="bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">➕ Wishlist Request</span>
+                <span class="bg-emerald-650 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase font-semibold">➕ Wishlist Request</span>
                 <span class="font-bold text-slate-900 ml-2">${escapeHtml(entry.itemName)}</span>
-                <span class="bg-slate-100 text-slate-600 border px-2 py-0.2 rounded font-mono font-semibold ml-2">${escapeHtml(entry.category)}</span>
+                <span class="bg-slate-105 text-slate-600 border px-2 py-0.2 rounded font-mono font-semibold ml-2">${escapeHtml(entry.category)}</span>
               </div>
               <span class="text-[10px] font-mono text-slate-400">${dateStr}</span>
             </div>
@@ -1684,7 +1685,7 @@
       const found = users.find(u => u.username.toLowerCase() === typedId);
       if (found) {
         msg.textContent = `✓ Verified: ${found.name}`;
-        msg.className = 'text-[11px] mt-1 font-semibold text-emerald-600';
+        msg.className = 'text-[11px] mt-1 font-semibold text-emerald-655';
         icon.textContent = '✅';
         emailInput.value = found.email || '';
         submitBtn.disabled = false;
@@ -1847,7 +1848,7 @@
             <p class="text-slate-700">Checked out to <strong>${escapeHtml(item.consumedBy)}</strong> (${escapeHtml(item.consumedByEmail)}) at <strong>${escapeHtml(item.destination)}</strong>.</p>
             ${item.notes ? `<p class="text-slate-505 italic">Notes: ${escapeHtml(item.notes)}</p>` : ''}
           </div>
-          <div class="text-right text-[11px] text-slate-400 font-mono">
+          <div class="text-right text-[11px] text-slate-404 font-mono">
             ${new Date(item.consumedAt).toLocaleString()}
           </div>
         `;
@@ -1914,9 +1915,9 @@
             <span>${icon} ${escapeHtml(notif.title)}</span>
           </div>
           <p class="text-slate-200 leading-snug">${escapeHtml(notif.message)}</p>
-          ${notif.userEmail ? `<p class="text-[11px] text-emerald-300 font-mono">✉️ Alert: ${escapeHtml(notif.userEmail)}</p>` : ''}
+          ${notif.userEmail ? `<p class="text-[11px] text-emerald-305 font-mono">✉️ Alert: ${escapeHtml(notif.userEmail)}</p>` : ''}
         </div>
-        <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-white text-lg leading-none">&times;</button>
+        <button onclick="this.parentElement.remove()" class="text-slate-404 hover:text-white text-lg leading-none">&times;</button>
       `;
       container.appendChild(toast);
 
@@ -1925,7 +1926,6 @@
       }, 7000);
     }
 
-    // Unified notification adding
     function addAppNotification(type, title, message, itemTag, userEmail = '', mailtoLink = '') {
       const now = Date.now();
       const newNotif = {
@@ -1990,7 +1990,7 @@
         const cardStyle = isOut ? 'bg-amber-50/70 border-amber-200' : 'bg-emerald-50/70 border-emerald-200';
         const badgeHtml = isOut
           ? `<span class="bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">📤 Checked Out</span>`
-          : `<span class="bg-emerald-650 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">📥 Checked In</span>`;
+          : `<span class="bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">📥 Checked In</span>`;
 
         const div = document.createElement('div');
         div.className = `p-3.5 rounded-xl border ${cardStyle} flex flex-wrap justify-between items-start gap-3 text-xs`;
@@ -2095,6 +2095,7 @@
       return `<span class="px-2 py-0.5 rounded-md text-[11px] font-bold border ${cls}">${escapeHtml(q)}</span>`;
     }
 
+    // Live duration
     function formatElapsedDuration(startMs, endMs = Date.now()) {
       const diffSec = Math.max(0, Math.floor((endMs - startMs) / 1000));
       const days = Math.floor(diffSec / 86400);
@@ -2161,14 +2162,14 @@
       
       filtered.forEach(u => {
         const div = document.createElement('div');
-        div.className = 'p-2.5 flex justify-between items-center text-xs hover:bg-slate-55';
+        div.className = 'p-2.5 flex justify-between items-center text-xs hover:bg-slate-50';
         div.innerHTML = `
           <div>
-            <span class="font-mono font-bold bg-slate-100 border px-2 py-0.5 rounded text-[#5A358E]">${escapeHtml(u.username)}</span>
+            <span class="font-mono font-bold bg-slate-105 border px-2 py-0.5 rounded text-[#5A358E]">${escapeHtml(u.username)}</span>
             <span class="font-semibold text-slate-800 ml-2">${escapeHtml(u.name)}</span>
             ${u.email ? `<span class="text-slate-404 font-mono text-[11px] ml-2">(${escapeHtml(u.email)})</span>` : ''}
           </div>
-          <button onclick="deleteUser('${escapeJsStr(u.username)}')" class="text-rose-605 hover:bg-rose-50 px-2 py-1 rounded">✕</button>
+          <button onclick="deleteUser('${escapeJsStr(u.username)}')" class="text-rose-600 hover:bg-rose-50 px-2 py-1 rounded">✕</button>
         `;
         container.appendChild(div);
       });
@@ -2222,6 +2223,7 @@
           const firstSheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[firstSheetName];
           
+          // Use SheetJS to convert sheet directly to JSON arrays
           const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
           let addedCount = 0;
           let dupCount = 0;
@@ -2241,13 +2243,14 @@
               continue;
             }
             
-            const email = String(row || '').trim();
+            const email = String(row[2] || '').trim();
             
             if (!email) {
               missingEmailCount++;
               continue;
             }
             
+            // STRICT DUPLICATE PREVENTION: ONLY ONE USER PER USERNAME
             if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
               dupCount++;
               continue;
@@ -2301,10 +2304,13 @@
       const found = users.find(u => u.username.toLowerCase() === typedId);
       if (found) {
         msg.textContent = `✓ Verified: ${found.name}`;
-        msg.className = 'text-[11px] mt-1 font-semibold text-emerald-605';
+        msg.className = 'text-[11px] mt-1 font-semibold text-emerald-600';
         icon.textContent = '✅';
         nameHidden.value = found.name;
+        
+        // Strictly auto-fill email from saved profile
         emailInput.value = found.email || '';
+
         submitBtn.disabled = false;
         submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
       } else {
@@ -2432,7 +2438,6 @@
       }
     }
 
-    // Modal Control
     function openCloudModal() {
       document.getElementById('cloud-url-input').value = cloudDbUrl || DEFAULT_CLOUD_DB_URL;
       const modal = document.getElementById('cloud-modal');
@@ -2440,7 +2445,6 @@
       modal.classList.add('flex');
     }
 
-    // Modal Control
     function closeCloudModal() {
       const modal = document.getElementById('cloud-modal');
       modal.classList.add('hidden');
@@ -2624,7 +2628,7 @@
                 <div class="text-[10px] uppercase text-slate-400 font-bold">Elapsed</div>
                 <div class="font-mono font-bold text-amber-700 text-sm" data-live-timer="${rec.checkedOutAt}">${formatElapsedDuration(rec.checkedOutAt)}</div>
               </div>
-              <button onclick="openCheckInModal('${match.id}')" class="bg-emerald-650 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg font-bold">
+              <button onclick="openCheckInModal('${match.id}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg font-bold">
                 📥 Check In
               </button>
             </div>
@@ -2905,13 +2909,13 @@
               ${rec.userEmail ? `<span class="text-purple-755 font-mono ml-1">(${escapeHtml(rec.userEmail)})</span>` : ''}
               <span class="mx-1.5 text-slate-300">•</span>
               <span class="font-semibold text-purple-800">📍 ${escapeHtml(rec.destination)}</span>
-              <div class="text-slate-555 mt-0.5">Checked Out: ${new Date(rec.checkedOutAt).toLocaleString()} ${rec.notes ? `| Note: ${escapeHtml(rec.notes)}` : ''}</div>
+              <div class="text-slate-550 mt-0.5">Checked Out: ${new Date(rec.checkedOutAt).toLocaleString()} ${rec.notes ? `| Note: ${escapeHtml(rec.notes)}` : ''}</div>
             </div>
             <div class="flex items-center gap-3">
               <span class="font-mono font-bold text-amber-850 bg-amber-200/70 px-2.5 py-1 rounded-lg" data-live-timer="${rec.checkedOutAt}">
                 ${formatElapsedDuration(rec.checkedOutAt)}
               </span>
-              <button onclick="closeHistoryModal(); openCheckInModal('${item.id}')" class="bg-emerald-650 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-lg font-bold">
+              <button onclick="closeHistoryModal(); openCheckInModal('${item.id}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-lg font-bold">
                 Check In
               </button>
             </div>
@@ -2947,7 +2951,7 @@
               </div>
               ${entry.notes ? `<p class="text-slate-650">Note: ${escapeHtml(entry.notes)}</p>` : ''}
             </div>
-            <div class="text-right text-[11px] text-slate-400 font-mono">
+            <div class="text-right text-[11px] text-slate-404 font-mono">
               ${new Date(entry.timestamp).toLocaleString()}
             </div>
           `;
@@ -3109,7 +3113,7 @@
       let crumbsHtml = `<button onclick="resetToOverview()" class="text-xs font-bold text-[#5A358E] hover:underline flex items-center gap-1.5">🏠 Overview</button>`;
       if (selectedCategory) {
         crumbsHtml += `<span class="text-slate-300 text-xs">/</span>`;
-        crumbsHtml += `<button onclick="selectCategoryView('${escapeJsStr(selectedCategory)}')" class="text-xs font-semibold text-slate-700 bg-slate-105 hover:bg-slate-200 px-2 py-0.5 rounded-md">${escapeHtml(selectedCategory)}</button>`;
+        crumbsHtml += `<button onclick="selectCategoryView('${escapeJsStr(selectedCategory)}')" class="text-xs font-semibold text-slate-705 bg-slate-105 hover:bg-slate-200 px-2 py-0.5 rounded-md">${escapeHtml(selectedCategory)}</button>`;
       }
       if (selectedProductName) {
         crumbsHtml += `<span class="text-slate-300 text-xs">/</span>`;
@@ -3262,7 +3266,7 @@
               <span class="font-mono shrink-0">${escapeHtml(grp.sampleCode)}-XXXX</span>
             </div>
 
-            <div class="grid grid-cols-3 gap-2 mt-4 p-2.5 rounded-xl bg-[#FDFDFD] border border-slate-100 shadow-inner">
+            <div class="grid grid-cols-3 gap-2 mt-4 p-2.5 rounded-xl bg-[#FDFDFD] border border-slate-105 shadow-inner">
               <div class="text-center">
                 <div class="text-xl font-extrabold ${grp.available > 0 ? 'text-[#0D9488]' : 'text-rose-600'}">${grp.available}</div>
                 <div class="text-[10px] font-bold uppercase text-slate-400">Available</div>
@@ -3358,7 +3362,7 @@
             <div class="text-xs bg-amber-50/70 border border-amber-200 rounded-lg p-2 max-w-[220px]">
               <div class="font-bold text-slate-900 truncate">👤 ${escapeHtml(latest.userName)} → ${escapeHtml(latest.destination)}</div>
               <div class="flex items-center justify-between mt-0.5">
-                <span class="text-[10px] text-slate-404">Timer:</span>
+                <span class="text-[10px] text-slate-400">Timer:</span>
                 <span class="font-mono font-bold text-amber-700 text-[11px]" data-live-timer="${latest.checkedOutAt}">${formatElapsedDuration(latest.checkedOutAt)}</span>
               </div>
             </div>
@@ -3371,7 +3375,7 @@
         ).join('');
 
         const primaryActionBtn = isCheckedOut
-          ? `<button onclick="openCheckInModal('${item.id}')" class="bg-emerald-650 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-md text-xs font-bold transition">📥 In</button>`
+          ? `<button onclick="openCheckInModal('${item.id}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-md text-xs font-bold transition">📥 In</button>`
           : `<button onclick="openCheckOutModal('${item.id}')" class="bg-amber-600 hover:bg-amber-500 text-white px-2.5 py-1 rounded-md text-xs font-bold transition">📤 Out</button>`;
 
         const tr = document.createElement('tr');
@@ -3416,7 +3420,7 @@
               <button onclick="openDetailModal('${item.id}')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded-md font-medium transition">QR</button>
               <button onclick="openHistoryModal('${item.id}')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded-md font-medium transition" title="History">📜</button>
               <button onclick="openItemModal('${item.id}')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded-md font-medium transition">Edit</button>
-              <button onclick="deleteItem('${item.id}')" class="text-xs bg-rose-50 hover:bg-rose-100 text-rose-600 px-2 py-1 rounded-md font-medium transition">✕</button>
+              <button onclick="deleteItem('${item.id}')" class="text-xs bg-rose-50 hover:bg-rose-105 text-rose-605 px-2 py-1 rounded-md font-medium transition">✕</button>
             </div>
           </td>
         `;
@@ -3674,16 +3678,16 @@
       plants.forEach(p => {
         const count = items.filter(i => i.plantCode === p.code).length;
         const div = document.createElement('div');
-        div.className = 'p-3 flex justify-between items-center text-sm hover:bg-slate-55';
+        div.className = 'p-3 flex justify-between items-center text-sm hover:bg-slate-50';
         div.innerHTML = `
           <div>
             <span class="font-mono font-bold bg-slate-100 border px-2 py-0.5 rounded text-[#5A358E]">${escapeHtml(p.code)}</span>
             <span class="font-semibold text-slate-800 ml-2">${escapeHtml(p.name)}</span>
-            <span class="text-xs text-slate-404 ml-1">( ${count} units)</span>
+            <span class="text-xs text-slate-404 ml-1">(${count} units)</span>
           </div>
           <div class="space-x-1">
             <button onclick="startEditPlant('${p.code}')" class="text-xs bg-purple-55 text-[#5A358E] px-2.5 py-1 rounded-md hover:bg-purple-100">Edit</button>
-            <button onclick="deletePlant('${p.code}')" class="text-xs bg-rose-50 text-rose-700 px-2.5 py-1 rounded-md hover:bg-rose-105">Remove</button>
+            <button onclick="deletePlant('${p.code}')" class="text-xs bg-rose-50 text-rose-750 px-2.5 py-1 rounded-md hover:bg-rose-105">Remove</button>
           </div>
         `;
         container.appendChild(div);
