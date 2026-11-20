@@ -91,7 +91,7 @@
               StorageLocater
             </h1>
             <button id="sync-badge" onclick="openCloudModal()" class="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shrink-0 hover:bg-emerald-500/25 transition" title="Cloud Sync Status">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-404 animate-pulse"></span>
               <span id="sync-badge-text" class="hidden sm:inline">Connecting...</span>
             </button>
           </div>
@@ -233,7 +233,7 @@
           <p id="scan-prompt-desc" class="text-xs mt-0.5"></p>
         </div>
         <div class="flex flex-wrap gap-2">
-          <button id="scan-checkout-btn" class="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-lg font-bold text-xs sm:text-sm shadow transition">
+          <button id="scan-checkout-btn" class="bg-amber-600 hover:bg-amber-550 text-white px-4 py-2 rounded-lg font-bold text-xs sm:text-sm shadow transition">
             📤 Check Out Unit
           </button>
           <button id="scan-checkin-btn" class="bg-[#0D9488] hover:bg-[#059669] text-white px-4 py-2 rounded-lg font-bold text-xs sm:text-sm shadow transition">
@@ -414,7 +414,7 @@
           <button onclick="toggleSelectAll(false)" class="text-xs bg-[#5A358E] hover:bg-[#623a9c] border border-purple-500/30 text-slate-200 font-medium px-2.5 py-1.5 rounded-lg transition">
             Unselect Visible
           </button>
-          <button onclick="clearAllSelectedQRCodes()" class="text-xs bg-rose-600/20 hover:bg-rose-600 border border-rose-500/40 text-rose-200 hover:text-white font-semibold px-2.5 py-1.5 rounded-lg transition">
+          <button onclick="clearAllSelectedQRCodes()" class="text-xs bg-rose-600/20 hover:bg-rose-605 border border-rose-500/40 text-rose-200 hover:text-white font-semibold px-2.5 py-1.5 rounded-lg transition">
             ✕ Unselect All
           </button>
         </div>
@@ -513,7 +513,7 @@
         </div>
         <div class="flex justify-end space-x-2 pt-3 border-t">
           <button type="button" onclick="closeCheckOutModal()" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium">Cancel</button>
-          <button type="submit" id="checkout-submit-btn" class="px-5 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-sm font-bold shadow">Check Out & Notify</button>
+          <button type="submit" id="checkout-submit-btn" class="px-5 py-2 rounded-lg bg-amber-600 hover:bg-amber-550 text-white text-sm font-bold shadow">Check Out & Notify</button>
         </div>
       </form>
     </div>
@@ -524,7 +524,7 @@
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
       <div class="flex justify-between items-center border-b pb-3 mb-3">
         <h3 class="text-base font-bold text-slate-900">🎯 Auto-Assign & Check Out</h3>
-        <button onclick="closeAutoCheckoutModal()" class="text-slate-400 hover:text-slate-755 text-2xl leading-none">&times;</button>
+        <button onclick="closeAutoCheckoutModal()" class="text-slate-404 hover:text-slate-755 text-2xl leading-none">&times;</button>
       </div>
       <p class="text-xs text-slate-505 mb-4">Select an item type, and the system will automatically assign you the first available unit.</p>
       <form onsubmit="confirmAutoCheckOut(event)" class="space-y-3.5">
@@ -564,7 +564,7 @@
         </div>
         <div class="flex justify-end space-x-2 pt-3 border-t">
           <button type="button" onclick="closeAutoCheckoutModal()" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium">Cancel</button>
-          <button type="submit" id="auto-checkout-submit-btn" class="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold shadow">Auto-Assign & Check Out</button>
+          <button type="submit" id="auto-checkout-submit-btn" class="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-550 text-white text-sm font-bold shadow">Auto-Assign & Check Out</button>
         </div>
       </form>
     </div>
@@ -619,12 +619,12 @@
         
         <div id="receipt-item-notes-box" class="border-t pt-2 text-xs hidden">
           <span class="font-bold text-slate-400 block text-[10px]">SPECS & STORAGE NOTES</span>
-          <p id="receipt-item-notes" class="text-slate-600 italic mt-0.5"></p>
+          <p id="receipt-item-notes" class="text-slate-605 italic mt-0.5"></p>
         </div>
 
         <div id="receipt-item-instructions-box" class="border-t pt-2 text-xs hidden">
           <span class="font-bold text-slate-400 block text-[10px]">🛠️ WORK INSTRUCTIONS / PPE</span>
-          <p id="receipt-item-instructions" class="text-slate-600 whitespace-pre-line mt-0.5"></p>
+          <p id="receipt-item-instructions" class="text-slate-605 whitespace-pre-line mt-0.5"></p>
         </div>
       </div>
 
@@ -639,7 +639,7 @@
     <div class="bg-white rounded-2xl max-w-4xl w-full p-6 shadow-2xl max-h-[90vh] flex flex-col">
       <div class="flex justify-between items-center border-b pb-3 mb-4">
         <h2 class="text-base font-bold text-slate-900 flex items-center gap-2"><span>🗑️</span> Consumed & Checked Out for Good Units</h2>
-        <button onclick="closeConsumedHistoryModal()" class="text-slate-400 hover:text-slate-755 text-2xl leading-none">&times;</button>
+        <button onclick="closeConsumedHistoryModal()" class="text-slate-404 hover:text-slate-755 text-2xl leading-none">&times;</button>
       </div>
       <div class="overflow-y-auto flex-1 space-y-2.5" id="consumed-list-container">
         <!-- Populated by JS -->
@@ -655,7 +655,7 @@
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
       <div class="flex justify-between items-center border-b pb-3 mb-3">
         <h3 class="text-base font-bold text-slate-900">📥 Check In Unit & Rate Quality</h3>
-        <button onclick="closeCheckInModal()" class="text-slate-400 hover:text-slate-755 text-2xl leading-none">&times;</button>
+        <button onclick="closeCheckInModal()" class="text-slate-404 hover:text-slate-755 text-2xl leading-none">&times;</button>
       </div>
       <p id="checkin-modal-subtitle" class="text-xs font-mono font-bold text-emerald-800 mb-4 bg-emerald-50 p-2.5 rounded-lg border border-emerald-200"></p>
       <form onsubmit="confirmCheckIn(event)" class="space-y-3.5">
@@ -666,7 +666,7 @@
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Unit Quality Upon Return *</label>
-          <select id="checkin-quality" required class="w-full border-2 border-emerald-500 rounded-lg px-3 py-2 text-sm font-bold focus:outline-none">
+          <select id="checkin-quality" required onchange="toggleCheckInRepairFields()" class="w-full border-2 border-emerald-500 rounded-lg px-3 py-2 text-sm font-bold focus:outline-none">
             <option value="New">🌟 New</option>
             <option value="Good">✅ Good</option>
             <option value="Used">🛠️ Used</option>
@@ -674,13 +674,23 @@
             <option value="Broken">❌ Broken</option>
           </select>
         </div>
+        <div id="checkin-repair-fields" class="hidden space-y-3 bg-rose-50/50 p-3 rounded-xl border border-rose-200">
+          <div>
+            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Describe the Concern / Issue *</label>
+            <textarea id="checkin-concern-desc" rows="2" placeholder="What specific issue exists with this unit?..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]"></textarea>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">How does this affect the Job at hand? *</label>
+            <textarea id="checkin-concern-impact" rows="2" placeholder="e.g. Assembly line delayed, safety concern..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]"></textarea>
+          </div>
+        </div>
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Return Notes / Condition Details</label>
           <textarea id="checkin-note" rows="2" placeholder="Any wear, damage, or restocking notes..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]"></textarea>
         </div>
         <div class="flex justify-end space-x-2 pt-3 border-t">
           <button type="button" onclick="closeCheckInModal()" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium">Cancel</button>
-          <button type="submit" class="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold shadow">Complete Check-In</button>
+          <button type="submit" class="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-550 text-white text-sm font-bold shadow">Complete Check-In</button>
         </div>
       </form>
     </div>
@@ -697,13 +707,13 @@
             <p class="text-xs text-slate-505">Synced across all connected devices in real time</p>
           </div>
         </div>
-        <button onclick="closeNotificationsModal()" class="text-slate-400 hover:text-slate-755 text-2xl leading-none">&times;</button>
+        <button onclick="closeNotificationsModal()" class="text-slate-404 hover:text-slate-755 text-2xl leading-none">&times;</button>
       </div>
 
       <div id="notifications-list" class="overflow-y-auto flex-1 space-y-2.5 pr-1"></div>
 
       <div class="flex justify-between items-center pt-4 mt-4 border-t">
-        <button onclick="clearAllNotifications()" class="text-xs bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold px-3 py-2 rounded-lg">
+        <button onclick="clearAllNotifications()" class="text-xs bg-rose-50 hover:bg-rose-105 text-rose-700 font-bold px-3 py-2 rounded-lg">
           🗑️ Clear All Notifications
         </button>
         <button onclick="closeNotificationsModal()" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium">
@@ -718,7 +728,7 @@
     <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b pb-3 mb-4">
         <h2 class="text-base font-bold text-slate-900">✉️ Email Alert Configuration</h2>
-        <button onclick="closeEmailConfigModal()" class="text-slate-400 hover:text-slate-755 text-2xl leading-none">&times;</button>
+        <button onclick="closeEmailConfigModal()" class="text-slate-404 hover:text-slate-755 text-2xl leading-none">&times;</button>
       </div>
       <div class="text-xs text-slate-600 space-y-1.5 mb-4 bg-slate-50 p-3 rounded-xl border">
         <p><strong>1. Default Mode (Zero Setup):</strong> Opens a pre-filled email receipt addressed to the person checking out the unit.</p>
@@ -923,7 +933,7 @@
     <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl max-h-[90vh] flex flex-col">
       <div class="flex justify-between items-center border-b pb-3 mb-4">
         <h2 class="text-base font-bold text-slate-900">👤 Manage Userbase</h2>
-        <button onclick="closeUserbaseModal()" class="text-slate-400 hover:text-slate-755 text-2xl leading-none">&times;</button>
+        <button onclick="closeUserbaseModal()" class="text-slate-404 hover:text-slate-755 text-2xl leading-none">&times;</button>
       </div>
       
       <!-- Add User Form & Import Excel/CSV -->
@@ -1107,6 +1117,7 @@
                 <form onsubmit="submitHelpConcern(event)" class="space-y-3.5">
                   <div>
                     <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Select Existing Item *</label>
+                    <input type="text" id="help-concern-search" oninput="filterHelpConcernItems()" placeholder="🔍 Type to search name or item code..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs mb-1.5 focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
                     <select id="help-concern-item-id" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#5A358E]">
                       <!-- Populated dynamically -->
                     </select>
@@ -1191,6 +1202,7 @@
                 <form onsubmit="submitHelpWorkInstructions(event)" class="space-y-3.5">
                   <div>
                     <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Select Target Item *</label>
+                    <input type="text" id="help-inst-search" oninput="filterHelpInstItems()" placeholder="🔍 Type to search name or item code..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs mb-1.5 focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
                     <select id="help-inst-item-id" required onchange="showHelpCurrentInstructions()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#5A358E]">
                       <!-- Populated dynamically -->
                     </select>
@@ -1198,7 +1210,7 @@
                   
                   <!-- Current Work Instructions Display box -->
                   <div class="bg-slate-50 p-3 rounded-lg border text-xs">
-                    <span class="font-bold text-slate-400 block uppercase tracking-wider mb-1">Current Work Instructions:</span>
+                    <span class="font-bold text-slate-404 block uppercase tracking-wider mb-1">Current Work Instructions:</span>
                     <p id="help-inst-current-display" class="text-slate-700 italic whitespace-pre-line">No current instructions.</p>
                   </div>
 
@@ -1294,10 +1306,65 @@
       if (tabId === 'logs') renderHelpLogs();
     }
 
+    function generateTicketNumber() {
+      const maxTk = helpLogs.reduce((max, entry) => {
+        if (entry.ticketNumber && entry.ticketNumber.startsWith('TK-')) {
+          const num = parseInt(entry.ticketNumber.split('-')[1], 10);
+          if (!isNaN(num) && num > max) return num;
+        }
+        return max;
+      }, 1000);
+      return 'TK-' + (maxTk + 1);
+    }
+
+    async function resolveTicket(ticketId) {
+      const entry = helpLogs.find(e => e.id === ticketId);
+      if (!entry) return;
+      if (confirm(`Are you sure you want to resolve Ticket #${entry.ticketNumber}?`)) {
+        entry.status = 'RESOLVED';
+        renderHelpLogs();
+        await saveState();
+      }
+    }
+
+    function filterHelpConcernItems() {
+      const query = document.getElementById('help-concern-search').value.toLowerCase();
+      const select = document.getElementById('help-concern-item-id');
+      const filtered = items.filter(item => 
+        item.name.toLowerCase().includes(query) || 
+        item.tag.toLowerCase().includes(query) || 
+        (item.itemCode && item.itemCode.toLowerCase().includes(query))
+      );
+      
+      select.innerHTML = filtered.map(item => {
+        const optionText = `📦 ${item.name} [TAG: ${item.tag} / CODE: ${item.itemCode || 'N/A'}]`;
+        return `<option value="${item.id}">${optionText}</option>`;
+      }).join('');
+    }
+
+    function filterHelpInstItems() {
+      const query = document.getElementById('help-inst-search').value.toLowerCase();
+      const select = document.getElementById('help-inst-item-id');
+      const filtered = items.filter(item => 
+        item.name.toLowerCase().includes(query) || 
+        item.tag.toLowerCase().includes(query) || 
+        (item.itemCode && item.itemCode.toLowerCase().includes(query))
+      );
+      
+      select.innerHTML = filtered.map(item => {
+        const optionText = `📦 ${item.name} [TAG: ${item.tag} / CODE: ${item.itemCode || 'N/A'}]`;
+        return `<option value="${item.id}">${optionText}</option>`;
+      }).join('');
+      showHelpCurrentInstructions();
+    }
+
     function populateHelpDropdowns() {
       const concernSelect = document.getElementById('help-concern-item-id');
       const instSelect = document.getElementById('help-inst-item-id');
       const plantSelect = document.getElementById('help-req-plant');
+
+      document.getElementById('help-concern-search').value = '';
+      document.getElementById('help-inst-search').value = '';
 
       const itemsHtml = items.map(item => {
         const optionText = `📦 ${item.name} [TAG: ${item.tag} / CODE: ${item.itemCode || 'N/A'}]`;
@@ -1346,6 +1413,7 @@
       const now = Date.now();
       const logEntry = {
         id: 'hl-' + now,
+        ticketNumber: generateTicketNumber(),
         type: 'CONCERN',
         itemName: item.name,
         itemTag: item.tag,
@@ -1354,7 +1422,8 @@
         user: submitter,
         description: desc,
         impact: impact,
-        timestamp: now
+        timestamp: now,
+        status: 'OPEN'
       };
       helpLogs.unshift(logEntry);
 
@@ -1384,13 +1453,15 @@
       const now = Date.now();
       const logEntry = {
         id: 'hl-' + now,
+        ticketNumber: generateTicketNumber(),
         type: 'WISHLIST_REQ',
         itemName: name,
         category: category,
         plantCode: plant,
         user: user,
         description: reason,
-        timestamp: now
+        timestamp: now,
+        status: 'OPEN'
       };
       helpLogs.unshift(logEntry);
 
@@ -1419,6 +1490,7 @@
       const now = Date.now();
       const logEntry = {
         id: 'hl-' + now,
+        ticketNumber: generateTicketNumber(),
         type: 'WORK_INSTRUCTIONS_UPDATE',
         itemName: item.name,
         itemTag: item.tag,
@@ -1427,7 +1499,8 @@
         description: `Work instructions updated. Reason: ${reason}`,
         oldInstructions: oldText,
         newInstructions: newText,
-        timestamp: now
+        timestamp: now,
+        status: 'OPEN'
       };
       helpLogs.unshift(logEntry);
 
@@ -1452,62 +1525,96 @@
       container.innerHTML = '';
 
       if (helpLogs.length === 0) {
-        container.innerHTML = '<div class="p-8 text-center text-slate-404 text-sm">No support reports or requests logged yet.</div>';
+        container.innerHTML = '<div class="p-8 text-center text-slate-400 text-sm">No support reports or requests logged yet.</div>';
         return;
       }
 
       helpLogs.forEach(entry => {
         const div = document.createElement('div');
-        div.className = 'p-4 rounded-xl border text-xs space-y-2 ';
+        div.className = 'p-4 rounded-xl border text-xs space-y-2 relative ';
         const dateStr = new Date(entry.timestamp).toLocaleString();
 
+        // Normalize missing ticketNumber & status
+        if (!entry.status) entry.status = 'OPEN';
+        if (!entry.ticketNumber) entry.ticketNumber = 'TK-' + (1000 + Math.floor(Math.random() * 9000));
+
+        const isResolved = entry.status === 'RESOLVED';
+        const statusBadge = isResolved
+          ? `<span class="bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">Resolved</span>`
+          : `<span class="bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase animate-pulse">Open</span>`;
+
+        const resolveButton = !isResolved
+          ? `<button onclick="resolveTicket('${entry.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] px-2.5 py-1 rounded-lg transition shadow-sm">Resolve Ticket</button>`
+          : '';
+
         if (entry.type === 'CONCERN') {
-          div.className += 'bg-rose-50/50 border-rose-200';
+          div.className += isResolved ? 'bg-slate-50 border-slate-200 opacity-75' : 'bg-rose-50/50 border-rose-200';
           div.innerHTML = `
-            <div class="flex justify-between items-start">
+            <div class="flex justify-between items-start gap-2">
               <div>
                 <span class="bg-rose-500 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">⚠️ Concern Report</span>
+                <span class="font-mono text-[#5A358E] font-bold ml-2">#${entry.ticketNumber}</span>
                 <span class="font-bold text-slate-900 ml-2">${escapeHtml(entry.itemName)}</span>
-                <span class="font-mono text-slate-500">(${escapeHtml(entry.itemTag)})</span>
+                <span class="font-mono text-slate-505">(${escapeHtml(entry.itemTag)})</span>
               </div>
-              <span class="text-[10px] font-mono text-slate-400">${dateStr}</span>
+              <div class="flex items-center gap-2">
+                ${statusBadge}
+                <span class="text-[10px] font-mono text-slate-500">${dateStr}</span>
+              </div>
             </div>
             <p class="text-slate-700"><strong>Reported Quality:</strong> <span class="text-rose-700 font-bold">${escapeHtml(entry.quality)}</span></p>
             <p class="text-slate-700"><strong>Concern:</strong> ${escapeHtml(entry.description)}</p>
-            <p class="text-slate-700"><strong>Job Impact:</strong> <span class="italic text-rose-800">${escapeHtml(entry.impact)}</span></p>
-            <div class="text-[10px] text-slate-400">Submitted by: <strong>${escapeHtml(entry.user)}</strong></div>
+            <p class="text-slate-700"><strong>Job Impact:</strong> <span class="italic text-rose-805">${escapeHtml(entry.impact)}</span></p>
+            <div class="flex justify-between items-center mt-2 pt-2 border-t border-slate-100">
+              <div class="text-[10px] text-slate-400">Submitted by: <strong>${escapeHtml(entry.user)}</strong></div>
+              ${resolveButton}
+            </div>
           `;
         } else if (entry.type === 'WISHLIST_REQ') {
-          div.className += 'bg-emerald-50/50 border-emerald-200';
+          div.className += isResolved ? 'bg-slate-50 border-slate-200 opacity-75' : 'bg-emerald-50/50 border-emerald-200';
           div.innerHTML = `
-            <div class="flex justify-between items-start">
+            <div class="flex justify-between items-start gap-2">
               <div>
-                <span class="bg-emerald-650 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase font-semibold">➕ Wishlist Request</span>
+                <span class="bg-emerald-650 bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase font-semibold">➕ Wishlist Request</span>
+                <span class="font-mono text-[#5A358E] font-bold ml-2">#${entry.ticketNumber}</span>
                 <span class="font-bold text-slate-900 ml-2">${escapeHtml(entry.itemName)}</span>
                 <span class="bg-slate-105 text-slate-600 border px-2 py-0.2 rounded font-mono font-semibold ml-2">${escapeHtml(entry.category)}</span>
               </div>
-              <span class="text-[10px] font-mono text-slate-400">${dateStr}</span>
+              <div class="flex items-center gap-2">
+                ${statusBadge}
+                <span class="text-[10px] font-mono text-slate-500">${dateStr}</span>
+              </div>
             </div>
             <p class="text-slate-700"><strong>Plant Location suggested:</strong> 🏢 ${escapeHtml(entry.plantCode)}</p>
             <p class="text-slate-700"><strong>Workflow Assistance / Benefit:</strong> ${escapeHtml(entry.description)}</p>
-            <div class="text-[10px] text-slate-450">Submitted by: <strong>${escapeHtml(entry.user)}</strong></div>
+            <div class="flex justify-between items-center mt-2 pt-2 border-t border-slate-100">
+              <div class="text-[10px] text-slate-450">Submitted by: <strong>${escapeHtml(entry.user)}</strong></div>
+              ${resolveButton}
+            </div>
           `;
         } else if (entry.type === 'WORK_INSTRUCTIONS_UPDATE') {
-          div.className += 'bg-purple-50/50 border-purple-200';
+          div.className += isResolved ? 'bg-slate-50 border-slate-200 opacity-75' : 'bg-purple-50/50 border-purple-200';
           div.innerHTML = `
-            <div class="flex justify-between items-start">
+            <div class="flex justify-between items-start gap-2">
               <div>
                 <span class="bg-purple-600 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">🛠️ Instruction Update</span>
+                <span class="font-mono text-[#5A358E] font-bold ml-2">#${entry.ticketNumber}</span>
                 <span class="font-bold text-slate-900 ml-2">${escapeHtml(entry.itemName)}</span>
                 <span class="font-mono text-slate-500">(${escapeHtml(entry.itemTag)})</span>
               </div>
-              <span class="text-[10px] font-mono text-slate-400">${dateStr}</span>
+              <div class="flex items-center gap-2">
+                ${statusBadge}
+                <span class="text-[10px] font-mono text-slate-500">${dateStr}</span>
+              </div>
             </div>
             <p class="text-slate-700"><strong>Reason:</strong> ${escapeHtml(entry.description)}</p>
             <div class="bg-white border rounded p-2 text-slate-800 font-mono text-[11px] whitespace-pre-line mt-1">
               <strong>Updated Instructions:</strong>\\n${escapeHtml(entry.newInstructions)}
             </div>
-            <div class="text-[10px] text-slate-455 mt-1">Updated by: <strong>${escapeHtml(entry.user)}</strong></div>
+            <div class="flex justify-between items-center mt-2 pt-2 border-t border-slate-100">
+              <div class="text-[10px] text-slate-455">Updated by: <strong>${escapeHtml(entry.user)}</strong></div>
+              ${resolveButton}
+            </div>
           `;
         }
 
@@ -1623,7 +1730,7 @@
       let seq = 1;
       while (tags.length < count) {
         const candidate = `${plantCode}${String(seq).padStart(6, '0')}`;
-        if (!items.some(it => it.tag === candidate) && !tags.includes(candidate)) {
+        if (!items.some(it => item.tag === candidate) && !tags.includes(candidate)) {
           tags.push(candidate);
         }
         seq++;
@@ -2006,7 +2113,7 @@
             <div class="flex items-center gap-2 flex-wrap">
               ${badgeHtml}
               <span class="font-bold text-slate-900">${escapeHtml(n.title)}</span>
-              <span class="text-[11px] font-mono text-slate-400">${new Date(n.timestamp).toLocaleString()}</span>
+              <span class="text-[11px] font-mono text-slate-404">${new Date(n.timestamp).toLocaleString()}</span>
             </div>
             <p class="text-slate-700">${escapeHtml(n.message)}</p>
             ${n.userEmail ? `<p class="text-[11px] font-mono text-purple-755">📧 To: <strong>${escapeHtml(n.userEmail)}</strong></p>` : ''}
@@ -2311,7 +2418,7 @@
       const found = users.find(u => u.username.toLowerCase() === typedId);
       if (found) {
         msg.textContent = `✓ Verified: ${found.name}`;
-        msg.className = 'text-[11px] mt-1 font-semibold text-emerald-605';
+        msg.className = 'text-[11px] mt-1 font-semibold text-emerald-600';
         icon.textContent = '✅';
         nameHidden.value = found.name;
         
@@ -2336,7 +2443,7 @@
       if (!badge || !textEl) return;
       textEl.textContent = statusText;
       if (isCloudActive) {
-        badge.className = 'inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-305 text-emerald-300 border border-emerald-500/30 shrink-0 hover:bg-emerald-500/25 transition';
+        badge.className = 'inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shrink-0 hover:bg-emerald-500/25 transition';
       } else {
         badge.className = 'inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/40 shrink-0';
       }
@@ -2486,7 +2593,6 @@
       return `${loc.origin}${loc.pathname}?tag=${encodeURIComponent(item.tag)}`;
     }
 
-    // Settings Configuration URL
     function openQrConfigModal() {
       document.getElementById('qr-base-url-input').value = permanentQrBaseUrl || '';
       const modal = document.getElementById('qr-config-modal');
@@ -2583,7 +2689,7 @@
 
       if (isCheckedOut) {
         const rec = activeList[0];
-        scanQtyEl.className = 'text-xs sm:text-sm font-bold text-amber-700 mt-0.5';
+        scanQtyEl.className = 'text-xs sm:text-sm font-bold text-amber-705 mt-0.5';
         scanQtyEl.textContent = `Out (${rec.userName})`;
 
         statusPill.className = 'text-[11px] font-bold px-2.5 py-0.5 rounded-md uppercase bg-amber-100 text-amber-808 border border-amber-300';
@@ -2636,7 +2742,7 @@
                 <div class="text-[10px] uppercase text-slate-404 font-bold">Elapsed</div>
                 <div class="font-mono font-bold text-amber-700 text-sm" data-live-timer="${rec.checkedOutAt}">${formatElapsedDuration(rec.checkedOutAt)}</div>
               </div>
-              <button onclick="openCheckInModal('${match.id}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg font-bold">
+              <button onclick="openCheckInModal('${match.id}')" class="bg-emerald-600 hover:bg-emerald-550 text-white px-3 py-1.5 rounded-lg font-bold">
                 📥 Check In
               </button>
             </div>
@@ -2780,6 +2886,22 @@
       );
     }
 
+    function toggleCheckInRepairFields() {
+      const qual = document.getElementById('checkin-quality').value;
+      const repairFields = document.getElementById('checkin-repair-fields');
+      const desc = document.getElementById('checkin-concern-desc');
+      const impact = document.getElementById('checkin-concern-impact');
+      if (qual === 'Needs Repair' || qual === 'Broken') {
+        repairFields.classList.remove('hidden');
+        desc.required = true;
+        impact.required = true;
+      } else {
+        repairFields.classList.add('hidden');
+        desc.required = false;
+        impact.required = false;
+      }
+    }
+
     function openCheckInModal(itemId) {
       const item = items.find(i => i.id === itemId);
       if (!item) return;
@@ -2790,6 +2912,13 @@
       document.getElementById('checkin-user').value = activeRec ? activeRec.userName : '';
       document.getElementById('checkin-quality').value = item.quality || 'Good';
       document.getElementById('checkin-note').value = '';
+
+      // Reset repair fields
+      document.getElementById('checkin-concern-desc').value = '';
+      document.getElementById('checkin-concern-impact').value = '';
+      document.getElementById('checkin-repair-fields').classList.add('hidden');
+      document.getElementById('checkin-concern-desc').required = false;
+      document.getElementById('checkin-concern-impact').required = false;
 
       document.getElementById('checkin-modal-subtitle').textContent =
         `TAG: ${item.tag} | CODE: ${item.itemCode} ${item.serialNumber ? '| S/N: ' + item.serialNumber : ''} — ${item.name}`;
@@ -2814,6 +2943,33 @@
 
       const item = items.find(i => i.id === itemId);
       if (!item) return;
+
+      if (quality === 'Needs Repair' || quality === 'Broken') {
+        const concernDesc = document.getElementById('checkin-concern-desc').value.trim();
+        const concernImpact = document.getElementById('checkin-concern-impact').value.trim();
+        if (!concernDesc || !concernImpact) {
+          alert('You must describe the concern/issue and how it affects the job.');
+          return;
+        }
+
+        // Add to helpLogs as an open ticket
+        const now = Date.now();
+        const ticketEntry = {
+          id: 'hl-' + now,
+          ticketNumber: generateTicketNumber(),
+          type: 'CONCERN',
+          itemName: item.name,
+          itemTag: item.tag,
+          itemCode: item.itemCode,
+          quality: quality,
+          user: returnedBy,
+          description: concernDesc,
+          impact: concernImpact,
+          timestamp: now,
+          status: 'OPEN'
+        };
+        helpLogs.unshift(ticketEntry);
+      }
 
       const now = Date.now();
       let durationMs = null;
@@ -2920,7 +3076,7 @@
               <div class="text-slate-550 mt-0.5">Checked Out: ${new Date(rec.checkedOutAt).toLocaleString()} ${rec.notes ? `| Note: ${escapeHtml(rec.notes)}` : ''}</div>
             </div>
             <div class="flex items-center gap-3">
-              <span class="font-mono font-bold text-amber-850 bg-amber-200/70 px-2.5 py-1 rounded-lg" data-live-timer="${rec.checkedOutAt}">
+              <span class="font-mono font-bold text-amber-855 bg-amber-200/70 px-2.5 py-1 rounded-lg" data-live-timer="${rec.checkedOutAt}">
                 ${formatElapsedDuration(rec.checkedOutAt)}
               </span>
               <button onclick="closeHistoryModal(); openCheckInModal('${item.id}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-lg font-bold">
@@ -2968,7 +3124,6 @@
       }
     }
 
-    // Modal close
     function closeHistoryModal() {
       activeHistoryItemId = null;
       const modal = document.getElementById('history-modal');
@@ -3292,7 +3447,7 @@
             <button onclick="selectProductTypeView('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}')" class="flex-1 bg-[#5A358E] hover:bg-[#3D2566] text-white text-xs font-bold py-2 px-3 rounded-lg transition truncate shadow-sm">
               View ${grp.total} Unit(s)
             </button>
-            <button onclick="openAddMoreForProductType('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}')" class="bg-purple-50 hover:bg-purple-105 text-[#5A358E] border border-purple-200 text-xs font-bold py-2 px-2.5 rounded-lg transition shrink-0" title="Add units">
+            <button onclick="openAddMoreForProductType('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}')" class="bg-purple-50 hover:bg-purple-100 text-[#5A358E] border border-purple-200 text-xs font-bold py-2 px-2.5 rounded-lg transition shrink-0" title="Add units">
               + Add
             </button>
             ${printToggleBtn}
@@ -3402,7 +3557,7 @@
               <button onclick="selectCategoryView('${escapeJsStr(item.category)}')" class="text-[11px] text-[#5A358E] hover:underline">
                 ${escapeHtml(item.category)}
               </button>
-              ${item.serialNumber ? `<span class="text-[10px] font-mono text-purple-800 bg-purple-50 border border-purple-200 px-1.5 py-0.2 rounded font-semibold">S/N: ${escapeHtml(item.serialNumber)}</span>` : ''}
+              ${item.serialNumber ? `<span class="text-[10px] font-mono text-purple-805 bg-purple-55 border border-purple-200 px-1.5 py-0.2 rounded font-semibold">S/N: ${escapeHtml(item.serialNumber)}</span>` : ''}
             </div>
           </td>
           <td class="p-3">
@@ -3661,6 +3816,7 @@
       modal.classList.add('flex');
     }
 
+    // close
     function closePlantModal() {
       document.getElementById('edit-plant-old-code').value = '';
       document.getElementById('plant-code').value = '';
