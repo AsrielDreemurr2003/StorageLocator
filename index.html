@@ -8,6 +8,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- QRCode.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- SheetJS (XLSX) SDK -->
+  <script lang="javascript" src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
   <!-- EmailJS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <style>
@@ -428,7 +430,7 @@
     <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl">
       <div class="flex justify-between items-center border-b pb-3 mb-4">
         <h2 class="text-base font-bold text-slate-900">🔗 Permanent QR Code Base URL</h2>
-        <button onclick="closeQrConfigModal()" class="text-slate-400 hover:text-slate-750 text-2xl leading-none">&times;</button>
+        <button onclick="closeQrConfigModal()" class="text-slate-400 hover:text-slate-755 text-2xl leading-none">&times;</button>
       </div>
       <div class="text-xs text-slate-600 space-y-2 mb-4 bg-purple-50/50 p-3.5 rounded-xl border border-purple-100">
         <p><strong>⚠️ Why is this critical?</strong> If you print QR codes while testing on <code class="font-mono text-xs bg-white px-1 py-0.5 border rounded">localhost</code>, the printed labels will forever point to your local machine, breaking when scanned by others.</p>
@@ -763,10 +765,10 @@
     <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl max-h-[90vh] flex flex-col">
       <div class="flex justify-between items-center border-b pb-3 mb-4">
         <h2 class="text-base font-bold text-slate-900">👤 Manage Userbase</h2>
-        <button onclick="closeUserbaseModal()" class="text-slate-400 hover:text-slate-750 text-2xl leading-none">&times;</button>
+        <button onclick="closeUserbaseModal()" class="text-slate-400 hover:text-slate-755 text-2xl leading-none">&times;</button>
       </div>
       
-      <!-- Add User Form & Import CSV -->
+      <!-- Add User Form & Import Excel/CSV -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <!-- Add User Form -->
         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
@@ -788,16 +790,16 @@
           </form>
         </div>
 
-        <!-- Import CSV Form -->
+        <!-- Import Excel/CSV Form -->
         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col justify-between">
           <div>
-            <h3 class="text-xs font-bold text-[#10B981] uppercase mb-2">📥 Bulk Import Users (.csv)</h3>
-            <p class="text-[11px] text-slate-500 mb-2">Select a CSV file matching the format of Book.xlsx (Columns: <code>Username,User's name</code>).</p>
+            <h3 class="text-xs font-bold text-[#10B981] uppercase mb-2">📥 Bulk Import Users (.xlsx, .csv)</h3>
+            <p class="text-[11px] text-slate-500 mb-2">Select an Excel (.xlsx, .xls) or CSV file matching the format of Book.xlsx (Columns: <code>Username</code>, <code>User's name</code>, and optional <code>Email</code>).</p>
           </div>
           <div>
             <label class="w-full bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 px-4 py-2.5 rounded-lg text-xs font-semibold cursor-pointer flex items-center justify-center gap-2">
-              <span>📂 Select CSV File</span>
-              <input type="file" id="user-csv-file" class="hidden" accept=".csv" onchange="importUserCSV(event)" />
+              <span>📊 Select Excel/CSV File</span>
+              <input type="file" id="user-excel-file" class="hidden" accept=".csv, .xlsx, .xls" onchange="importUserFile(event)" />
             </label>
           </div>
         </div>
@@ -825,7 +827,7 @@
     <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl">
       <div class="flex justify-between items-center border-b pb-3 mb-4">
         <h2 class="text-base font-bold text-slate-900">🏢 Manage Plants (3-Digit Codes)</h2>
-        <button onclick="closePlantModal()" class="text-slate-400 hover:text-slate-750 text-2xl leading-none">&times;</button>
+        <button onclick="closePlantModal()" class="text-slate-400 hover:text-slate-755 text-2xl leading-none">&times;</button>
       </div>
       <form onsubmit="savePlant(event)" class="flex gap-2 mb-4">
         <input type="hidden" id="edit-plant-old-code" />
@@ -845,7 +847,7 @@
     <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl">
       <div class="flex justify-between items-center border-b pb-3 mb-4">
         <h2 class="text-base font-bold text-slate-900">☁️ Live Firebase Cloud Database</h2>
-        <button onclick="closeCloudModal()" class="text-slate-400 hover:text-slate-750 text-2xl leading-none">&times;</button>
+        <button onclick="closeCloudModal()" class="text-slate-400 hover:text-slate-755 text-2xl leading-none">&times;</button>
       </div>
       <form onsubmit="saveCloudConfig(event)" class="space-y-4">
         <div>
@@ -2869,7 +2871,7 @@
       const email = emailInput.value.trim() || `${username}@tranetechnologies.com`;
       
       if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
-        alert('A user with this ID already exists.');
+        alert('A user with this ID already exists. Duplicates are blocked.');
         return;
       }
       
@@ -2890,35 +2892,39 @@
       }
     }
 
-    function importUserCSV(event) {
+    function importUserFile(event) {
       const file = event.target.files[0];
       if (!file) return;
       const reader = new FileReader();
       reader.onload = async function(e) {
         try {
-          const text = e.target.result;
-          const lines = text.split('\\n');
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+          
+          // Use SheetJS to convert sheet directly to JSON arrays
+          const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
           let addedCount = 0;
           let dupCount = 0;
           
-          for (let i = 0; i < lines.length; i++) {
-            const line = lines[i].trim();
-            if (!line) continue;
+          for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            if (!row || row.length === 0) continue;
             
-            // split by comma
-            const cols = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.replace(/^"|"$/g, '').trim());
-            if (cols.length < 2) continue;
+            const username = String(row[0] || '').trim();
+            const name = String(row[1] || '').trim();
             
-            const username = cols[0];
-            const name = cols[1];
+            if (!username || !name) continue;
             
             // skip headers
             if (username.toLowerCase() === 'username' || name.toLowerCase() === "user's name" || name.toLowerCase() === 'name') {
               continue;
             }
             
-            const email = cols[2] || `${username}@tranetechnologies.com`;
+            const email = String(row[2] || '').trim() || `${username}@tranetechnologies.com`;
             
+            // STRICT DUPLICATE PREVENTION: ONLY ONE USER PER USERNAME
             if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
               dupCount++;
               continue;
@@ -2930,12 +2936,13 @@
           
           renderUserList();
           await saveState();
-          alert(`Successfully imported ${addedCount} users!${dupCount > 0 ? ` (${dupCount} duplicates skipped)` : ''}`);
+          alert(`Successfully imported ${addedCount} users!\\n${dupCount > 0 ? `Blocked ${dupCount} duplicate user ID(s) to guarantee database integrity.` : ''}`);
         } catch (err) {
-          alert('Error parsing CSV file. Please make sure it matches the required format.');
+          console.error(err);
+          alert('Error parsing sheet. Please make sure it is a valid Excel (.xlsx, .xls) or CSV file.');
         }
       };
-      reader.readAsText(file);
+      reader.readAsArrayBuffer(file);
       event.target.value = '';
     }
 
