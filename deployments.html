@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StorageLocater — Active Areas & Technician Deployment Roster</title>
+  <!-- Preload sibling files for instant zero-lag transitions -->
+  <link rel="prefetch" href="index.html" />
+  <link rel="prefetch" href="admin.html" />
+  <link rel="prefetch" href="support.html" />
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+    body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+  </style>
+</head>
+<body class="bg-[#FAF9F5] text-slate-800 min-h-screen pb-24 overflow-x-hidden">
+
+  <!-- Corporate Header -->
+  <header class="bg-[#251440] text-white border-b-4 border-[#0D9488] sticky top-0 z-40 shadow-md">
+    <div class="w-full max-w-[96%] sm:max-w-[94%] xl:max-w-[92%] 2xl:max-w-[90%] mx-auto px-2 sm:px-4 h-16 flex items-center justify-between gap-3">
+      
+      <div class="flex items-center gap-3">
+        <a href="index.html">
+          <img src="https://brandlogos.net/wp-content/uploads/2026/02/trane_technologies-logo_brandlogos.net_ct15x-1536x432.png" alt="Trane Technologies Logo" class="h-9 md:h-11 w-auto cursor-pointer rounded-lg bg-white p-1.5 hover:opacity-90 shadow-sm border border-slate-200" />
+        </a>
+        <div>
+          <a href="index.html" class="text-base sm:text-xl font-extrabold tracking-tight hover:text-emerald-300">
+            StorageLocater Deployments
+          </a>
+          <p class="text-[10px] text-slate-300 uppercase tracking-widest font-semibold hidden sm:block">Active Floor Areas & Custodian Roster</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <a href="support.html" class="bg-[#5A358E] hover:bg-[#623a9c] text-white px-3.5 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-md">
+          <span>🙋‍♂️</span> Help Desk
+        </a>
+        <a href="index.html" class="bg-[#0D9488] hover:bg-[#059669] text-white px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-md">
+          <span>⬅️</span> Dashboard
+        </a>
+      </div>
+
+    </div>
+  </header>
+
+  <main class="w-full max-w-[96%] sm:max-w-[94%] xl:max-w-[92%] 2xl:max-w-[90%] mx-auto px-2 sm:px-4 py-6 space-y-6">
+
+    <!-- KPI Metric Summary -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="bg-white rounded-2xl p-4 border border-[#DCDDE1] shadow-sm flex items-center justify-between">
+        <div>
+          <p class="text-[11px] font-bold text-slate-400 uppercase">Active Deployed Units</p>
+          <h3 id="stat-total-deployed" class="text-2xl font-extrabold text-amber-600 mt-0.5">0</h3>
+        </div>
+        <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl font-bold">📦</div>
+      </div>
+      <div class="bg-white rounded-2xl p-4 border border-[#DCDDE1] shadow-sm flex items-center justify-between">
+        <div>
+          <p class="text-[11px] font-bold text-slate-400 uppercase">Active Plant Areas</p>
+          <h3 id="stat-total-areas" class="text-2xl font-extrabold text-[#5A358E] mt-0.5">0</h3>
+        </div>
+        <div class="w-10 h-10 rounded-xl bg-purple-50 text-[#5A358E] flex items-center justify-center text-xl font-bold">📍</div>
+      </div>
+      <div class="bg-white rounded-2xl p-4 border border-[#DCDDE1] shadow-sm flex items-center justify-between">
+        <div>
+          <p class="text-[11px] font-bold text-slate-400 uppercase">Technicians with Units</p>
+          <h3 id="stat-total-techs" class="text-2xl font-extrabold text-[#0D9488] mt-0.5">0</h3>
+        </div>
+        <div class="w-10 h-10 rounded-xl bg-teal-50 text-[#0D9488] flex items-center justify-center text-xl font-bold">👤</div>
+      </div>
+    </div>
+
+    <!-- Filter & View Controls -->
+    <div class="bg-white rounded-2xl shadow-sm border border-[#DCDDE1] p-4 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex flex-wrap items-center gap-3 flex-1">
+        <input type="text" id="filter-search" oninput="renderDeployments()" placeholder="🔍 Search area, technician name, item, tag..." class="w-full sm:w-80 border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-[#5A358E] outline-none" />
+        <select id="filter-plant" onchange="renderDeployments()" class="border border-slate-300 rounded-lg px-3 py-2 text-xs bg-white focus:ring-2 focus:ring-[#5A358E] outline-none">
+          <option value="ALL">All Plants</option>
+        </select>
+      </div>
+
+      <div class="inline-flex rounded-lg bg-slate-100 p-1 border border-slate-200">
+        <button id="btn-view-cards" onclick="setViewMode('CARDS')" class="text-xs px-3 py-1.5 rounded-md font-bold bg-white text-[#5A358E] shadow-sm">
+          📍 Grouped by Area
+        </button>
+        <button id="btn-view-table" onclick="setViewMode('TABLE')" class="text-xs px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-[#5A358E]">
+          📋 Custodian Roster
+        </button>
+      </div>
+    </div>
+
+    <!-- View Mode 1: Cards Grouped by Area -->
+    <div id="section-area-cards" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5"></div>
+
+    <!-- View Mode 2: Full Tabular Technician Roster -->
+    <div id="section-roster-table" class="hidden bg-white rounded-2xl shadow-sm border border-[#DCDDE1] overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-100 text-slate-600 border-b text-[11px] font-bold uppercase tracking-wider">
+              <th class="p-3">Destination Area</th>
+              <th class="p-3">Assigned Technician</th>
+              <th class="p-3">Unit Name & Code</th>
+              <th class="p-3">Plant Tag</th>
+              <th class="p-3">Home Location</th>
+              <th class="p-3">Elapsed Time</th>
+              <th class="p-3 text-right">Floor Action</th>
+            </tr>
+          </thead>
+          <tbody id="roster-tbody" class="divide-y divide-slate-100 text-xs bg-white"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    const DEFAULT_CLOUD_DB_URL = 'https://storagelocator-405e5-default-rtdb.firebaseio.com/';
+    const STORAGE_KEY_PLANTS = 'PLANT_QR_PLANTS_V8';
+    const STORAGE_KEY_ITEMS  = 'PLANT_QR_ITEMS_V8';
+    const STORAGE_KEY_CLOUD  = 'PLANT_QR_CLOUD_URL_V8';
+    const STORAGE_KEY_NOTIFS = 'PLANT_QR_NOTIFS_V8';
+
+    let cloudDbUrl = localStorage.getItem(STORAGE_KEY_CLOUD) || DEFAULT_CLOUD_DB_URL;
+    let plants = JSON.parse(localStorage.getItem(STORAGE_KEY_PLANTS)) || [];
+    let items = JSON.parse(localStorage.getItem(STORAGE_KEY_ITEMS)) || [];
+    let currentViewMode = 'CARDS';
+
+    function setViewMode(mode) {
+      currentViewMode = mode;
+      const btnCards = document.getElementById('btn-view-cards');
+      const btnTable = document.getElementById('btn-view-table');
+      const secCards = document.getElementById('section-area-cards');
+      const secTable = document.getElementById('section-roster-table');
+
+      if (mode === 'CARDS') {
+        btnCards.className = "text-xs px-3 py-1.5 rounded-md font-bold bg-white text-[#5A358E] shadow-sm";
+        btnTable.className = "text-xs px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-[#5A358E]";
+        secCards.classList.remove('hidden');
+        secTable.classList.add('hidden');
+      } else {
+        btnCards.className = "text-xs px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-[#5A358E]";
+        btnTable.className = "text-xs px-3 py-1.5 rounded-md font-bold bg-white text-[#5A358E] shadow-sm";
+        secCards.classList.add('hidden');
+        secTable.classList.remove('hidden');
+      }
+      renderDeployments();
+    }
+
+    function formatElapsedDuration(startMs, endMs = Date.now()) {
+      const diffSec = Math.max(0, Math.floor((endMs - startMs) / 1000));
+      const days = Math.floor(diffSec / 86400);
+      const hrs = Math.floor((diffSec % 86400) / 3600);
+      const mins = Math.floor((diffSec % 3600) / 60);
+      const secs = diffSec % 60;
+      const pad = n => String(n).padStart(2, '0');
+      if (days > 0) return `${days}d ${pad(hrs)}h ${pad(mins)}m ${pad(secs)}s`;
+      return `${pad(hrs)}h ${pad(mins)}m ${pad(secs)}s`;
+    }
+
+    setInterval(() => {
+      document.querySelectorAll('[data-deploy-timer]').forEach(el => {
+        const start = parseInt(el.getAttribute('data-deploy-timer'), 10);
+        if (start) el.textContent = formatElapsedDuration(start);
+      });
+    }, 1000);
+
+    function getActiveDeployments() {
+      const search = document.getElementById('filter-search').value.toLowerCase().trim();
+      const plantFilter = document.getElementById('filter-plant').value;
+
+      const deployed = [];
+      items.forEach(item => {
+        if (item.activeCheckouts && item.activeCheckouts.length > 0) {
+          const checkout = item.activeCheckouts[0];
+          const area = checkout.destination || 'Unassigned Area';
+          const tech = checkout.userName || 'Unknown Technician';
+          const email = checkout.userEmail || '';
+          const matchPlant = plantFilter === 'ALL' || item.plantCode === plantFilter;
+          const matchSearch = !search ||
+            area.toLowerCase().includes(search) ||
+            tech.toLowerCase().includes(search) ||
+            item.name.toLowerCase().includes(search) ||
+            item.tag.toLowerCase().includes(search) ||
+            (item.itemCode && item.itemCode.toLowerCase().includes(search));
+
+          if (matchPlant && matchSearch) {
+            deployed.push({ item, checkout, area, tech, email });
+          }
+        }
+      });
+      return deployed;
+    }
+
+    function renderDeployments() {
+      const deployed = getActiveDeployments();
+
+      // Update KPI counters
+      document.getElementById('stat-total-deployed').textContent = deployed.length;
+      const uniqueAreas = new Set(deployed.map(d => d.area.toLowerCase()));
+      document.getElementById('stat-total-areas').textContent = uniqueAreas.size;
+      const uniqueTechs = new Set(deployed.map(d => d.tech.toLowerCase()));
+      document.getElementById('stat-total-techs').textContent = uniqueTechs.size;
+
+      if (currentViewMode === 'CARDS') {
+        renderAreaCards(deployed);
+      } else {
+        renderRosterTable(deployed);
+      }
+    }
+
+    function renderAreaCards(deployed) {
+      const container = document.getElementById('section-area-cards');
+      container.innerHTML = '';
+
+      if (deployed.length === 0) {
+        container.innerHTML = `<div class="col-span-full bg-white rounded-2xl p-10 text-center border border-slate-200 text-slate-400 text-sm">No items are currently checked out to any floor area.</div>`;
+        return;
+      }
+
+      const groupedByArea = new Map();
+      deployed.forEach(d => {
+        const key = d.area.trim();
+        if (!groupedByArea.has(key)) groupedByArea.set(key, []);
+        groupedByArea.get(key).push(d);
+      });
+
+      groupedByArea.forEach((records, areaName) => {
+        const card = document.createElement('div');
+        card.className = "bg-white rounded-2xl shadow-sm border border-[#DCDDE1] border-l-4 border-l-[#5A358E] p-5 flex flex-col justify-between";
+
+        let unitRowsHtml = '';
+        records.forEach(rec => {
+          unitRowsHtml += `
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
+              <div class="flex justify-between items-start gap-2">
+                <div>
+                  <h4 class="font-bold text-slate-900 text-xs">${escapeHtml(rec.item.name)}</h4>
+                  <div class="flex items-center gap-2 mt-0.5">
+                    <span class="font-mono text-[11px] font-bold text-[#5A358E]">${escapeHtml(rec.item.tag)}</span>
+                    <span class="font-mono text-[10px] text-slate-500">${escapeHtml(rec.item.itemCode || '')}</span>
+                  </div>
+                </div>
+                <button onclick="returnUnitDirectly('${rec.item.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold px-2 py-1 rounded transition shadow-sm">
+                  📥 Check In
+                </button>
+              </div>
+
+              <div class="pt-2 border-t border-slate-200/60 flex items-center justify-between text-[11px]">
+                <div>
+                  <span class="font-bold text-slate-800">👤 ${escapeHtml(rec.tech)}</span>
+                  ${rec.email ? `<span class="text-purple-700 block font-mono text-[10px]">${escapeHtml(rec.email)}</span>` : ''}
+                </div>
+                <div class="text-right">
+                  <span class="text-[9px] uppercase font-bold text-slate-400 block">Out For</span>
+                  <span class="font-mono font-bold text-amber-700 text-xs" data-deploy-timer="${rec.checkout.checkedOutAt}">
+                    ${formatElapsedDuration(rec.checkout.checkedOutAt)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+
+        card.innerHTML = `
+          <div>
+            <div class="flex justify-between items-center border-b pb-3 mb-3">
+              <div class="flex items-center gap-2">
+                <span class="text-lg">📍</span>
+                <h3 class="font-extrabold text-slate-900 text-sm sm:text-base">${escapeHtml(areaName)}</h3>
+              </div>
+              <span class="bg-purple-50 text-[#5A358E] border border-purple-200 font-bold px-2.5 py-0.5 rounded-full text-xs">
+                ${records.length} Unit${records.length > 1 ? 's' : ''}
+              </span>
+            </div>
+            <div class="space-y-2.5">
+              ${unitRowsHtml}
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function renderRosterTable(deployed) {
+      const tbody = document.getElementById('roster-tbody');
+      tbody.innerHTML = '';
+
+      if (deployed.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-400">No active checkouts found.</td></tr>`;
+        return;
+      }
+
+      deployed.forEach(rec => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-purple-50/30 transition-colors border-b border-slate-100";
+        tr.innerHTML = `
+          <td class="p-3 font-bold text-slate-900">📍 ${escapeHtml(rec.area)}</td>
+          <td class="p-3">
+            <div class="font-semibold text-slate-800">👤 ${escapeHtml(rec.tech)}</div>
+            ${rec.email ? `<div class="font-mono text-purple-700 text-[10px]">${escapeHtml(rec.email)}</div>` : ''}
+          </td>
+          <td class="p-3">
+            <div class="font-bold text-slate-900">${escapeHtml(rec.item.name)}</div>
+            <div class="text-[11px] text-slate-500 font-mono">${escapeHtml(rec.item.itemCode || '')}</div>
+          </td>
+          <td class="p-3 font-mono font-bold text-[#5A358E]">${escapeHtml(rec.item.tag)}</td>
+          <td class="p-3 text-slate-600 text-xs">${escapeHtml(rec.item.location)}</td>
+          <td class="p-3 font-mono font-bold text-amber-700 text-xs" data-deploy-timer="${rec.checkout.checkedOutAt}">
+            ${formatElapsedDuration(rec.checkout.checkedOutAt)}
+          </td>
+          <td class="p-3 text-right">
+            <button onclick="returnUnitDirectly('${rec.item.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow-sm transition">
+              📥 Check In
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function returnUnitDirectly(itemId) {
+      const item = items.find(i => i.id === itemId);
+      if (!item) return;
+
+      const techName = (item.activeCheckouts && item.activeCheckouts[0]) ? item.activeCheckouts[0].userName : 'Technician';
+      if (!confirm(`Confirm check-in of "${item.name}" (${item.tag}) back to ${item.location}?`)) return;
+
+      const now = Date.now();
+      const prev = item.activeCheckouts[0];
+      const durationMs = prev ? (now - prev.checkedOutAt) : 0;
+
+      item.quantity = 1;
+      item.activeCheckouts = [];
+      if (!Array.isArray(item.checkoutHistory)) item.checkoutHistory = [];
+      item.checkoutHistory.unshift({
+        id: 'hist-' + now,
+        type: 'CHECK_IN',
+        userName: techName,
+        destination: prev ? prev.destination : item.location,
+        qualityAtEvent: item.quality || 'Good',
+        durationMs,
+        timestamp: now,
+        status: 'COMPLETED'
+      });
+
+      localStorage.setItem(STORAGE_KEY_ITEMS, JSON.stringify(items));
+      renderDeployments();
+
+      // Cloud background push
+      if (cloudDbUrl) {
+        try {
+          const clean = cloudDbUrl.trim();
+          const endpoint = clean.endsWith('/') ? `${clean}storagelocater_state.json` : `${clean}/storagelocater_state.json`;
+          await fetch(endpoint, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ items, updatedAt: now })
+          });
+        } catch (e) {}
+      }
+    }
+
+    function populatePlantFilter() {
+      const select = document.getElementById('filter-plant');
+      select.innerHTML = '<option value="ALL">All Plants</option>' +
+        plants.map(p => `<option value="${p.code}">${p.code} — ${p.name}</option>`).join('');
+    }
+
+    function escapeHtml(str) {
+      return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    populatePlantFilter();
+    renderDeployments();
+
+    // Auto sync from cloud every 6 seconds
+    setInterval(async () => {
+      if (cloudDbUrl && document.visibilityState === 'visible') {
+        try {
+          const clean = cloudDbUrl.trim();
+          const endpoint = clean.endsWith('/') ? `${clean}storagelocater_state.json` : `${clean}/storagelocater_state.json`;
+          const res = await fetch(endpoint);
+          if (res.ok) {
+            const data = await res.json();
+            if (data && data.items) {
+              items = data.items;
+              localStorage.setItem(STORAGE_KEY_ITEMS, JSON.stringify(items));
+              renderDeployments();
+            }
+          }
+        } catch (e) {}
+      }
+    }, 6000);
+  </script>
+</body>
+</html>
