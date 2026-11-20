@@ -133,6 +133,9 @@
             <button onclick="closeSettingsMenu(); openPlantModal()" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5">
               <span>🏢</span> Manage Plants
             </button>
+            <button onclick="closeSettingsMenu(); openUserbaseModal()" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5">
+              <span>👤</span> Manage Users
+            </button>
             <button onclick="closeSettingsMenu(); openEmailConfigModal()" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5">
               <span>✉️</span> Email Alert Settings
             </button>
@@ -454,9 +457,14 @@
       <p id="checkout-modal-subtitle" class="text-xs font-mono font-bold text-[#4F2D7F] mb-4 bg-purple-50 p-2.5 rounded-lg border border-purple-200"></p>
       <form onsubmit="confirmCheckOut(event)" class="space-y-3.5">
         <input type="hidden" id="checkout-item-id" />
+        <input type="hidden" id="checkout-user" />
         <div>
-          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Your Name *</label>
-          <input type="text" id="checkout-user" required placeholder="e.g. John Smith" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4F2D7F]" />
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">User ID *</label>
+          <div class="relative">
+            <input type="text" id="checkout-user-id" required placeholder="e.g. u123456" oninput="validateCheckoutUser()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4F2D7F]" />
+            <span id="checkout-user-validation-icon" class="absolute right-3 top-2 text-lg"></span>
+          </div>
+          <p id="checkout-user-validation-msg" class="text-[11px] mt-1 font-semibold text-rose-600"></p>
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Your Email Address *</label>
@@ -476,7 +484,7 @@
         </div>
         <div class="flex justify-end space-x-2 pt-3 border-t">
           <button type="button" onclick="closeCheckOutModal()" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium">Cancel</button>
-          <button type="submit" class="px-5 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-sm font-bold shadow">Check Out & Notify</button>
+          <button type="submit" id="checkout-submit-btn" class="px-5 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-sm font-bold shadow">Check Out & Notify</button>
         </div>
       </form>
     </div>
@@ -529,7 +537,7 @@
             <p class="text-xs text-slate-500">Synced across all connected devices in real time</p>
           </div>
         </div>
-        <button onclick="closeNotificationsModal()" class="text-slate-400 hover:text-slate-750 text-2xl leading-none">&times;</button>
+        <button onclick="closeNotificationsModal()" class="text-slate-400 hover:text-slate-755 text-2xl leading-none">&times;</button>
       </div>
 
       <div id="notifications-list" class="overflow-y-auto flex-1 space-y-2.5 pr-1"></div>
@@ -750,6 +758,68 @@
     </div>
   </div>
 
+  <!-- MODAL: Manage Users -->
+  <div id="userbase-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print backdrop-blur-sm">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl max-h-[90vh] flex flex-col">
+      <div class="flex justify-between items-center border-b pb-3 mb-4">
+        <h2 class="text-base font-bold text-slate-900">👤 Manage Userbase</h2>
+        <button onclick="closeUserbaseModal()" class="text-slate-400 hover:text-slate-750 text-2xl leading-none">&times;</button>
+      </div>
+      
+      <!-- Add User Form & Import CSV -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <!-- Add User Form -->
+        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+          <h3 class="text-xs font-bold text-[#4F2D7F] uppercase mb-2">➕ Add Single User</h3>
+          <form onsubmit="addUser(event)" class="space-y-2">
+            <div>
+              <label class="block text-[10px] font-bold text-slate-500 uppercase">User ID *</label>
+              <input type="text" id="user-username" required placeholder="e.g. u123456" class="w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-[#4F2D7F]" />
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-500 uppercase">User's Name *</label>
+              <input type="text" id="user-name" required placeholder="e.g. Jane Doe" class="w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-[#4F2D7F]" />
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-500 uppercase">Email (Optional)</label>
+              <input type="email" id="user-email" placeholder="e.g. jane.doe@tranetechnologies.com" class="w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-[#4F2D7F]" />
+            </div>
+            <button type="submit" class="w-full bg-[#4F2D7F] hover:bg-[#3D2566] text-white py-1.5 rounded-lg text-xs font-semibold">Add User</button>
+          </form>
+        </div>
+
+        <!-- Import CSV Form -->
+        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col justify-between">
+          <div>
+            <h3 class="text-xs font-bold text-[#10B981] uppercase mb-2">📥 Bulk Import Users (.csv)</h3>
+            <p class="text-[11px] text-slate-500 mb-2">Select a CSV file matching the format of Book.xlsx (Columns: <code>Username,User's name</code>).</p>
+          </div>
+          <div>
+            <label class="w-full bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 px-4 py-2.5 rounded-lg text-xs font-semibold cursor-pointer flex items-center justify-center gap-2">
+              <span>📂 Select CSV File</span>
+              <input type="file" id="user-csv-file" class="hidden" accept=".csv" onchange="importUserCSV(event)" />
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- User Search and Table -->
+      <div class="flex-1 flex flex-col min-h-0">
+        <div class="flex justify-between items-center mb-2">
+          <h3 class="text-xs font-bold uppercase text-purple-800">Current Users (<span id="userbase-count">0</span>)</h3>
+          <input type="text" id="userbase-search" oninput="renderUserList()" placeholder="Search users..." class="border border-slate-300 rounded-lg px-2 py-1 text-xs focus:ring-1 focus:ring-[#4F2D7F] w-48" />
+        </div>
+        <div class="overflow-y-auto border rounded-xl flex-1 max-h-56 divide-y divide-slate-100 bg-white" id="userbase-list-container">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <div class="flex justify-end pt-4 mt-4 border-t">
+        <button onclick="closeUserbaseModal()" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium">Done</button>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL: Manage Plants -->
   <div id="plant-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print backdrop-blur-sm">
     <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl">
@@ -810,6 +880,7 @@
     const STORAGE_KEY_EMAIL  = 'PLANT_QR_EMAIL_CFG_V8';
     const STORAGE_KEY_SEEN_N = 'PLANT_QR_SEEN_NOTIF_TS_V8';
     const STORAGE_KEY_QR_BASE = 'PLANT_QR_BASE_URL_V8';
+    const STORAGE_KEY_USERS  = 'PLANT_QR_USERS_V8';
 
     let cloudDbUrl = localStorage.getItem(STORAGE_KEY_CLOUD) || DEFAULT_CLOUD_DB_URL;
     if (!cloudDbUrl || !cloudDbUrl.includes('firebaseio.com')) {
@@ -832,6 +903,10 @@
       { code: 'CHI', name: 'Chicago Distribution' }
     ];
 
+    let users = JSON.parse(localStorage.getItem(STORAGE_KEY_USERS)) || [
+      { username: 'u123456', name: 'Jane Doe', email: 'jane.doe@tranetechnologies.com' }
+    ];
+
     let items = JSON.parse(localStorage.getItem(STORAGE_KEY_ITEMS)) || [
       {
         id: '1',
@@ -845,7 +920,7 @@
         quantity: 1,
         location: 'Aisle 2, Shelf C',
         notes: '480V 3-Phase, NEMA Frame 184T. Keep dry.',
-        instructions: '1. Lockout/Tagout main breaker before install.\n2. Verify shaft alignment within 0.002 in.\n3. Torque mounting bolts to 45 ft-lbs.',
+        instructions: '1. Lockout/Tagout main breaker before install.\\n2. Verify shaft alignment within 0.002 in.\\n3. Torque mounting bolts to 45 ft-lbs.',
         activeCheckouts: [],
         checkoutHistory: []
       },
@@ -1172,6 +1247,7 @@
       localStorage.setItem(STORAGE_KEY_NOTIFS, JSON.stringify(appNotifications));
       localStorage.setItem(STORAGE_KEY_EMAIL, JSON.stringify(emailConfig));
       localStorage.setItem(STORAGE_KEY_QR_BASE, permanentQrBaseUrl);
+      localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
       await pushToCloud(false);
     }
 
@@ -1187,6 +1263,7 @@
           appNotifications,
           emailConfig,
           permanentQrBaseUrl,
+          users,
           updatedAt: Date.now()
         };
         const res = await fetch(endpoint, {
@@ -1216,6 +1293,10 @@
           plants = data.plants;
           items = data.items || [];
           plantSequences = data.plantSequences || {};
+          users = data.users || [
+            { username: 'u123456', name: 'Jane Doe', email: 'jane.doe@tranetechnologies.com' }
+          ];
+          localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
 
           if (Array.isArray(data.appNotifications)) {
             const newestRemote = data.appNotifications[0];
@@ -1488,6 +1569,8 @@
       document.getElementById('checkout-item-id').value = item.id;
       document.getElementById('checkout-user').value = '';
       document.getElementById('checkout-email').value = '';
+      document.getElementById('checkout-user-id').value = '';
+      setTimeout(() => { validateCheckoutUser(); }, 50);
       document.getElementById('checkout-destination').value = '';
       document.getElementById('checkout-note').value = '';
       document.getElementById('checkout-send-email-toggle').checked = false;
@@ -2148,7 +2231,7 @@
         ).join('');
 
         const primaryActionBtn = isCheckedOut
-          ? `<button onclick="openCheckInModal('${item.id}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-md text-xs font-bold transition">📥 In</button>`
+          ? `<button onclick="openCheckInModal('${item.id}')" class="bg-emerald-650 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-md text-xs font-bold transition">📥 In</button>`
           : `<button onclick="openCheckOutModal('${item.id}')" class="bg-amber-600 hover:bg-amber-500 text-white px-2.5 py-1 rounded-md text-xs font-bold transition">📤 Out</button>`;
 
         const tr = document.createElement('tr');
@@ -2724,6 +2807,182 @@
       reader.readAsText(file);
     }
 
+    // ============================================================================
+    // USERBASE MANAGEMENT
+    // ============================================================================
+    function openUserbaseModal() {
+      renderUserList();
+      const modal = document.getElementById('userbase-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeUserbaseModal() {
+      const modal = document.getElementById('userbase-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function renderUserList() {
+      const container = document.getElementById('userbase-list-container');
+      const countEl = document.getElementById('userbase-count');
+      const search = document.getElementById('userbase-search').value.toLowerCase();
+      
+      container.innerHTML = '';
+      
+      const filtered = users.filter(u => 
+        u.username.toLowerCase().includes(search) || 
+        u.name.toLowerCase().includes(search) || 
+        (u.email && u.email.toLowerCase().includes(search))
+      );
+      
+      countEl.textContent = users.length;
+      
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="p-4 text-center text-slate-400 text-xs">No users found.</div>`;
+        return;
+      }
+      
+      filtered.forEach(u => {
+        const div = document.createElement('div');
+        div.className = 'p-2.5 flex justify-between items-center text-xs hover:bg-slate-50';
+        div.innerHTML = `
+          <div>
+            <span class="font-mono font-bold bg-slate-100 border px-2 py-0.5 rounded text-[#4F2D7F]">${escapeHtml(u.username)}</span>
+            <span class="font-semibold text-slate-800 ml-2">${escapeHtml(u.name)}</span>
+            ${u.email ? `<span class="text-slate-400 font-mono text-[11px] ml-2">(${escapeHtml(u.email)})</span>` : ''}
+          </div>
+          <button onclick="deleteUser('${escapeJsStr(u.username)}')" class="text-rose-600 hover:bg-rose-50 px-2 py-1 rounded">✕</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    async function addUser(e) {
+      e.preventDefault();
+      const usernameInput = document.getElementById('user-username');
+      const nameInput = document.getElementById('user-name');
+      const emailInput = document.getElementById('user-email');
+      
+      const username = usernameInput.value.trim();
+      const name = nameInput.value.trim();
+      const email = emailInput.value.trim() || `${username}@tranetechnologies.com`;
+      
+      if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+        alert('A user with this ID already exists.');
+        return;
+      }
+      
+      users.push({ username, name, email });
+      usernameInput.value = '';
+      nameInput.value = '';
+      emailInput.value = '';
+      
+      renderUserList();
+      await saveState();
+    }
+
+    async function deleteUser(username) {
+      if (confirm(`Remove user "${username}" from the database?`)) {
+        users = users.filter(u => u.username !== username);
+        renderUserList();
+        await saveState();
+      }
+    }
+
+    function importUserCSV(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        try {
+          const text = e.target.result;
+          const lines = text.split('\\n');
+          let addedCount = 0;
+          let dupCount = 0;
+          
+          for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (!line) continue;
+            
+            // split by comma
+            const cols = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.replace(/^"|"$/g, '').trim());
+            if (cols.length < 2) continue;
+            
+            const username = cols[0];
+            const name = cols[1];
+            
+            // skip headers
+            if (username.toLowerCase() === 'username' || name.toLowerCase() === "user's name" || name.toLowerCase() === 'name') {
+              continue;
+            }
+            
+            const email = cols[2] || `${username}@tranetechnologies.com`;
+            
+            if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+              dupCount++;
+              continue;
+            }
+            
+            users.push({ username, name, email });
+            addedCount++;
+          }
+          
+          renderUserList();
+          await saveState();
+          alert(`Successfully imported ${addedCount} users!${dupCount > 0 ? ` (${dupCount} duplicates skipped)` : ''}`);
+        } catch (err) {
+          alert('Error parsing CSV file. Please make sure it matches the required format.');
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
+    function validateCheckoutUser() {
+      const idInput = document.getElementById('checkout-user-id');
+      const nameHidden = document.getElementById('checkout-user');
+      const emailInput = document.getElementById('checkout-email');
+      const msg = document.getElementById('checkout-user-validation-msg');
+      const icon = document.getElementById('checkout-user-validation-icon');
+      const submitBtn = document.getElementById('checkout-submit-btn');
+
+      const typedId = idInput.value.trim().toLowerCase();
+      if (!typedId) {
+        msg.textContent = '';
+        icon.textContent = '';
+        nameHidden.value = '';
+        submitBtn.disabled = true;
+        submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        return;
+      }
+
+      const found = users.find(u => u.username.toLowerCase() === typedId);
+      if (found) {
+        msg.textContent = `✓ Verified: ${found.name}`;
+        msg.className = 'text-[11px] mt-1 font-semibold text-emerald-600';
+        icon.textContent = '✅';
+        nameHidden.value = found.name;
+        
+        // Auto-fill email
+        if (found.email) {
+          emailInput.value = found.email;
+        } else {
+          emailInput.value = `${found.username}@tranetechnologies.com`;
+        }
+
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+      } else {
+        msg.textContent = '✗ User ID not found in system. Please contact administrator.';
+        msg.className = 'text-[11px] mt-1 font-semibold text-rose-600';
+        icon.textContent = '❌';
+        nameHidden.value = '';
+        submitBtn.disabled = true;
+        submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+      }
+    }
+
     function escapeHtml(str) {
       return String(str || '')
         .replace(/&/g, '&amp;')
@@ -2734,7 +2993,7 @@
 
     // Escape single quotes
     function escapeJsStr(str) {
-      return String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      return String(str || '').replace(/\\\\/g, '\\\\\\\\').replace(/'/g, "\\\\'");
     }
 
     // --- INITIALIZE & AUTO-POLL CLOUD EVERY 6 SECONDS ---
