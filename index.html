@@ -18,6 +18,7 @@
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght=500;700&display=swap');
     body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
     .font-mono { font-family: 'JetBrains Mono', monospace; }
+
     @media print {
       body * { visibility: hidden; }
       #print-area, #print-area * { visibility: visible; }
@@ -166,7 +167,7 @@
     </div>
     <div class="flex items-center gap-2">
       <button onclick="clearAllSelectedQRCodes()" class="bg-rose-600/20 hover:bg-rose-600 border border-rose-500/40 text-rose-200 hover:text-white px-3.5 py-2 rounded-xl text-xs font-bold transition">
-        ✕ Unselect All QR
+        ✕ Unselect All
       </button>
       <button onclick="printSelectedQRCodes()" class="bg-[#0D9488] hover:bg-[#059669] text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg transition">
         🖨️ Print Selected QR Codes
@@ -178,7 +179,7 @@
   <div id="scanned-banner" class="hidden w-full max-w-[96%] sm:max-w-[94%] xl:max-w-[92%] 2xl:max-w-[90%] mx-auto mt-6 px-2 sm:px-4 no-print">
     <div class="bg-white border border-[#DCDDE1] rounded-2xl p-5 sm:p-6 shadow-xl relative overflow-hidden">
       <div class="absolute top-0 left-0 w-2 h-full bg-[#5A358E]"></div>
-      <div class="flex flex-wrap justify-between items-start gap-3 border-b border-slate-100 pb-4 pl-2">
+      <div class="flex flex-wrap justify-between items-start gap-3 border-b pb-4 pl-2">
         <div>
           <div class="flex items-center gap-2 flex-wrap">
             <span class="bg-[#5A358E] text-white text-[11px] font-bold px-2.5 py-0.5 rounded-md uppercase tracking-wider">📱 QR Scan View</span>
@@ -330,7 +331,7 @@
           </div>
           <a href="deployments.html" class="text-xs bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-bold px-3 py-2 rounded-lg transition active:scale-95">📍 Active Areas</a>
           <button onclick="pullFromCloud(true)" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 font-semibold px-3 py-2 rounded-lg transition active:scale-95" title="Sync with Cloud">🔄 Sync</button>
-          <button id="bar-unselect-all-btn" onclick="clearAllSelectedQRCodes()" class="hidden text-xs bg-[#FFF1F2] hover:bg-rose-100 text-rose-700 border border-rose-200 px-3 py-2 rounded-lg font-bold transition">
+          <button id="bar-unselect-all-btn" onclick="clearAllSelectedQRCodes()" class="hidden text-xs bg-[#FFF1F2] hover:bg-[#rose-100] text-rose-700 border border-rose-200 px-3 py-2 rounded-lg font-bold transition">
             ✕ Unselect All (<span id="bar-selected-count">0</span>)
           </button>
         </div>
@@ -414,6 +415,11 @@
           <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Category Name *</label>
           <input type="text" id="edit-cat-new-name" required placeholder="e.g. Motors & Drives" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
         </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Rack Code (5-Digit Combination, e.g. A-1500) *</label>
+          <input type="text" id="edit-cat-rack-code" required maxlength="6" placeholder="A-1500" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E] font-mono" />
+        </div>
+
         <div class="bg-purple-50/60 border border-purple-200 rounded-xl p-3.5 space-y-2">
           <div class="flex items-center justify-between">
             <label for="edit-cat-bulk-item-name" class="block text-xs font-bold text-[#5A358E] uppercase">Rename All Items in This Category (Optional)</label>
@@ -774,6 +780,7 @@
         </div>
         <button onclick="closeDetailModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
       </div>
+
       <div class="flex flex-col sm:flex-row gap-5 items-center">
         <div class="flex flex-col items-center">
           <div id="single-qr-container" class="p-3 border-2 border-[#5A358E] rounded-xl bg-white"></div>
@@ -819,6 +826,34 @@
     const STORAGE_KEY_QR_BASE = 'PLANT_QR_BASE_URL_V8';
     const STORAGE_KEY_USERS  = 'PLANT_QR_USERS_V8';
     const STORAGE_KEY_HELP_LOGS = 'PLANT_QR_HELP_LOGS_V8';
+    const STORAGE_KEY_CATEGORIES = 'PLANT_QR_CATEGORIES_V8';
+    
+    let categories = JSON.parse(localStorage.getItem(STORAGE_KEY_CATEGORIES)) || [];
+
+    function initializeCategories() {
+      const existingCategoryNames = [...new Set(items.map(i => i.category || 'Uncategorized'))];
+      let updated = false;
+      
+      existingCategoryNames.forEach(name => {
+        if (!categories.some(c => c.name.toLowerCase() === name.toLowerCase())) {
+          const letters = 'ABCDEFGH';
+          const randomLetter = letters.charAt(Math.floor(Math.random() * letters.length));
+          const randomNum = Math.floor(1000 + Math.random() * 9000);
+          const rackCode = `${randomLetter}-${randomNum}`;
+          
+          categories.push({
+            id: 'cat-' + Math.random().toString(36).substring(2, 9),
+            name: name,
+            rackCode: rackCode
+          });
+          updated = true;
+        }
+      });
+
+      if (updated || categories.length === 0) {
+        localStorage.setItem(STORAGE_KEY_CATEGORIES, JSON.stringify(categories));
+      }
+    }
 
     let cloudDbUrl = localStorage.getItem(STORAGE_KEY_CLOUD) || DEFAULT_CLOUD_DB_URL;
     let permanentQrBaseUrl = localStorage.getItem(STORAGE_KEY_QR_BASE) || 'https://asrieldreemurr2003.github.io/StorageLocator/index.html';
@@ -985,7 +1020,8 @@
         updateSyncBadge('Syncing...', true);
         const helpLogs = JSON.parse(localStorage.getItem(STORAGE_KEY_HELP_LOGS)) || [];
         const payload = {
-          plants, items, plantSequences, appNotifications, emailConfig, permanentQrBaseUrl, users, helpLogs, updatedAt: Date.now()
+          plants, items, plantSequences, appNotifications, emailConfig,
+          permanentQrBaseUrl, users, helpLogs, updatedAt: Date.now()
         };
         const res = await fetch(endpoint, {
           method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
@@ -1070,25 +1106,58 @@
       return `${base}${separator}tag=${encodeURIComponent(item.tag)}`;
     }
 
-    function buildCategoryQRUrl(categoryName) {
+    function buildCategoryQRUrl(categoryId) {
       let base = (permanentQrBaseUrl && permanentQrBaseUrl.trim() !== '') ? permanentQrBaseUrl.trim() : 'https://asrieldreemurr2003.github.io/StorageLocator/index.html';
       if (base.endsWith('/')) {
         base = base.slice(0, -1);
       }
       const separator = base.includes('?') ? '&' : '?';
-      return `${base}${separator}categoryCheckout=${encodeURIComponent(categoryName)}`;
+      return `${base}${separator}categoryCheckoutId=${encodeURIComponent(categoryId)}`;
+    }
+
+    function buildCategoryQRUrl(categoryId) {
+      let base = (permanentQrBaseUrl && permanentQrBaseUrl.trim() !== '') ? permanentQrBaseUrl.trim() : 'https://asrieldreemurr2003.github.io/StorageLocator/index.html';
+      if (base.endsWith('/')) {
+        base = base.slice(0, -1);
+      }
+      const separator = base.includes('?') ? '&' : '?';
+      return `${base}${separator}categoryCheckoutId=${encodeURIComponent(categoryId)}`;
     }
 
     async function checkUrlForScannedQR() {
       const params = new URLSearchParams(window.location.search);
       const scannedTag = params.get('tag');
       const categoryCheckout = params.get('categoryCheckout');
+      const categoryCheckoutId = params.get('categoryCheckoutId');
       await pullFromCloud(false);
+      
+      initializeCategories();
+
       if (scannedTag) {
         activeScannedTag = scannedTag;
         refreshScannedBanner(scannedTag, true);
+      } else if (categoryCheckoutId) {
+        const cat = categories.find(c => c.id === categoryCheckoutId);
+        if (cat) {
+          openCategoryCheckoutModal(cat.id);
+        } else {
+          alert("Scanned category ID not found.");
+        }
       } else if (categoryCheckout) {
-        openCategoryCheckoutModal(categoryCheckout);
+        let cat = categories.find(c => c.name.toLowerCase() === categoryCheckout.toLowerCase());
+        if (!cat) {
+          const letters = 'ABCDEFGH';
+          const randomLetter = letters.charAt(Math.floor(Math.random() * letters.length));
+          const randomNum = Math.floor(1000 + Math.random() * 9000);
+          cat = {
+            id: 'cat-' + Math.random().toString(36).substring(2, 9),
+            name: categoryCheckout,
+            rackCode: `${randomLetter}-${randomNum}`
+          };
+          categories.push(cat);
+          localStorage.setItem(STORAGE_KEY_CATEGORIES, JSON.stringify(categories));
+        }
+        openCategoryCheckoutModal(cat.id);
       }
     }
 
@@ -1339,13 +1408,25 @@
       if (event) event.stopPropagation();
       if (!categoryName) return;
 
+      initializeCategories();
+      let cat = categories.find(c => c.name.toLowerCase() === categoryName.toLowerCase());
+      if (!cat) {
+        const letters = 'ABCDEFGH';
+        const randomLetter = letters.charAt(Math.floor(Math.random() * letters.length));
+        const randomNum = Math.floor(1000 + Math.random() * 9000);
+        cat = { id: 'cat-' + Math.random().toString(36).substring(2, 9), name: categoryName, rackCode: `${randomLetter}-${randomNum}` };
+        categories.push(cat);
+        localStorage.setItem(STORAGE_KEY_CATEGORIES, JSON.stringify(categories));
+      }
+
       const matchingItems = items.filter(i => (i.category || 'Uncategorized') === categoryName);
       const uniqueNames = [...new Set(matchingItems.map(i => i.name))];
 
-      document.getElementById('edit-cat-original-name').value = categoryName;
-      document.getElementById('edit-cat-new-name').value = categoryName;
+      document.getElementById('edit-cat-original-name').value = cat.name;
+      document.getElementById('edit-cat-new-name').value = cat.name;
+      document.getElementById('edit-cat-rack-code').value = cat.rackCode || '';
       document.getElementById('edit-cat-bulk-item-name').value = uniqueNames.length === 1 ? uniqueNames[0] : '';
-      document.getElementById('edit-cat-subtitle').textContent = `Applies to ${matchingItems.length} unit(s) currently in "${categoryName}"`;
+      document.getElementById('edit-cat-subtitle').textContent = `Applies to ${matchingItems.length} unit(s) currently in "${cat.name}" [Stable ID: ${cat.id}]`;
 
       const modal = document.getElementById('edit-category-modal');
       modal.classList.remove('hidden');
@@ -1358,26 +1439,33 @@
 
     async function saveCategoryEdits(e) {
       e.preventDefault();
-      const oldCategory = document.getElementById('edit-cat-original-name').value;
-      const newCategory = document.getElementById('edit-cat-new-name').value.trim();
+      const oldCategoryName = document.getElementById('edit-cat-original-name').value;
+      const newCategoryName = document.getElementById('edit-cat-new-name').value.trim();
+      const newRackCode = document.getElementById('edit-cat-rack-code').value.trim();
       const bulkNewItemName = document.getElementById('edit-cat-bulk-item-name').value.trim();
 
-      if (!newCategory) return;
+      if (!newCategoryName || !newRackCode) return;
 
-      let updatedCount = 0;
+      initializeCategories();
+      const cat = categories.find(c => c.name.toLowerCase() === oldCategoryName.toLowerCase());
+      if (cat) {
+        cat.name = newCategoryName;
+        cat.rackCode = newRackCode;
+        localStorage.setItem(STORAGE_KEY_CATEGORIES, JSON.stringify(categories));
+      }
+
       items.forEach(item => {
         const currentCat = item.category || 'Uncategorized';
-        if (currentCat === oldCategory) {
-          item.category = newCategory;
+        if (currentCat.toLowerCase() === oldCategoryName.toLowerCase()) {
+          item.category = newCategoryName;
           if (bulkNewItemName !== '') {
             item.name = bulkNewItemName;
           }
-          updatedCount++;
         }
       });
 
-      if (selectedCategory === oldCategory) {
-        selectedCategory = newCategory;
+      if (selectedCategory && selectedCategory.toLowerCase() === oldCategoryName.toLowerCase()) {
+        selectedCategory = newCategoryName;
         if (selectedProductName && bulkNewItemName !== '') {
           selectedProductName = bulkNewItemName;
         }
@@ -1512,7 +1600,6 @@
       } else {
         const { tags, codes } = getNextAvailableTags(plantCode, count, customCode, name, category);
         plantSequences[plantCode] = (plantSequences[plantCode] || 0) + count;
-
         const now = Date.now();
         for (let idx = 0; idx < count; idx++) {
           items.push({
@@ -1617,6 +1704,7 @@
           </div>
         `;
         printArea.appendChild(card);
+
         const qrDiv = card.querySelector('.qr-code-wrapper');
         new QRCode(qrDiv, { text: buildQRUrl(item), width: 80, height: 80 });
       });
@@ -1695,8 +1783,7 @@
         const isCheckedOut = item.activeCheckouts && item.activeCheckouts.length > 0;
         const matchesPlant = plantFilter === 'ALL' || item.plantCode === plantFilter;
         const matchesQuality = qualityFilter === 'ALL' || item.quality === qualityFilter;
-        const matchesStatus = statusFilter === 'ALL' ||
-          (statusFilter === 'CHECKED_OUT' && isCheckedOut) || (statusFilter === 'IN_STORAGE' && !isCheckedOut);
+        const matchesStatus = statusFilter === 'ALL' || (statusFilter === 'CHECKED_OUT' && isCheckedOut) || (statusFilter === 'IN_STORAGE' && !isCheckedOut);
         const matchesSearch = !search ||
           item.tag.toLowerCase().includes(search) ||
           (item.itemCode && item.itemCode.toLowerCase().includes(search)) ||
@@ -1730,6 +1817,7 @@
         crumbsHtml += `<span class="text-slate-300 text-xs">/</span>`;
         crumbsHtml += `<button onclick="selectCategoryView('${escapeJsStr(selectedCategory)}')" class="text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded-md">${escapeHtml(selectedCategory)}</button>`;
       }
+
       if (selectedProductName) {
         crumbsHtml += `<span class="text-slate-300 text-xs">/</span>`;
         crumbsHtml += `<span class="text-xs font-bold text-[#5A358E] bg-purple-50 border border-purple-200 px-2 py-0.5 rounded-md">${escapeHtml(selectedProductName)}</span>`;
@@ -1741,7 +1829,6 @@
 
       const plantSelect = document.getElementById('filter-plant');
       const currentPlant = plantSelect ? plantSelect.value : 'ALL';
-
       const search = document.getElementById('search-input').value.toLowerCase();
       const qualityFilter = document.getElementById('filter-quality').value;
       const statusFilter = document.getElementById('filter-status').value;
@@ -1755,8 +1842,7 @@
       items.forEach(item => {
         const isCheckedOut = item.activeCheckouts && item.activeCheckouts.length > 0;
         const matchesQuality = qualityFilter === 'ALL' || item.quality === qualityFilter;
-        const matchesStatus = statusFilter === 'ALL' ||
-          (statusFilter === 'CHECKED_OUT' && isCheckedOut) || (statusFilter === 'IN_STORAGE' && !isCheckedOut);
+        const matchesStatus = statusFilter === 'ALL' || (statusFilter === 'CHECKED_OUT' && isCheckedOut) || (statusFilter === 'IN_STORAGE' && !isCheckedOut);
         const matchesSearch = !search ||
           item.tag.toLowerCase().includes(search) ||
           (item.itemCode && item.itemCode.toLowerCase().includes(search)) ||
@@ -1788,6 +1874,7 @@
         const wrapClass = isSelected ? 'bg-[#5A358E] text-white border-[#5A358E]' : 'bg-white text-slate-700 border-slate-200';
         const avail = plantCounts[p.code + '_avail'] || 0;
         const total = plantCounts[p.code] || 0;
+
         pillsHtml.push(`
           <button onclick="setPlantFilter('${p.code}')" class="px-3 py-1.5 rounded-lg border text-xs font-semibold transition flex items-center gap-1.5 ${wrapClass}">
             <span>🏢 ${p.code} — ${p.name}</span>
@@ -1852,6 +1939,17 @@
       });
 
       Array.from(categoryGroups.values()).sort((a, b) => a.name.localeCompare(b.name)).forEach(grp => {
+        initializeCategories();
+        let catObj = categories.find(c => c.name.toLowerCase() === grp.name.toLowerCase());
+        if (!catObj) {
+          const letters = 'ABCDEFGH';
+          const randomLetter = letters.charAt(Math.floor(Math.random() * letters.length));
+          const randomNum = Math.floor(1000 + Math.random() * 9000);
+          catObj = { id: 'cat-' + Math.random().toString(36).substring(2, 9), name: grp.name, rackCode: `${randomLetter}-${randomNum}` };
+          categories.push(catObj);
+          localStorage.setItem(STORAGE_KEY_CATEGORIES, JSON.stringify(categories));
+        }
+        
         const card = document.createElement('div');
         card.className = 'bg-white rounded-2xl shadow-sm border border-l-4 border-[#5A358E] border-y border-r border-[#DCDDE1] p-5 flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5';
         card.innerHTML = `
@@ -1864,7 +1962,7 @@
             </div>
             <h3 onclick="selectCategoryView('${escapeJsStr(grp.name)}')" class="text-base font-bold text-slate-900 mt-2.5 hover:text-[#5A358E] cursor-pointer truncate">${escapeHtml(grp.name)}</h3>
             <div class="flex items-center justify-between text-[11px] text-slate-400 mt-1 gap-2">
-              <span class="truncate">📍 Locations: ${escapeHtml(Array.from(grp.locations).join(', '))}</span>
+              <span class="truncate">📍 Rack Code: <span class="font-bold text-[#5A358E] font-mono">${escapeHtml(catObj.rackCode)}</span></span>
             </div>
             <div class="grid grid-cols-3 gap-2 mt-4 p-2.5 rounded-xl bg-[#FDFDFD] border border-slate-100 shadow-inner">
               <div class="text-center">
@@ -1978,16 +2076,24 @@
 
     let autoCheckoutCategory = null;
 
-    function openCategoryCheckoutModal(categoryName) {
+    function openCategoryCheckoutModal(categoryId) {
+      initializeCategories();
+      const cat = categories.find(c => c.id === categoryId);
+      if (!cat) {
+        alert("Category not found.");
+        return;
+      }
+      const categoryName = cat.name;
       autoCheckoutCategory = categoryName;
+      
       document.querySelector('#auto-checkout-modal h3').textContent = `🎯 Auto Check-Out: ${categoryName}`;
-      document.querySelector('#auto-checkout-modal p').textContent = `Please select your specific Item Type below. The system will automatically allocate and assign you the first available unit from the "${categoryName}" category.`;
+      document.querySelector('#auto-checkout-modal p').textContent = `Please select your specific Item Type below. The system will automatically allocate and assign you the first available unit from the "${categoryName}" category (Rack: ${cat.rackCode}).`;
       
       const select = document.getElementById('auto-checkout-item-name');
       const selectDiv = select.closest('div');
       
       // Filter available units to ONLY show items belonging to the scanned category
-      const availableItems = items.filter(i => (i.category || 'Uncategorized') === categoryName && (!i.activeCheckouts || i.activeCheckouts.length === 0));
+      const availableItems = items.filter(i => (i.category || 'Uncategorized').toLowerCase() === categoryName.toLowerCase() && (!i.activeCheckouts || i.activeCheckouts.length === 0));
       const uniqueNames = [...new Set(availableItems.map(i => i.name))];
 
       if (uniqueNames.length === 0) {
@@ -2006,7 +2112,7 @@
         selectDiv.parentNode.insertBefore(infoDiv, selectDiv);
       }
       infoDiv.classList.remove('hidden');
-      infoDiv.innerHTML = `📦 Selected Category: <span class="font-extrabold">${categoryName}</span>`;
+      infoDiv.innerHTML = `📦 Selected Category: <span class="font-extrabold">${categoryName}</span> [Rack: <span class="font-mono">${cat.rackCode}</span>]`;
 
       document.getElementById('auto-checkout-user-id').value = '';
       document.getElementById('auto-checkout-email').value = '';
@@ -2022,28 +2128,39 @@
     }
 
     function openCategoryDetailModal(categoryName) {
+      initializeCategories();
+      let catObj = categories.find(c => c.name.toLowerCase() === categoryName.toLowerCase());
+      if (!catObj) {
+        const letters = 'ABCDEFGH';
+        const randomLetter = letters.charAt(Math.floor(Math.random() * letters.length));
+        const randomNum = Math.floor(1000 + Math.random() * 9000);
+        catObj = { id: 'cat-' + Math.random().toString(36).substring(2, 9), name: categoryName, rackCode: `${randomLetter}-${randomNum}` };
+        categories.push(catObj);
+        localStorage.setItem(STORAGE_KEY_CATEGORIES, JSON.stringify(categories));
+      }
+
       const matchingItems = items.filter(i => (i.category || 'Uncategorized') === categoryName);
       const total = matchingItems.length;
       const available = matchingItems.filter(i => !i.activeCheckouts || i.activeCheckouts.length === 0).length;
 
-      document.getElementById('detail-tag').textContent = `CATEGORY: ${categoryName}`;
+      document.getElementById('detail-tag').textContent = `RACK: ${catObj.rackCode}`;
       document.getElementById('detail-code').textContent = `${available} / ${total} Avail`;
-      document.getElementById('detail-name').textContent = `${categoryName} - Category Check-Out`;
+      document.getElementById('detail-name').textContent = `${categoryName} [Rack: ${catObj.rackCode}]`;
       document.getElementById('detail-plant').textContent = [...new Set(matchingItems.map(i => i.plantCode))].join(', ') || 'N/A';
       document.getElementById('detail-category').textContent = categoryName;
-      document.getElementById('detail-location').textContent = [...new Set(matchingItems.map(i => i.location))].join(', ') || 'N/A';
+      document.getElementById('detail-location').textContent = `Rack: ${catObj.rackCode}`;
       document.getElementById('detail-serial').textContent = 'N/A';
       document.getElementById('detail-quality').innerHTML = '';
       document.getElementById('detail-qty').textContent = `${available} available units`;
       document.getElementById('detail-notes').textContent = `Scan this category QR code to open the assignment page and select your exact item type (e.g. Black Tubing).`;
       document.getElementById('detail-instructions').textContent = `Instructions: Print this sticker and place it on the storage bin/rack for this entire category.`;
 
-      const qrUrl = buildCategoryQRUrl(categoryName);
+      const qrUrl = buildCategoryQRUrl(catObj.id);
       document.getElementById('detail-qr-link').href = qrUrl;
       document.getElementById('detail-qr-link').textContent = `🔗 Open Category Checkout Page`;
       document.getElementById('detail-open-scan-btn').onclick = () => {
         closeDetailModal();
-        openCategoryCheckoutModal(categoryName);
+        openCategoryCheckoutModal(catObj.id);
       };
       document.getElementById('detail-open-scan-btn').textContent = `🎯 Open Category Auto-Checkout`;
 
@@ -2085,14 +2202,12 @@
       if (!item) return;
       document.getElementById('checkout-item-id').value = item.id;
       document.getElementById('checkout-modal-subtitle').textContent = `${item.tag} — ${item.name}`;
-      
       document.getElementById('checkout-user-id').value = '';
       document.getElementById('checkout-email').value = '';
       document.getElementById('checkout-destination').value = '';
       document.getElementById('checkout-note').value = '';
       document.getElementById('checkout-send-email-toggle').checked = true;
       document.getElementById('checkout-for-good-toggle').checked = false;
-      
       validateCheckoutUser();
 
       const modal = document.getElementById('checkout-modal');
@@ -2187,7 +2302,6 @@
       document.getElementById('checkin-user').value = lastUser;
       document.getElementById('checkin-quality').value = item.quality || 'Good';
       document.getElementById('checkin-note').value = '';
-      
       document.getElementById('checkin-concern-desc').value = '';
       document.getElementById('checkin-concern-impact').value = '';
       
@@ -2227,14 +2341,6 @@
 
       const activeList = item.activeCheckouts || [];
       const activeRecord = activeList[0] || {};
-
-      const checkInRecord = {
-        checkInId: 'ci-' + Date.now(),
-        userName, quality, note, concernDesc, concernImpact,
-        checkedInAt: Date.now(),
-        checkedOutAt: activeRecord.checkedOutAt || Date.now(),
-        destination: activeRecord.destination || 'N/A'
-      };
 
       if (!item.checkoutHistory) item.checkoutHistory = [];
       item.checkoutHistory.push({
@@ -2291,7 +2397,6 @@
       document.getElementById('auto-checkout-note').value = '';
       document.getElementById('auto-checkout-send-email-toggle').checked = true;
       document.getElementById('auto-checkout-for-good-toggle').checked = false;
-      
       validateAutoCheckoutUser();
 
       const modal = document.getElementById('auto-checkout-modal');
@@ -2350,7 +2455,7 @@
       let candidateUnit = null;
 
       if (autoCheckoutCategory) {
-        candidateUnit = items.find(i => (i.category || 'Uncategorized') === autoCheckoutCategory && i.name === itemName && (!i.activeCheckouts || i.activeCheckouts.length === 0));
+        candidateUnit = items.find(i => (i.category || 'Uncategorized').toLowerCase() === autoCheckoutCategory.toLowerCase() && i.name === itemName && (!i.activeCheckouts || i.activeCheckouts.length === 0));
       } else {
         candidateUnit = items.find(i => i.name === itemName && (!i.activeCheckouts || i.activeCheckouts.length === 0));
       }
