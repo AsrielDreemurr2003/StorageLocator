@@ -391,7 +391,7 @@
 
   <div id="print-area" class="hidden"></div>
 
-  <!-- MODAL: Edit Category & Rename Items -->
+  <!-- MODAL: Edit Category & Bulk Rename Items -->
   <div id="edit-category-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print backdrop-blur-sm">
     <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl">
       <div class="flex justify-between items-center border-b pb-3 mb-4">
@@ -1291,8 +1291,8 @@
         const isOut = n.type === 'CHECK_OUT';
         const cardStyle = isOut ? 'bg-amber-50/70 border-amber-200' : 'bg-[#E8F8F5] border-emerald-200';
         const badgeHtml = isOut
-          ? `<span class="bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">📤 Checked Out</span>`
-          : `<span class="bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">📥 Checked In</span>`;
+          ? `<span class="bg-amber-500 text-white text-[10px] font-bold px-2.5 py-0.5 rounded uppercase">📤 Checked Out</span>`
+          : `<span class="bg-emerald-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded uppercase">📥 Checked In</span>`;
 
         const div = document.createElement('div');
         div.className = `p-3.5 rounded-xl border ${cardStyle} flex flex-wrap justify-between items-start gap-3 text-xs`;
@@ -1837,7 +1837,7 @@
 
       Array.from(categoryGroups.values()).sort((a, b) => a.name.localeCompare(b.name)).forEach(grp => {
         const card = document.createElement('div');
-        card.className = 'bg-white rounded-2xl shadow-sm border-l-4 border-[#5A358E] border-y border-r border-[#DCDDE1] p-5 flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5';
+        card.className = 'bg-white rounded-2xl shadow-sm border border-l-4 border-[#5A358E] border-y border-r border-[#DCDDE1] p-5 flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5';
         card.innerHTML = `
           <div>
             <div class="flex justify-between items-center gap-2">
@@ -1962,19 +1962,10 @@
 
     let autoCheckoutCategory = null;
 
-    function buildCategoryQRUrl(categoryName) {
-      let base = (permanentQrBaseUrl && permanentQrBaseUrl.trim() !== '') ? permanentQrBaseUrl.trim() : 'https://asrieldreemurr2003.github.io/StorageLocator/index.html';
-      if (base.endsWith('/')) {
-        base = base.slice(0, -1);
-      }
-      const separator = base.includes('?') ? '&' : '?';
-      return `${base}${separator}categoryCheckout=${encodeURIComponent(categoryName)}`;
-    }
-
     function openCategoryCheckoutModal(categoryName) {
       autoCheckoutCategory = categoryName;
       document.querySelector('#auto-checkout-modal h3').textContent = `🎯 Auto Check-Out: ${categoryName}`;
-      document.querySelector('#auto-checkout-modal p').textContent = `The system will automatically assign you the first available unit from the "${categoryName}" category.`;
+      document.querySelector('#auto-checkout-modal p').textContent = `Please select your specific Item Type below. The system will automatically allocate and assign you the first available unit from the "${categoryName}" category.`;
       
       const select = document.getElementById('auto-checkout-item-name');
       const selectDiv = select.closest('div');
@@ -1989,7 +1980,7 @@
         select.innerHTML = uniqueNames.map(name => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('');
       }
 
-      selectDiv.classList.add('hidden'); // Hide dropdown to force automatic category assignment
+      selectDiv.classList.remove('hidden'); // Keep dropdown visible so user can choose the item they want to check out
       
       let infoDiv = document.getElementById('category-checkout-info');
       if (!infoDiv) {
@@ -2028,7 +2019,7 @@
       document.getElementById('detail-serial').textContent = 'N/A';
       document.getElementById('detail-quality').innerHTML = '';
       document.getElementById('detail-qty').textContent = `${available} available units`;
-      document.getElementById('detail-notes').textContent = `Scan this category QR code to automatically check out an item of this category (similar to autocheckout).`;
+      document.getElementById('detail-notes').textContent = `Scan this category QR code to open the assignment page and select your exact item type (e.g. Black Tubing).`;
       document.getElementById('detail-instructions').textContent = `Instructions: Print this sticker and place it on the storage bin/rack for this entire category.`;
 
       const qrUrl = buildCategoryQRUrl(categoryName);
@@ -2334,16 +2325,17 @@
       const sendEmail = document.getElementById('auto-checkout-send-email-toggle').checked;
       const forGood = document.getElementById('auto-checkout-for-good-toggle').checked;
 
+      const itemName = document.getElementById('auto-checkout-item-name').value;
+      if (!itemName) {
+        alert('Please select an item type.');
+        return;
+      }
+
       let candidateUnit = null;
 
       if (autoCheckoutCategory) {
-        candidateUnit = items.find(i => (i.category || 'Uncategorized') === autoCheckoutCategory && (!i.activeCheckouts || i.activeCheckouts.length === 0));
+        candidateUnit = items.find(i => (i.category || 'Uncategorized') === autoCheckoutCategory && i.name === itemName && (!i.activeCheckouts || i.activeCheckouts.length === 0));
       } else {
-        const itemName = document.getElementById('auto-checkout-item-name').value;
-        if (!itemName) {
-          alert('Please select an item type.');
-          return;
-        }
         candidateUnit = items.find(i => i.name === itemName && (!i.activeCheckouts || i.activeCheckouts.length === 0));
       }
 
