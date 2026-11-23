@@ -394,7 +394,7 @@
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Destination Location *</label>
-          <input type="text" id="checkout-destination" required placeholder="e.g. Assembly Line 3, Press Bay 2" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
+          <select id="checkout-destination" required class="w-full border border-slate-300 bg-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]"></select>
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Additional Notes</label>
@@ -443,7 +443,7 @@
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Destination Location *</label>
-          <input type="text" id="auto-checkout-destination" required placeholder="e.g. Assembly Line 3, Press Bay 2" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
+          <select id="auto-checkout-destination" required class="w-full border border-slate-300 bg-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]"></select>
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Additional Notes</label>
@@ -736,8 +736,10 @@
     const STORAGE_KEY_HELP_LOGS = 'PLANT_QR_HELP_LOGS_V8';
     const STORAGE_KEY_CATEGORIES = 'PLANT_QR_CATEGORIES_V8';
     const STORAGE_KEY_REMOVALS = 'PLANT_QR_REMOVALS_V8';
+    const STORAGE_KEY_AREAS  = 'PLANT_QR_AREAS_V8';
     
     let categories = JSON.parse(localStorage.getItem(STORAGE_KEY_CATEGORIES)) || [];
+    let areas = JSON.parse(localStorage.getItem(STORAGE_KEY_AREAS)) || ['Assembly Line 1', 'Assembly Line 2', 'Assembly Line 3', 'Tool Crib', 'Press Bay'];
 
     function generateDeterministicRackCode(str, index) {
       let plantCode = "KEN";
@@ -798,6 +800,7 @@
 
       if (updated) {
         localStorage.setItem(STORAGE_KEY_CATEGORIES, JSON.stringify(categories));
+      localStorage.setItem(STORAGE_KEY_AREAS, JSON.stringify(areas));
       }
     }
 
@@ -815,6 +818,7 @@
         };
         categories.push(catObj);
         localStorage.setItem(STORAGE_KEY_CATEGORIES, JSON.stringify(categories));
+      localStorage.setItem(STORAGE_KEY_AREAS, JSON.stringify(areas));
       }
       return catObj;
     }
@@ -976,6 +980,7 @@
       localStorage.setItem(STORAGE_KEY_QR_BASE, permanentQrBaseUrl);
       localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
       localStorage.setItem(STORAGE_KEY_CATEGORIES, JSON.stringify(categories));
+      localStorage.setItem(STORAGE_KEY_AREAS, JSON.stringify(areas));
       await pushToCloud(false);
     }
 
@@ -988,7 +993,7 @@
         const removals = JSON.parse(localStorage.getItem(STORAGE_KEY_REMOVALS)) || [];
         const payload = {
           plants, items, plantSequences, appNotifications, emailConfig,
-          permanentQrBaseUrl, users, helpLogs, categories, removals, updatedAt: Date.now()
+          permanentQrBaseUrl, users, helpLogs, categories, removals, areas, updatedAt: Date.now()
         };
         const res = await fetch(endpoint, {
           method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
@@ -1019,6 +1024,7 @@
           if (Array.isArray(data.categories) && data.categories.length > 0) {
             categories = data.categories;
             localStorage.setItem(STORAGE_KEY_CATEGORIES, JSON.stringify(categories));
+      localStorage.setItem(STORAGE_KEY_AREAS, JSON.stringify(areas));
           }
           if (Array.isArray(data.removals)) {
             localStorage.setItem(STORAGE_KEY_REMOVALS, JSON.stringify(data.removals));
@@ -1385,6 +1391,7 @@
         cat.name = newCategoryName;
         cat.rackCode = newRackCode;
         localStorage.setItem(STORAGE_KEY_CATEGORIES, JSON.stringify(categories));
+      localStorage.setItem(STORAGE_KEY_AREAS, JSON.stringify(areas));
       }
 
       items.forEach(item => {
@@ -2384,7 +2391,9 @@
 
       document.getElementById('auto-checkout-user-id').value = '';
       document.getElementById('auto-checkout-email').value = '';
-      document.getElementById('auto-checkout-destination').value = '';
+      const destSelectAuto = document.getElementById('auto-checkout-destination');
+      destSelectAuto.innerHTML = '<option value="">-- Select Destination Area --</option>' + areas.map(a => `<option value="${escapeHtml(a)}">${escapeHtml(a)}</option>`).join('');
+      destSelectAuto.value = '';
       document.getElementById('auto-checkout-note').value = '';
       document.getElementById('auto-checkout-send-email-toggle').checked = false;
       document.getElementById('auto-checkout-for-good-toggle').checked = false;
@@ -2494,7 +2503,9 @@
       
       document.getElementById('checkout-user-id').value = '';
       document.getElementById('checkout-email').value = '';
-      document.getElementById('checkout-destination').value = '';
+      const destSelect = document.getElementById('checkout-destination');
+      destSelect.innerHTML = '<option value="">-- Select Destination Area --</option>' + areas.map(a => `<option value="${escapeHtml(a)}">${escapeHtml(a)}</option>`).join('');
+      destSelect.value = '';
       document.getElementById('checkout-note').value = '';
       document.getElementById('checkout-send-email-toggle').checked = true;
       document.getElementById('checkout-for-good-toggle').checked = false;
@@ -2692,7 +2703,9 @@
 
       document.getElementById('auto-checkout-user-id').value = '';
       document.getElementById('auto-checkout-email').value = '';
-      document.getElementById('auto-checkout-destination').value = '';
+      const destSelectAuto = document.getElementById('auto-checkout-destination');
+      destSelectAuto.innerHTML = '<option value="">-- Select Destination Area --</option>' + areas.map(a => `<option value="${escapeHtml(a)}">${escapeHtml(a)}</option>`).join('');
+      destSelectAuto.value = '';
       document.getElementById('auto-checkout-note').value = '';
       document.getElementById('auto-checkout-send-email-toggle').checked = true;
       document.getElementById('auto-checkout-for-good-toggle').checked = false;
