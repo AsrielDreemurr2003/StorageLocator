@@ -8,6 +8,7 @@
   <link rel="prefetch" href="index.html" />
   <link rel="prefetch" href="admin.html" />
   <link rel="prefetch" href="support.html" />
+  
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
@@ -200,6 +201,7 @@
       const mins = Math.floor((diffSec % 3600) / 60);
       const secs = diffSec % 60;
       const pad = n => String(n).padStart(2, '0');
+
       if (days > 0) return `${days}d ${pad(hrs)}h ${pad(mins)}m ${pad(secs)}s`;
       return `${pad(hrs)}h ${pad(mins)}m ${pad(secs)}s`;
     }
@@ -216,6 +218,7 @@
       const plantFilter = document.getElementById('filter-plant').value;
 
       const deployed = [];
+
       items.forEach(item => {
         if (item.activeCheckouts && item.activeCheckouts.length > 0) {
           const checkout = item.activeCheckouts[0];
@@ -235,6 +238,7 @@
           }
         }
       });
+
       return deployed;
     }
 
