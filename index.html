@@ -9,6 +9,7 @@
   <link rel="prefetch" href="support.html" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght=500;700&display=swap');
@@ -62,6 +63,10 @@
         <button onclick="printSelectedQRCodes()" id="header-print-btn" class="hidden sm:inline-flex items-center gap-1.5 bg-[#0D9488] hover:bg-[#059669] text-white px-3 py-2 rounded-lg text-xs font-bold transition shadow-sm active:scale-95">
           <span>🖨️ Print QR</span>
           <span id="selected-count" class="bg-black/25 px-1.5 py-0.2 rounded text-[11px] font-mono">0</span>
+        </button>
+        <button onclick="printSelectedBarcodes()" id="header-print-barcode-btn" class="hidden sm:inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 rounded-lg text-xs font-bold transition shadow-sm active:scale-95">
+          <span>📊 Print Barcodes</span>
+          <span id="barcode-selected-count" class="bg-black/25 px-1.5 py-0.2 rounded text-[11px] font-mono">0</span>
         </button>
 
         <button onclick="openNotificationsModal()" class="relative bg-[#5A358E]/60 hover:bg-[#5A358E] text-slate-100 border border-purple-500/30 px-3 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 active:scale-95" title="View Alerts">
@@ -140,6 +145,7 @@
     <div class="flex items-center gap-2">
       <button onclick="clearAllSelectedQRCodes()" class="bg-rose-600/20 hover:bg-rose-600 border border-rose-500/40 text-rose-200 hover:text-white px-3.5 py-2 rounded-xl text-xs font-bold transition">✕ Unselect All QR</button>
       <button onclick="printSelectedQRCodes()" class="bg-[#0D9488] hover:bg-[#059669] text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg transition">🖨️ Print Selected QR Codes</button>
+      <button onclick="printSelectedBarcodes()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg transition">📊 Print Selected Barcodes</button>
     </div>
   </div>
 
@@ -1578,6 +1584,31 @@
       const count = selectedItemIds.size;
       const selEl = document.getElementById('selected-count');
       if (selEl) selEl.textContent = count;
+      const barcodeCountEl = document.getElementById('barcode-selected-count');
+      if (barcodeCountEl) barcodeCountEl.textContent = count;
+
+      // Show/hide header print barcode button
+      const headerBarcodeBtn = document.getElementById('header-print-barcode-btn');
+      if (headerBarcodeBtn) {
+        headerBarcodeBtn.classList.toggle('hidden', count === 0);
+        if (count > 0) {
+          headerBarcodeBtn.classList.add('sm:inline-flex');
+        } else {
+          headerBarcodeBtn.classList.remove('sm:inline-flex');
+        }
+      }
+
+      // Show/hide header print qr button
+      const headerPrintBtn = document.getElementById('header-print-btn');
+      if (headerPrintBtn) {
+        headerPrintBtn.classList.toggle('hidden', count === 0);
+        if (count > 0) {
+          headerPrintBtn.classList.add('sm:inline-flex');
+        } else {
+          headerPrintBtn.classList.remove('sm:inline-flex');
+        }
+      }
+
       const menuSelEl = document.getElementById('menu-selected-count');
       if (menuSelEl) menuSelEl.textContent = count;
       const barBtn = document.getElementById('bar-unselect-all-btn');
@@ -1615,6 +1646,108 @@
         printArea.appendChild(card);
         const qrDiv = card.querySelector('.qr-code-wrapper');
         new QRCode(qrDiv, { text: buildQRUrl(item), width: 80, height: 80 });
+      });
+      setTimeout(() => {
+        window.print();
+        printArea.className = 'hidden';
+      }, 350);
+    }
+
+    function selectCategoryQRs(categoryName) {
+      const categoryItems = items.filter(item => (item.category || 'Uncategorized').toLowerCase() === categoryName.toLowerCase());
+      const allAlreadySelected = categoryItems.every(item => selectedItemIds.has(item.id));
+      
+      categoryItems.forEach(item => {
+        if (allAlreadySelected) {
+          selectedItemIds.delete(item.id);
+        } else {
+          selectedItemIds.add(item.id);
+        }
+      });
+      renderInventory();
+    }
+
+    function printSingleBarcode(itemId) {
+      const item = items.find(i => i.id === itemId);
+      if (!item) return;
+      const printArea = document.getElementById('print-area');
+      printArea.innerHTML = '';
+      printArea.className = 'print-grid-mode';
+      
+      const card = document.createElement('div');
+      card.className = 'qr-card-print flex flex-col justify-between p-2 bg-white';
+      card.innerHTML = `
+        <div class="flex flex-col justify-between h-full w-full">
+          <div>
+            <div style="font-family: monospace; font-weight: bold; font-size: 11px; color: #1E3A8A;">${escapeHtml(item.tag)}</div>
+            <div style="font-family: monospace; font-weight: bold; font-size: 9px;">Code: ${escapeHtml(item.itemCode)}</div>
+            <div style="font-weight: bold; font-size: 10px;">${escapeHtml(item.name)}</div>
+          </div>
+          <div class="flex justify-center my-1" style="height: 50px; display: flex; align-items: center; justify-content: center;">
+            <svg class="barcode-element-single"></svg>
+          </div>
+        </div>
+      `;
+      printArea.appendChild(card);
+      
+      const svg = card.querySelector('.barcode-element-single');
+      try {
+        JsBarcode(svg, item.tag, {
+          format: "CODE128",
+          width: 1.5,
+          height: 35,
+          displayValue: true,
+          fontSize: 10,
+          margin: 0
+        });
+      } catch (err) {
+        console.error("Barcode generation failed", err);
+      }
+
+      setTimeout(() => {
+        window.print();
+        printArea.className = 'hidden';
+      }, 350);
+    }
+
+    function printSelectedBarcodes() {
+      if (selectedItemIds.size === 0) {
+        alert('Select at least one unit checkbox to print barcodes.');
+        return;
+      }
+      const printArea = document.getElementById('print-area');
+      printArea.innerHTML = '';
+      printArea.className = 'print-grid-mode';
+      const selectedItems = items.filter(i => selectedItemIds.has(i.id));
+      selectedItems.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'qr-card-print flex flex-col justify-between p-2 bg-white';
+        card.innerHTML = `
+          <div class="flex flex-col justify-between h-full w-full">
+            <div>
+              <div style="font-family: monospace; font-weight: bold; font-size: 11px; color: #1E3A8A;">${escapeHtml(item.tag)}</div>
+              <div style="font-family: monospace; font-weight: bold; font-size: 9px;">Code: ${escapeHtml(item.itemCode)}</div>
+              <div style="font-weight: bold; font-size: 10px;">${escapeHtml(item.name)}</div>
+            </div>
+            <div class="flex justify-center my-1" style="height: 50px; display: flex; align-items: center; justify-content: center;">
+              <svg class="barcode-element-multi"></svg>
+            </div>
+          </div>
+        `;
+        printArea.appendChild(card);
+        const svg = card.querySelector('.barcode-element-multi');
+        try {
+          JsBarcode(svg, item.tag, {
+            format: "CODE128",
+            width: 1.5,
+            height: 35,
+            displayValue: true,
+            fontSize: 10,
+            margin: 0
+          });
+        } catch (err) {
+          console.error("Barcode generation failed", err);
+        }
       });
       setTimeout(() => {
         window.print();
@@ -2003,6 +2136,14 @@
       Array.from(categoryGroups.values()).sort((a, b) => a.name.localeCompare(b.name)).forEach(grp => {
         const catObj = getCategoryObjectByName(grp.name);
         
+        // Calculate selection status inside this category
+        const categoryItems = items.filter(item => (item.category || 'Uncategorized').toLowerCase() === grp.name.toLowerCase());
+        const selectedInCat = categoryItems.filter(item => selectedItemIds.has(item.id)).length;
+        const selectBtnText = selectedInCat === categoryItems.length ? 'Unselect All' : `Select QRs (${selectedInCat}/${grp.total})`;
+        const selectBtnClass = selectedInCat > 0 
+          ? "flex-1 border border-purple-500 text-xs font-bold py-2 px-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition truncate shadow-sm"
+          : "flex-1 border border-purple-300 text-xs font-bold py-2 px-1 rounded-lg bg-purple-50 hover:bg-purple-100 text-[#5A358E] transition truncate shadow-sm";
+
         const card = document.createElement('div');
         card.className = 'bg-white rounded-2xl shadow-sm border border-l-4 border-[#5A358E] border-y border-r border-[#DCDDE1] p-5 flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5';
         card.innerHTML = `
@@ -2033,10 +2174,11 @@
               </div>
             </div>
           </div>
-          <div class="mt-4 pt-3 border-t border-slate-100 flex items-center gap-1.5">
-            <button onclick="selectCategoryView('${escapeJsStr(grp.name)}')" class="flex-1 bg-[#5A358E] hover:bg-[#3D2566] text-white text-xs font-bold py-2 px-2.5 rounded-lg transition truncate shadow-sm">View (${grp.total})</button>
-            <button onclick="printCategoryPoster('${escapeJsStr(catObj.id)}')" class="border border-emerald-200 text-xs font-bold py-2 px-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 transition shrink-0" title="Print 1-Per-Page Category Poster">🪧 Poster</button>
-            <button onclick="openCategoryDetailModal('${escapeJsStr(grp.name)}')" class="border border-slate-200 text-xs font-bold py-2 px-2 rounded-lg bg-slate-100 hover:bg-purple-50 text-slate-700 hover:text-[#5A358E] transition shrink-0" title="View/Print Category QR Options">🖨️ QR</button>
+          <div class="mt-4 pt-3 border-t border-slate-100 flex items-center gap-1.5 flex-wrap">
+            <button onclick="selectCategoryView('${escapeJsStr(grp.name)}')" class="flex-1 bg-[#5A358E] hover:bg-[#3D2566] text-white text-xs font-bold py-2 px-1 rounded-lg transition truncate shadow-sm">View (${grp.total})</button>
+            <button onclick="selectCategoryQRs('${escapeJsStr(grp.name)}')" class="${selectBtnClass}">${selectBtnText}</button>
+            <button onclick="printCategoryPoster('${escapeJsStr(catObj.id)}')" class="border border-emerald-200 text-xs font-bold py-2 px-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 transition shrink-0" title="Print 1-Per-Page Category Poster">🪧 Poster</button>
+            <button onclick="openCategoryDetailModal('${escapeJsStr(grp.name)}')" class="border border-slate-200 text-xs font-bold py-2 px-1 rounded-lg bg-slate-100 hover:bg-purple-50 text-slate-700 hover:text-[#5A358E] transition shrink-0" title="View/Print Category QR Options">🖨️ QR</button>
           </div>
         `;
         grid.appendChild(card);
@@ -2108,6 +2250,7 @@
             <div class="flex items-center justify-end gap-1">
               ${primaryActionBtn}
               <button onclick="openDetailModal('${item.id}')" class="text-xs bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded">QR</button>
+              <button onclick="printSingleBarcode('${item.id}')" class="text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 px-2 py-1 rounded font-semibold" title="Print Barcode">📊 Barcode</button>
               <button onclick="openHistoryModal('${item.id}')" class="text-xs bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded">📜</button>
               ${adminBtns}
             </div>
