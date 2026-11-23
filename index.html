@@ -123,7 +123,7 @@
               <span class="flex items-center gap-2.5"><span>🖨️</span> Print Selected Unit QRs</span>
               <span id="menu-selected-count" class="font-mono font-bold text-emerald-600">0</span>
             </button>
-            <button onclick="closeSettingsMenu(); printAllCategorySmallQRs()" class="w-full text-left px-3.5 py-2 hover:bg-purple-50 text-[#5A358E] font-semibold flex items-center gap-2.5"><span>🏷️</span> Print All Category Small QRs</button>
+            <button onclick="closeSettingsMenu(); printAllCategorySmallBarcodes()" class="w-full text-left px-3.5 py-2 hover:bg-blue-50 text-blue-700 font-semibold flex items-center gap-2.5"><span>📊</span> Print Category Barcode Sheet</button>
             <button onclick="closeSettingsMenu(); printAllCategoryPosters()" class="w-full text-left px-3.5 py-2 hover:bg-emerald-50 text-emerald-700 font-semibold flex items-center gap-2.5"><span>🪧</span> Print All Category Posters</button>
             <button onclick="closeSettingsMenu(); clearAllSelectedQRCodes()" class="w-full text-left px-3.5 py-2 hover:bg-rose-50 text-rose-600 flex items-center gap-2.5"><span>✕</span> Unselect All QR Codes</button>
             <div class="border-t my-1 border-slate-100"></div>
@@ -265,7 +265,7 @@
             <button id="btn-view-overview" onclick="resetToOverview()" class="text-xs px-3 py-1.5 rounded-md font-semibold transition">📦 Product Types</button>
             <button id="btn-view-all-units" onclick="openAllUnitsView()" class="text-xs px-3 py-1.5 rounded-md font-semibold transition">📋 Individual Units</button>
           </div>
-          <button onclick="printAllCategorySmallQRs()" class="text-xs bg-purple-50 hover:bg-purple-100 text-[#5A358E] border border-purple-200 font-bold px-3 py-2 rounded-lg transition active:scale-95" title="Print a compact sheet of all Category QR codes for your desk">🏷️ Category Sheet</button>
+          <button onclick="printAllCategorySmallBarcodes()" class="text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 font-bold px-3 py-2 rounded-lg transition active:scale-95" title="Print a compact sheet of all Category Barcodes for your desk">📊 Category Barcode Sheet</button>
           <a href="deployments.html" class="text-xs bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-bold px-3 py-2 rounded-lg transition active:scale-95">📍 Active Areas</a>
           <button onclick="pullFromCloud(true)" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 font-semibold px-3 py-2 rounded-lg transition active:scale-95" title="Sync with Cloud">🔄 Sync</button>
           <button id="bar-unselect-all-btn" onclick="clearAllSelectedQRCodes()" class="hidden text-xs bg-[#FFF1F2] hover:bg-rose-100 text-rose-700 border border-rose-200 px-3 py-2 rounded-lg font-bold transition">
@@ -1891,6 +1891,51 @@
       }, 450);
     }
 
+    function printAllCategorySmallBarcodes() {
+      initializeCategories();
+      if (categories.length === 0) return;
+
+      const printArea = document.getElementById('print-area');
+      printArea.innerHTML = '';
+      printArea.className = 'print-grid-mode';
+
+      categories.slice().sort((a, b) => a.name.localeCompare(b.name)).forEach(cat => {
+        const card = document.createElement('div');
+        card.className = 'qr-card-print flex flex-col justify-between p-2 bg-white';
+        card.innerHTML = `
+          <div class="flex flex-col justify-between h-full w-full">
+            <div>
+              <div style="font-family: monospace; font-weight: bold; font-size: 12px; color: #1E3A8A;">RACK: ${escapeHtml(cat.rackCode)}</div>
+              <div style="font-weight: 800; font-size: 10px; color: #251440; margin-top: 2px;">${escapeHtml(cat.name)}</div>
+            </div>
+            <div class="flex justify-center my-1" style="height: 50px; display: flex; align-items: center; justify-content: center;">
+              <svg class="category-barcode-svg"></svg>
+            </div>
+            <div style="font-size: 8px; color: #64748B; font-family: monospace;">CATEGORY BARCODE SHEET</div>
+          </div>
+        `;
+        printArea.appendChild(card);
+        const svg = card.querySelector('.category-barcode-svg');
+        try {
+          JsBarcode(svg, cat.rackCode, {
+            format: "CODE128",
+            width: 1.5,
+            height: 35,
+            displayValue: true,
+            fontSize: 10,
+            margin: 0
+          });
+        } catch (err) {
+          console.error("Category barcode generation failed", err);
+        }
+      });
+
+      setTimeout(() => {
+        window.print();
+        printArea.className = 'hidden';
+      }, 450);
+    }
+
     function getQualityBadgeHtml(quality) {
       const q = quality || 'Good';
       const styles = {
@@ -1962,7 +2007,6 @@
       filterSelect.value = currentFilter;
     }
 
-    // FIXED: Uses .value on filter-plant so all 755+ items display properly
     function getFilteredItems() {
       const search = document.getElementById('search-input').value.toLowerCase().trim();
       const plantFilter = document.getElementById('filter-plant').value || 'ALL';
@@ -2174,11 +2218,15 @@
               </div>
             </div>
           </div>
-          <div class="mt-4 pt-3 border-t border-slate-100 flex items-center gap-1.5 flex-wrap">
-            <button onclick="selectCategoryView('${escapeJsStr(grp.name)}')" class="flex-1 bg-[#5A358E] hover:bg-[#3D2566] text-white text-xs font-bold py-2 px-1 rounded-lg transition truncate shadow-sm">View (${grp.total})</button>
-            <button onclick="selectCategoryQRs('${escapeJsStr(grp.name)}')" class="${selectBtnClass}">${selectBtnText}</button>
-            <button onclick="printCategoryPoster('${escapeJsStr(catObj.id)}')" class="border border-emerald-200 text-xs font-bold py-2 px-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 transition shrink-0" title="Print 1-Per-Page Category Poster">🪧 Poster</button>
-            <button onclick="openCategoryDetailModal('${escapeJsStr(grp.name)}')" class="border border-slate-200 text-xs font-bold py-2 px-1 rounded-lg bg-slate-100 hover:bg-purple-50 text-slate-700 hover:text-[#5A358E] transition shrink-0" title="View/Print Category QR Options">🖨️ QR</button>
+          <div class="mt-4 pt-3 border-t border-slate-100 space-y-2">
+            <div class="flex items-center gap-2">
+              <button onclick="selectCategoryView('${escapeJsStr(grp.name)}')" class="flex-[3] bg-[#5A358E] hover:bg-[#3D2566] text-white text-xs font-bold py-2 px-2.5 rounded-lg transition shadow-sm truncate">View Items (${grp.total})</button>
+              <button onclick="selectCategoryQRs('${escapeJsStr(grp.name)}')" class="flex-[2] ${selectBtnClass}">${selectBtnText}</button>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="printCategoryPoster('${escapeJsStr(catObj.id)}')" class="flex-1 border border-emerald-200 text-xs font-bold py-2 px-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 transition shadow-sm flex items-center justify-center gap-1" title="Print 1-Per-Page Category Poster">🪧 Print Poster</button>
+              <button onclick="openCategoryDetailModal('${escapeJsStr(grp.name)}')" class="flex-1 border border-slate-200 text-xs font-bold py-2 px-2 rounded-lg bg-slate-100 hover:bg-purple-50 text-slate-700 hover:text-[#5A358E] transition shadow-sm flex items-center justify-center gap-1" title="View/Print Category QR Options">🖨️ Category QR</button>
+            </div>
           </div>
         `;
         grid.appendChild(card);
