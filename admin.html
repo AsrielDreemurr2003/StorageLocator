@@ -103,7 +103,8 @@
                 <input type="text" id="user-username" required placeholder="User ID (e.g. u123456)" class="w-full border rounded px-3 py-2 text-xs" />
                 <input type="text" id="user-name" required placeholder="Full Name" class="w-full border rounded px-3 py-2 text-xs" />
                 <input type="email" id="user-email" required placeholder="Email Address" class="w-full border rounded px-3 py-2 text-xs" />
-                <input type="password" id="user-password" placeholder="Admin Password (optional)" class="w-full border rounded px-3 py-2 text-xs" />
+                <input type="password" id="user-password" required placeholder="Account Password (required)" class="w-full border rounded px-3 py-2 text-xs" />
+                <p class="text-[10px] text-slate-500 mt-1 font-semibold">⚠️ Requirements: Min 10 characters, must contain at least 1 number & 1 special character.</p>
                 <label class="flex items-center gap-2 text-xs font-semibold text-slate-700 pt-1">
                   <input type="checkbox" id="user-is-admin" class="accent-[#5A358E]" /> Grant Administrator Privileges
                 </label>
@@ -170,9 +171,16 @@
         <!-- Tab: Cloud Sync -->
         <div id="tab-cloud" class="hidden space-y-4">
           <h2 class="text-lg font-bold">☁️ Firebase Realtime Database Sync</h2>
-          <p class="text-xs text-slate-500">Synchronize inventory, users, and notifications across all plant devices in real time.</p>
+          <p class="text-xs text-slate-500">Synchronize inventory, users, and notifications across all plant devices in real time securely using Auth Tokens.</p>
           <form onsubmit="saveCloudConfig(event)" class="space-y-4">
-            <input type="url" id="cloud-url-input" required class="w-full border rounded px-3 py-2 text-sm font-mono" />
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Database URL</label>
+              <input type="url" id="cloud-url-input" required class="w-full border rounded px-3 py-2 text-sm font-mono" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Database Auth Token / secret Key (Optional)</label>
+              <input type="password" id="cloud-auth-input" class="w-full border rounded px-3 py-2 text-sm font-mono" placeholder="Enter secure secret key or Firebase token" />
+            </div>
             <div class="flex flex-wrap gap-2">
               <button type="submit" class="bg-[#5A358E] hover:bg-[#3D2566] text-white px-5 py-2 rounded font-semibold text-sm">Save & Sync</button>
               <button type="button" onclick="forcePushToCloud()" class="bg-emerald-600 text-white px-5 py-2 rounded font-semibold text-sm hover:bg-emerald-700">Force Upload Local Data to Cloud</button>
@@ -211,6 +219,40 @@
   </main>
 
   <script>
+    function escapeHtml(str) {
+      return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+    function escapeJsStr(str) {
+      return String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    }
+    function loadUserForEdit(username) {
+      const u = users.find(user => user.username === username);
+      if (!u) return;
+      document.getElementById('user-username').value = u.username;
+      document.getElementById('user-name').value = u.name;
+      document.getElementById('user-email').value = u.email;
+      document.getElementById('user-password').value = u.password || '';
+      document.getElementById('user-is-admin').checked = !!u.isAdmin;
+    }
+    async function hashPassword(password) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(password);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    function getNormalizedCloudEndpoint() {
+      if (!cloudDbUrl) return null;
+      let clean = cloudDbUrl.trim();
+      if (!clean.endsWith('/')) clean += '/';
+      let endpoint = `${clean}storagelocater_state.json`;
+      const token = localStorage.getItem('PLANT_QR_CLOUD_AUTH_V8');
+      if (token) {
+        endpoint += `?auth=${encodeURIComponent(token)}`;
+      }
+      return endpoint;
+    }
     let loggedInUser = JSON.parse(sessionStorage.getItem('LOGGED_IN_ADMIN')) || null;
 
     const DEFAULT_CLOUD_DB_URL = 'https://storagelocator-405e5-default-rtdb.firebaseio.com/';
@@ -265,16 +307,32 @@
       }
     }
 
-    function handleLogin(e) {
+    async function handleLogin(e) {
       e.preventDefault();
       const uInput = document.getElementById('username').value.trim();
       const pInput = document.getElementById('password').value;
 
       const found = users.find(u => u.username.toLowerCase() === uInput.toLowerCase());
-      if (found && found.password === pInput && found.isAdmin) {
-        loggedInUser = found;
-        sessionStorage.setItem('LOGGED_IN_ADMIN', JSON.stringify(found));
-        initPage();
+      if (found && found.isAdmin) {
+        const hashedInput = await hashPassword(pInput);
+        let isMatch = false;
+        
+        // Auto-migration path for legacy plaintext admin passwords
+        if (found.password === pInput) {
+          found.password = hashedInput;
+          await saveState();
+          isMatch = true;
+        } else if (found.password === hashedInput) {
+          isMatch = true;
+        }
+
+        if (isMatch) {
+          loggedInUser = found;
+          sessionStorage.setItem('LOGGED_IN_ADMIN', JSON.stringify(found));
+          initPage();
+        } else {
+          alert('Invalid administrator credentials.');
+        }
       } else {
         alert('Invalid administrator credentials.');
       }
@@ -347,13 +405,18 @@
       users.forEach(u => {
         const adminBadge = u.isAdmin ? `<span class="bg-purple-100 text-[#5A358E] text-[10px] font-bold px-2 py-0.5 rounded ml-1">ADMIN</span>` : '';
         const div = document.createElement('div');
-        div.className = 'p-2.5 flex justify-between items-center text-xs';
+        div.className = 'p-2.5 flex justify-between items-center text-xs border-b border-slate-100 py-2';
         div.innerHTML = `
           <div>
-            <strong class="font-mono text-slate-900">${u.username}</strong> — ${u.name} <span class="text-slate-500">(${u.email})</span> ${adminBadge}
+            <div class="font-bold text-slate-900"><strong class="font-mono bg-purple-50 text-[#5A358E] px-1 rounded">${u.username}</strong> — ${u.name} <span class="text-slate-500 font-normal">(${u.email})</span> ${adminBadge}</div>
+            <div class="mt-1 text-slate-600 font-mono text-[11px] flex items-center gap-1.5">
+              <span>🔑 Password:</span>
+              <span class="text-purple-800 font-bold select-all bg-purple-50 px-1.5 py-0.2 rounded border border-purple-200/50">${escapeHtml(u.password || 'None')}</span>
+            </div>
           </div>
-          <div class="flex items-center gap-2">
-            ${u.username !== 'admin' ? `<button onclick="deleteUser('${u.username}')" class="text-rose-600 hover:underline font-bold">Delete</button>` : ''}
+          <div class="flex items-center gap-3 font-semibold text-xs">
+            <button onclick="loadUserForEdit('${escapeJsStr(u.username)}')" class="text-[#5A358E] hover:underline">✏️ Edit</button>
+            ${u.username !== 'admin' ? `<button onclick="deleteUser('${escapeJsStr(u.username)}')" class="text-rose-600 hover:underline">🗑️ Delete</button>` : ''}
           </div>
         `;
         container.appendChild(div);
@@ -368,13 +431,33 @@
       const password = document.getElementById('user-password').value;
       const isAdmin = document.getElementById('user-is-admin').checked;
 
+      // Validate user password complexity (10+ characters, 1+ number, 1+ special character)
+      if (password) {
+        if (password.length < 10) {
+          alert('Password Security Error: Password must be 10 characters or more.');
+          return;
+        }
+        if (!/\d/.test(password)) {
+          alert('Password Security Error: Password must contain at least one number.');
+          return;
+        }
+        if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+          alert('Password Security Error: Password must contain at least one special character.');
+          return;
+        }
+      }
+
       const existing = users.find(u => u.username.toLowerCase() === username.toLowerCase());
       if (existing) {
         existing.name = name; existing.email = email;
-        if (password) existing.password = password;
+        if (password) {
+          // If this is the admin account, hash it, otherwise store plaintext for user visibility
+          existing.password = (username.toLowerCase() === 'admin') ? await hashPassword(password) : password;
+        }
         existing.isAdmin = isAdmin;
       } else {
-        users.push({ username, name, email, password, isAdmin });
+        const savedPassword = (username.toLowerCase() === 'admin' && password) ? await hashPassword(password) : password;
+        users.push({ username, name, email, password: savedPassword, isAdmin });
       }
       e.target.reset();
       await saveState();
@@ -453,21 +536,27 @@
 
     function populateCloudConfig() {
       document.getElementById('cloud-url-input').value = cloudDbUrl;
+      document.getElementById('cloud-auth-input').value = localStorage.getItem('PLANT_QR_CLOUD_AUTH_V8') || '';
     }
 
     async function saveCloudConfig(e) {
       e.preventDefault();
       cloudDbUrl = document.getElementById('cloud-url-input').value.trim();
+      const authVal = document.getElementById('cloud-auth-input').value.trim();
       localStorage.setItem(STORAGE_KEY_CLOUD, cloudDbUrl);
+      if (authVal) {
+        localStorage.setItem('PLANT_QR_CLOUD_AUTH_V8', authVal);
+      } else {
+        localStorage.removeItem('PLANT_QR_CLOUD_AUTH_V8');
+      }
       await saveState();
-      alert('Cloud Database URL updated and synced.');
+      alert('Cloud Database URL and Auth Token updated successfully.');
     }
 
     async function forcePushToCloud() {
-      const cleanUrl = cloudDbUrl.trim();
-      if (!cleanUrl) return;
+      const endpoint = getNormalizedCloudEndpoint();
+      if (!endpoint) return;
       try {
-        const endpoint = cleanUrl.endsWith('/') ? `${cleanUrl}storagelocater_state.json` : `${cleanUrl}/storagelocater_state.json`;
         const helpLogs = JSON.parse(localStorage.getItem(STORAGE_KEY_HELP_LOGS)) || [];
         const payload = { plants, items, plantSequences, appNotifications, users, emailConfig, permanentQrBaseUrl, helpLogs, updatedAt: Date.now() };
         const res = await fetch(endpoint, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
@@ -545,10 +634,9 @@
     }
 
     async function forcePushToCloudSilent() {
-      const cleanUrl = cloudDbUrl.trim();
-      if (!cleanUrl) return;
+      const endpoint = getNormalizedCloudEndpoint();
+      if (!endpoint) return;
       try {
-        const endpoint = cleanUrl.endsWith('/') ? `${cleanUrl}storagelocater_state.json` : `${cleanUrl}/storagelocater_state.json`;
         const helpLogs = JSON.parse(localStorage.getItem(STORAGE_KEY_HELP_LOGS)) || [];
         const payload = { plants, items, plantSequences, appNotifications, users, emailConfig, permanentQrBaseUrl, helpLogs, updatedAt: Date.now() };
         await fetch(endpoint, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
