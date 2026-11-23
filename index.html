@@ -417,8 +417,8 @@
   </div>
 
   <!-- MODAL: Auto Check-Out & Assign -->
-  <div id="auto-checkout-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print backdrop-blur-sm">
-    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
+  <div id="auto-checkout-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-2 sm:p-4 no-print backdrop-blur-sm">
+    <div class="bg-white rounded-2xl max-w-md w-full p-4 sm:p-6 shadow-2xl max-h-[92vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b pb-3 mb-3">
         <h3 class="text-base font-bold text-slate-900">🎯 Auto-Assign & Check Out</h3>
         <button onclick="closeAutoCheckoutModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
@@ -466,8 +466,8 @@
   </div>
 
   <!-- MODAL: Auto Check-Out Success Receipt -->
-  <div id="auto-checkout-success-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print backdrop-blur-sm">
-    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl relative overflow-hidden">
+  <div id="auto-checkout-success-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-2 sm:p-4 no-print backdrop-blur-sm">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-4 sm:p-6 shadow-2xl relative overflow-hidden max-h-[92vh] overflow-y-auto">
       <div class="absolute top-0 left-0 w-full h-2 bg-emerald-500"></div>
       <div class="text-center pb-4 mb-4 border-b">
         <span class="text-4xl">🎉</span>
@@ -675,8 +675,8 @@
   </div>
 
   <!-- MODAL: Single Item / Category Details & QR View -->
-  <div id="detail-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print backdrop-blur-sm">
-    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl">
+  <div id="detail-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-2 sm:p-4 no-print backdrop-blur-sm">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-4 sm:p-6 shadow-2xl max-h-[92vh] overflow-y-auto">
       <div class="flex justify-between items-start border-b pb-3 mb-4">
         <div>
           <div class="flex items-center gap-2">
@@ -867,7 +867,7 @@
       if (addBtn) addBtn.classList.toggle('hidden', !isAdmin);
 
       const authBtnText = document.getElementById('header-auth-btn-text');
-      const authBtnIcon = document.getElementById('header-auth-btn-icon');
+      const authBtnIcon = document.getElementById('header-auth-btn-text');
       if (authBtnText && authBtnIcon) {
         if (loggedInUser) {
           authBtnText.textContent = `Admin (${loggedInUser.username})`;
@@ -2007,6 +2007,7 @@
       filterSelect.value = currentFilter;
     }
 
+    // FIXED: Uses .value on filter-plant so all 755+ items display properly
     function getFilteredItems() {
       const search = document.getElementById('search-input').value.toLowerCase().trim();
       const plantFilter = document.getElementById('filter-plant').value || 'ALL';
