@@ -84,6 +84,9 @@
         <select id="filter-plant" onchange="renderDeployments()" class="border border-slate-300 rounded-lg px-3 py-2 text-xs bg-white focus:ring-2 focus:ring-[#5A358E] outline-none">
           <option value="ALL">All Plants</option>
         </select>
+        <select id="filter-category" onchange="renderDeployments()" class="border border-slate-300 rounded-lg px-3 py-2 text-xs bg-white focus:ring-2 focus:ring-[#5A358E] outline-none">
+          <option value="ALL">All Categories</option>
+        </select>
       </div>
 
       <div class="inline-flex rounded-lg bg-slate-100 p-1 border border-slate-200">
@@ -123,7 +126,9 @@
           <h3 class="font-bold text-slate-900 text-sm">📜 Transaction History Log</h3>
           <p class="text-[11px] text-slate-500">History of checkouts, checkins, permanent checkouts, and removals.</p>
         </div>
-        <button onclick="clearHistoryLog()" class="text-xs bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold px-2.5 py-1.5 rounded-lg border border-rose-200">✕ Clear History Log</button>
+        <div class="flex items-center gap-1 text-[11px] bg-slate-100 text-slate-700 px-2.5 py-1.5 rounded-lg border border-slate-200 font-bold">
+          <span>🔒 Permanent Archive</span>
+        </div>
       </div>
       <div class="overflow-x-auto p-4">
         <div id="history-log-container" class="space-y-2.5 max-h-[500px] overflow-y-auto pr-1"></div>
@@ -318,6 +323,8 @@
               type: rec.forGood ? 'PERMANENT_CHECK_OUT' : 'CHECK_OUT',
               tag: item.tag,
               name: item.name,
+              category: item.category || 'Uncategorized',
+              plantCode: item.plantCode || item.tag.substring(0, 3),
               user: rec.userName || 'Unknown Technician',
               destination: rec.destination || 'Unassigned',
               timestamp: rec.checkedOutAt,
@@ -331,6 +338,8 @@
               type: 'CHECK_IN',
               tag: item.tag,
               name: item.name,
+              category: item.category || 'Uncategorized',
+              plantCode: item.plantCode || item.tag.substring(0, 3),
               user: rec.userName || 'Unknown Technician',
               destination: rec.destination || 'Unassigned',
               timestamp: rec.checkedInAt || rec.timestamp,
@@ -347,6 +356,8 @@
             type: rec.forGood ? 'PERMANENT_CHECK_OUT' : 'CHECK_OUT',
             tag: item.tag,
             name: item.name,
+            category: item.category || 'Uncategorized',
+            plantCode: item.plantCode || item.tag.substring(0, 3),
             user: rec.userName || 'Unknown Technician',
             destination: rec.destination || 'Unassigned',
             timestamp: rec.checkedOutAt,
@@ -363,6 +374,8 @@
           type: 'PERMANENT_CHECK_OUT',
           tag: c.tag,
           name: c.name,
+          category: c.category || 'Uncategorized',
+          plantCode: c.plantCode || c.tag.substring(0, 3),
           user: c.consumedBy || 'Unknown',
           destination: c.destination || 'Consumed',
           timestamp: c.consumedAt,
@@ -378,6 +391,8 @@
           type: 'REMOVE',
           tag: r.tag,
           name: r.name,
+          category: r.category || 'Uncategorized',
+          plantCode: r.plantCode || r.tag.substring(0, 3),
           user: r.removedBy || 'Administrator',
           destination: 'Removed from Stock',
           timestamp: r.timestamp,
@@ -386,14 +401,31 @@
         });
       });
 
-      historyEvents.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+      // Apply Search, Plant, and Category Filters
+      const searchQuery = document.getElementById('filter-search').value.toLowerCase().trim();
+      const plantQuery = document.getElementById('filter-plant').value;
+      const categoryQuery = document.getElementById('filter-category').value;
 
-      if (historyEvents.length === 0) {
-        container.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs">No transaction history found.</div>`;
+      const filteredEvents = historyEvents.filter(evt => {
+        const matchesPlant = plantQuery === 'ALL' || evt.plantCode === plantQuery;
+        const matchesCategory = categoryQuery === 'ALL' || evt.category === categoryQuery;
+        const matchesSearch = !searchQuery || 
+          evt.tag.toLowerCase().includes(searchQuery) ||
+          evt.name.toLowerCase().includes(searchQuery) ||
+          evt.user.toLowerCase().includes(searchQuery) ||
+          evt.destination.toLowerCase().includes(searchQuery) ||
+          evt.note.toLowerCase().includes(searchQuery);
+        return matchesPlant && matchesCategory && matchesSearch;
+      });
+
+      filteredEvents.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+      if (filteredEvents.length === 0) {
+        container.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs">No matching transaction history found.</div>`;
         return;
       }
 
-      historyEvents.forEach(evt => {
+      filteredEvents.forEach(evt => {
         const div = document.createElement('div');
         div.className = "p-3 rounded-xl border text-xs bg-slate-50/50 flex flex-wrap justify-between items-start gap-3 transition-colors hover:bg-slate-50";
         
@@ -415,6 +447,7 @@
               <strong class="font-mono text-[#5A358E] bg-purple-50 px-1 rounded">${escapeHtml(evt.tag)}</strong>
               <span class="font-bold text-slate-800">${escapeHtml(evt.name)}</span>
               <span class="text-slate-400">by <strong>${escapeHtml(evt.user)}</strong></span>
+              <span class="text-[10px] text-purple-700 bg-purple-50 border border-purple-200 px-1.5 py-0.2 rounded font-semibold">${escapeHtml(evt.category)}</span>
             </div>
             <p class="text-slate-600">📍 Destination: <span class="font-semibold text-slate-800">${escapeHtml(evt.destination)}</span></p>
             ${evt.note ? `<p class="text-slate-400 italic">"${escapeHtml(evt.note)}"</p>` : ''}
@@ -426,13 +459,6 @@
         `;
         container.appendChild(div);
       });
-    }
-
-    function clearHistoryLog() {
-      if (!confirm('Clear the local transaction history log? This will remove log records of consumed and removed items.')) return;
-      localStorage.setItem('PLANT_QR_CONSUMED_H_V8', JSON.stringify([]));
-      localStorage.setItem('PLANT_QR_REMOVALS_V8', JSON.stringify([]));
-      renderDeployments();
     }
 
     function renderAreaCards(deployed) {
@@ -585,7 +611,16 @@
       return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
+    function populateCategoryFilter() {
+      const select = document.getElementById('filter-category');
+      if (!select) return;
+      const categories = [...new Set(items.map(i => i.category || 'Uncategorized'))];
+      select.innerHTML = '<option value="ALL">All Categories</option>' +
+        categories.sort().map(cat => `<option value="${cat}">${cat}</option>`).join('');
+    }
+
     populatePlantFilter();
+    populateCategoryFilter();
     renderDeployments();
 
     setInterval(async () => {
