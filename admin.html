@@ -12,7 +12,7 @@
   <!-- SheetJS (XLSX) SDK -->
   <script lang="javascript" src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght=500;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
     body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
     .font-mono { font-family: 'JetBrains Mono', monospace; }
   </style>
@@ -162,7 +162,7 @@
           <h2 class="text-lg font-bold">🔗 Permanent QR Code Base URL</h2>
           <p class="text-xs text-slate-500">Provide the production URL of your hosted dashboard (e.g., Netlify) so printed QR stickers always point to your live application.</p>
           <form onsubmit="saveQrConfig(event)" class="space-y-4">
-            <input type="url" id="qr-base-url-input" placeholder="https://storagelocater.netlify.app" class="w-full border rounded px-3 py-2 text-sm font-mono" />
+            <input type="url" id="qr-base-url-input" placeholder="https://asrieldreemurr2003.github.io/StorageLocator/index.html" class="w-full border rounded px-3 py-2 text-sm font-mono" />
             <button type="submit" class="bg-[#5A358E] hover:bg-[#3D2566] text-white px-5 py-2 rounded font-semibold text-sm">Save Permanent URL</button>
           </form>
         </div>
@@ -236,7 +236,7 @@
       { username: 'u123456', name: 'Jane Doe', email: 'jane.doe@tranetechnologies.com' }
     ];
     let cloudDbUrl = localStorage.getItem(STORAGE_KEY_CLOUD) || DEFAULT_CLOUD_DB_URL;
-    let permanentQrBaseUrl = localStorage.getItem(STORAGE_KEY_QR_BASE) || '';
+    let permanentQrBaseUrl = localStorage.getItem(STORAGE_KEY_QR_BASE) || 'https://asrieldreemurr2003.github.io/StorageLocator/index.html';
     let emailConfig = JSON.parse(localStorage.getItem(STORAGE_KEY_EMAIL)) || { mode: 'MAILTO', publicKey: '', serviceId: '', templateId: '' };
 
     function checkAdminUser() {
