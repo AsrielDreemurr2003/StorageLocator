@@ -1536,6 +1536,22 @@
       if (!loggedInUser || !loggedInUser.isAdmin) return;
       const item = items.find(i => i.id === itemId);
       if (!item || !confirm(`Delete unit ${item.tag} (${item.name})?`)) return;
+      
+      // Log item removal
+      const removals = JSON.parse(localStorage.getItem('PLANT_QR_REMOVALS_V8')) || [];
+      removals.push({
+        id: 'rem-' + Date.now(),
+        type: 'REMOVE',
+        tag: item.tag,
+        name: item.name,
+        itemCode: item.itemCode,
+        plantCode: item.plantCode,
+        location: item.location,
+        removedBy: loggedInUser ? loggedInUser.name : 'Administrator',
+        timestamp: Date.now()
+      });
+      localStorage.setItem('PLANT_QR_REMOVALS_V8', JSON.stringify(removals));
+
       items = items.filter(i => i.id !== itemId);
       selectedItemIds.delete(itemId);
       renderInventory();
