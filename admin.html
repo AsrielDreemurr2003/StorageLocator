@@ -69,6 +69,7 @@
       <!-- Left sidebar: Tab switches -->
       <div class="lg:col-span-1 space-y-2">
         <button onclick="switchTab('plants')" id="tab-btn-plants" class="w-full text-left p-3 rounded-xl border font-bold text-sm transition bg-white border-slate-200 hover:bg-slate-50">🏢 Manage Plants</button>
+        <button onclick="switchTab('areas')" id="tab-btn-areas" class="w-full text-left p-3 rounded-xl border font-bold text-sm transition bg-white border-slate-200 hover:bg-slate-50">📍 Manage Areas</button>
         <button onclick="switchTab('users')" id="tab-btn-users" class="w-full text-left p-3 rounded-xl border font-bold text-sm transition bg-white border-slate-200 hover:bg-slate-50">👤 Manage Users & Import</button>
         <button onclick="switchTab('email')" id="tab-btn-email" class="w-full text-left p-3 rounded-xl border font-bold text-sm transition bg-white border-slate-200 hover:bg-slate-50">✉️ Email Alert Settings</button>
         <button onclick="switchTab('qr')" id="tab-btn-qr" class="w-full text-left p-3 rounded-xl border font-bold text-sm transition bg-white border-slate-200 hover:bg-slate-50">🔗 Permanent QR URL Config</button>
@@ -81,6 +82,17 @@
       <!-- Right main area: Tab contents -->
       <div class="lg:col-span-3 bg-white border border-[#DCDDE1] rounded-2xl p-6 shadow-sm min-h-[450px]">
         
+        <!-- Tab: Areas -->
+        <div id="tab-areas" class="hidden space-y-4">
+          <h2 class="text-lg font-bold">📍 Manage Destination Areas</h2>
+          <p class="text-xs text-slate-500">Add or remove destination areas for checkouts to keep deployment records standardized and avoid duplicates.</p>
+          <form onsubmit="saveArea(event)" class="flex flex-wrap gap-2">
+            <input type="text" id="area-name" required placeholder="e.g. Assembly Line 3" class="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
+            <button type="submit" class="bg-[#5A358E] hover:bg-[#3D2566] text-white px-5 py-2 rounded-lg text-sm font-semibold">Add Area</button>
+          </form>
+          <div class="divide-y border rounded-xl overflow-hidden mt-4" id="area-list"></div>
+        </div>
+
         <!-- Tab: Plants -->
         <div id="tab-plants" class="hidden space-y-4">
           <h2 class="text-lg font-bold">🏢 Manage Plant Locations (3-Digit Codes)</h2>
@@ -265,7 +277,9 @@
     const STORAGE_KEY_QR_BASE = 'PLANT_QR_BASE_URL_V8';
     const STORAGE_KEY_USERS  = 'PLANT_QR_USERS_V8';
     const STORAGE_KEY_HELP_LOGS = 'PLANT_QR_HELP_LOGS_V8';
+    const STORAGE_KEY_AREAS  = 'PLANT_QR_AREAS_V8';
 
+    let areas = JSON.parse(localStorage.getItem(STORAGE_KEY_AREAS)) || ['Assembly Line 1', 'Assembly Line 2', 'Assembly Line 3', 'Tool Crib', 'Press Bay'];
     let plants = JSON.parse(localStorage.getItem(STORAGE_KEY_PLANTS)) || [
       { code: 'KEN', name: 'Kentwood Plant' },
       { code: 'DET', name: 'Detroit Assembly' },
@@ -290,6 +304,7 @@
         };
         users.push(master);
         localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
+      localStorage.setItem(STORAGE_KEY_AREAS, JSON.stringify(areas));
       }
     }
 
@@ -345,7 +360,7 @@
     }
 
     function switchTab(tabId) {
-      const tabs = ['plants', 'users', 'email', 'qr', 'cloud', 'consumed', 'backup'];
+      const tabs = ['plants', 'users', 'email', 'qr', 'cloud', 'consumed', 'backup', 'areas'];
       tabs.forEach(t => {
         const btn = document.getElementById(`tab-btn-${t}`);
         const sect = document.getElementById(`tab-${t}`);
@@ -365,6 +380,7 @@
       if (tabId === 'qr') populateQrConfig();
       if (tabId === 'cloud') populateCloudConfig();
       if (tabId === 'consumed') renderConsumed();
+      if (tabId === 'areas') renderAreas();
     }
 
     function renderPlants() {
@@ -558,7 +574,7 @@
       if (!endpoint) return;
       try {
         const helpLogs = JSON.parse(localStorage.getItem(STORAGE_KEY_HELP_LOGS)) || [];
-        const payload = { plants, items, plantSequences, appNotifications, users, emailConfig, permanentQrBaseUrl, helpLogs, updatedAt: Date.now() };
+        const payload = { plants, items, plantSequences, appNotifications, users, emailConfig, permanentQrBaseUrl, helpLogs, areas, updatedAt: Date.now() };
         const res = await fetch(endpoint, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         if (res.ok) alert('Forced sync upload completed successfully!');
       } catch (err) {
@@ -612,6 +628,7 @@
             if (imported.plantSequences) plantSequences = imported.plantSequences;
             if (imported.users) users = imported.users;
             if (imported.helpLogs) localStorage.setItem(STORAGE_KEY_HELP_LOGS, JSON.stringify(imported.helpLogs));
+            if (imported.areas) areas = imported.areas;
             await saveState();
             initPage();
             alert('Backup restored successfully!');
@@ -628,6 +645,7 @@
       localStorage.setItem(STORAGE_KEY_ITEMS, JSON.stringify(items));
       localStorage.setItem(STORAGE_KEY_SEQ, JSON.stringify(plantSequences));
       localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
+      localStorage.setItem(STORAGE_KEY_AREAS, JSON.stringify(areas));
       localStorage.setItem(STORAGE_KEY_EMAIL, JSON.stringify(emailConfig));
       localStorage.setItem(STORAGE_KEY_QR_BASE, permanentQrBaseUrl);
       await forcePushToCloudSilent();
@@ -638,9 +656,41 @@
       if (!endpoint) return;
       try {
         const helpLogs = JSON.parse(localStorage.getItem(STORAGE_KEY_HELP_LOGS)) || [];
-        const payload = { plants, items, plantSequences, appNotifications, users, emailConfig, permanentQrBaseUrl, helpLogs, updatedAt: Date.now() };
+        const payload = { plants, items, plantSequences, appNotifications, users, emailConfig, permanentQrBaseUrl, helpLogs, areas, updatedAt: Date.now() };
         await fetch(endpoint, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       } catch (e) {}
+    }
+
+    
+    function renderAreas() {
+      const container = document.getElementById('area-list');
+      if (!container) return;
+      container.innerHTML = '';
+      areas.forEach(a => {
+        const div = document.createElement('div');
+        div.className = 'p-3 flex justify-between items-center text-sm bg-white';
+        div.innerHTML = `<div><span class="font-medium">${escapeHtml(a)}</span></div><button onclick="deleteArea('${escapeJsStr(a)}')" class="text-xs bg-rose-50 hover:bg-rose-100 text-rose-700 px-2.5 py-1 rounded font-semibold">Remove</button>`;
+        container.appendChild(div);
+      });
+    }
+
+    async function saveArea(e) {
+      e.preventDefault();
+      const name = document.getElementById('area-name').value.trim();
+      if (!name) return;
+      if (!areas.includes(name)) {
+        areas.push(name);
+      }
+      document.getElementById('area-name').value = '';
+      await saveState();
+      renderAreas();
+    }
+
+    async function deleteArea(name) {
+      if (!confirm(`Remove destination area "${name}"?`)) return;
+      areas = areas.filter(a => a !== name);
+      await saveState();
+      renderAreas();
     }
 
     initPage();
