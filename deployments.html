@@ -11,7 +11,7 @@
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght=500;700&display=swap');
     body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
     .font-mono { font-family: 'JetBrains Mono', monospace; }
   </style>
@@ -73,6 +73,21 @@
       </div>
     </div>
 
+    <!-- Quality Alerts & Damage Notifications Box -->
+    <div id="section-quality-alerts" class="hidden bg-white rounded-2xl shadow-sm border border-rose-200 border-l-4 border-l-rose-500 p-4">
+      <div class="flex items-center justify-between mb-3 border-b pb-2 border-slate-100">
+        <div class="flex items-center gap-2">
+          <span class="text-lg">⚠️</span>
+          <div>
+            <h3 class="text-sm font-bold text-slate-900">Quality & Repair Alerts</h3>
+            <p class="text-[11px] text-slate-500">Items flagged as needing repair or broken across active plant floors</p>
+          </div>
+        </div>
+        <span id="quality-alerts-count-badge" class="bg-rose-100 text-rose-700 text-xs font-bold px-2.5 py-0.5 rounded-full">0 Alerts</span>
+      </div>
+      <div id="quality-alerts-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 max-h-60 overflow-y-auto pr-1"></div>
+    </div>
+
     <!-- Filter & View Controls -->
     <div class="bg-white rounded-2xl shadow-sm border border-[#DCDDE1] p-4 flex flex-wrap items-center justify-between gap-3">
       <div class="flex flex-wrap items-center gap-3 flex-1">
@@ -88,6 +103,9 @@
         </button>
         <button id="btn-view-table" onclick="setViewMode('TABLE')" class="text-xs px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-[#5A358E]">
           📋 Custodian Roster
+        </button>
+        <button id="btn-view-history" onclick="setViewMode('HISTORY')" class="text-xs px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-[#5A358E]">
+          📜 History Log
         </button>
       </div>
     </div>
@@ -115,6 +133,20 @@
       </div>
     </div>
 
+    <!-- View Mode 3: Complete History Log -->
+    <div id="section-history-log" class="hidden bg-white rounded-2xl shadow-sm border border-[#DCDDE1] overflow-hidden">
+      <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+        <div>
+          <h3 class="font-bold text-slate-900 text-sm">📜 Transaction History Log</h3>
+          <p class="text-[11px] text-slate-500">History of checkouts, checkins, permanent checkouts, and removals.</p>
+        </div>
+        <button onclick="clearHistoryLog()" class="text-xs bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold px-2.5 py-1.5 rounded-lg border border-rose-200">✕ Clear History Log</button>
+      </div>
+      <div class="overflow-x-auto p-4">
+        <div id="history-log-container" class="space-y-2.5 max-h-[500px] overflow-y-auto pr-1"></div>
+      </div>
+    </div>
+
   </main>
 
   <script>
@@ -133,19 +165,30 @@
       currentViewMode = mode;
       const btnCards = document.getElementById('btn-view-cards');
       const btnTable = document.getElementById('btn-view-table');
+      const btnHistory = document.getElementById('btn-view-history');
+      
       const secCards = document.getElementById('section-area-cards');
       const secTable = document.getElementById('section-roster-table');
+      const secHistory = document.getElementById('section-history-log');
+
+      // Reset classes
+      btnCards.className = "text-xs px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-[#5A358E]";
+      btnTable.className = "text-xs px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-[#5A358E]";
+      btnHistory.className = "text-xs px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-[#5A358E]";
+
+      secCards.classList.add('hidden');
+      secTable.classList.add('hidden');
+      secHistory.classList.add('hidden');
 
       if (mode === 'CARDS') {
         btnCards.className = "text-xs px-3 py-1.5 rounded-md font-bold bg-white text-[#5A358E] shadow-sm";
-        btnTable.className = "text-xs px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-[#5A358E]";
         secCards.classList.remove('hidden');
-        secTable.classList.add('hidden');
-      } else {
-        btnCards.className = "text-xs px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-[#5A358E]";
+      } else if (mode === 'TABLE') {
         btnTable.className = "text-xs px-3 py-1.5 rounded-md font-bold bg-white text-[#5A358E] shadow-sm";
-        secCards.classList.add('hidden');
         secTable.classList.remove('hidden');
+      } else if (mode === 'HISTORY') {
+        btnHistory.className = "text-xs px-3 py-1.5 rounded-md font-bold bg-white text-[#5A358E] shadow-sm";
+        secHistory.classList.remove('hidden');
       }
       renderDeployments();
     }
@@ -205,11 +248,221 @@
       const uniqueTechs = new Set(deployed.map(d => d.tech.toLowerCase()));
       document.getElementById('stat-total-techs').textContent = uniqueTechs.size;
 
+      renderQualityAlerts();
+
       if (currentViewMode === 'CARDS') {
         renderAreaCards(deployed);
-      } else {
+      } else if (currentViewMode === 'TABLE') {
         renderRosterTable(deployed);
+      } else if (currentViewMode === 'HISTORY') {
+        renderHistoryLog();
       }
+    }
+
+    function renderQualityAlerts() {
+      const alertsContainer = document.getElementById('quality-alerts-list');
+      const alertsSection = document.getElementById('section-quality-alerts');
+      const countBadge = document.getElementById('quality-alerts-count-badge');
+      
+      if (!alertsContainer || !alertsSection || !countBadge) return;
+
+      alertsContainer.innerHTML = '';
+      const damagedItems = items.filter(i => i.quality === 'Needs Repair' || i.quality === 'Broken');
+
+      if (damagedItems.length === 0) {
+        alertsSection.classList.add('hidden');
+        return;
+      }
+
+      alertsSection.classList.remove('hidden');
+      countBadge.textContent = `${damagedItems.length} Alert${damagedItems.length > 1 ? 's' : ''}`;
+
+      damagedItems.forEach(item => {
+        const div = document.createElement('div');
+        div.className = "p-3 rounded-xl border border-rose-200 bg-rose-50/40 text-xs space-y-1.5 flex flex-col justify-between";
+        const isBroken = item.quality === 'Broken';
+        const badgeColor = isBroken ? 'bg-rose-100 text-rose-700 border-rose-300' : 'bg-amber-100 text-amber-800 border-amber-300';
+        
+        div.innerHTML = `
+          <div>
+            <div class="flex justify-between items-center">
+              <span class="font-mono font-bold text-[#5A358E]">${escapeHtml(item.tag)}</span>
+              <span class="px-2 py-0.5 rounded border text-[10px] font-bold ${badgeColor}">${escapeHtml(item.quality)}</span>
+            </div>
+            <h5 class="font-bold text-slate-900 mt-1">${escapeHtml(item.name)}</h5>
+            <p class="text-[11px] text-slate-500">📍 Home: ${escapeHtml(item.location)}</p>
+          </div>
+          <div class="pt-1.5 border-t border-rose-100/60 flex items-center justify-between">
+            <span class="text-[10px] uppercase font-bold text-slate-400">Status: ${item.activeCheckouts && item.activeCheckouts.length > 0 ? 'Checked Out' : 'In Storage'}</span>
+            <button onclick="markQualityRepaired('${item.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold px-2 py-1 rounded transition shadow-sm">
+              🛠️ Mark Repaired
+            </button>
+          </div>
+        `;
+        alertsContainer.appendChild(div);
+      });
+    }
+
+    async function markQualityRepaired(itemId) {
+      const item = items.find(i => i.id === itemId);
+      if (!item) return;
+      if (!confirm(`Confirm "${item.name}" (${item.tag}) is repaired and restored to "Good" quality?`)) return;
+
+      item.quality = 'Good';
+      localStorage.setItem(STORAGE_KEY_ITEMS, JSON.stringify(items));
+      renderDeployments();
+
+      // Push back to Firebase Cloud
+      if (cloudDbUrl) {
+        try {
+          const clean = cloudDbUrl.trim();
+          const endpoint = clean.endsWith('/') ? `${clean}storagelocater_state.json` : `${clean}/storagelocater_state.json`;
+          await fetch(endpoint, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ items, updatedAt: Date.now() })
+          });
+        } catch (e) {}
+      }
+    }
+
+    function renderHistoryLog() {
+      const container = document.getElementById('history-log-container');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const historyEvents = [];
+
+      // Gather from items checkout history
+      items.forEach(item => {
+        const checkouts = item.checkoutHistory || [];
+        checkouts.forEach(rec => {
+          // Check-out event
+          historyEvents.push({
+            id: rec.checkoutId || 'hist-' + rec.checkedOutAt,
+            type: rec.forGood ? 'PERMANENT_CHECK_OUT' : 'CHECK_OUT',
+            tag: item.tag,
+            name: item.name,
+            user: rec.userName || 'Unknown Technician',
+            destination: rec.destination || 'Unassigned',
+            timestamp: rec.checkedOutAt,
+            quality: rec.qualityAtEvent || 'Good',
+            note: rec.note || ''
+          });
+
+          // Check-in event
+          if (rec.checkedInAt) {
+            historyEvents.push({
+              id: rec.checkInId || 'hist-in-' + rec.checkedInAt,
+              type: 'CHECK_IN',
+              tag: item.tag,
+              name: item.name,
+              user: rec.userName || 'Unknown Technician',
+              destination: rec.destination || 'Unassigned',
+              timestamp: rec.checkedInAt,
+              quality: rec.returnQuality || 'Good',
+              note: rec.returnNote || ''
+            });
+          }
+        });
+
+        // Current active checkouts
+        const active = item.activeCheckouts || [];
+        active.forEach(rec => {
+          historyEvents.push({
+            id: rec.checkoutId || 'hist-act-' + rec.checkedOutAt,
+            type: rec.forGood ? 'PERMANENT_CHECK_OUT' : 'CHECK_OUT',
+            tag: item.tag,
+            name: item.name,
+            user: rec.userName || 'Unknown Technician',
+            destination: rec.destination || 'Unassigned',
+            timestamp: rec.checkedOutAt,
+            quality: item.quality || 'Good',
+            note: rec.note || ''
+          });
+        });
+      });
+
+      // Gather from single-use consumable logs (PLANT_QR_CONSUMED_H_V8)
+      const consumedList = JSON.parse(localStorage.getItem('PLANT_QR_CONSUMED_H_V8')) || [];
+      consumedList.forEach(c => {
+        historyEvents.push({
+          id: c.id || 'consumed-' + c.consumedAt,
+          type: 'PERMANENT_CHECK_OUT',
+          tag: c.tag,
+          name: c.name,
+          user: c.consumedBy || 'Unknown',
+          destination: c.destination || 'Consumed',
+          timestamp: c.consumedAt,
+          quality: 'N/A',
+          note: 'Single-Use/Consumable'
+        });
+      });
+
+      // Gather from removals (PLANT_QR_REMOVALS_V8)
+      const removalsList = JSON.parse(localStorage.getItem('PLANT_QR_REMOVALS_V8')) || [];
+      removalsList.forEach(r => {
+        historyEvents.push({
+          id: r.id || 'rem-' + r.timestamp,
+          type: 'REMOVE',
+          tag: r.tag,
+          name: r.name,
+          user: r.removedBy || 'Administrator',
+          destination: 'Removed from Stock',
+          timestamp: r.timestamp,
+          quality: 'N/A',
+          note: `Home location: ${r.location}`
+        });
+      });
+
+      // Sort by timestamp descending
+      historyEvents.sort((a, b) => b.timestamp - a.timestamp);
+
+      if (historyEvents.length === 0) {
+        container.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs">No transaction history found.</div>`;
+        return;
+      }
+
+      historyEvents.forEach(evt => {
+        const div = document.createElement('div');
+        div.className = "p-3 rounded-xl border text-xs bg-slate-50/50 flex flex-wrap justify-between items-start gap-3 transition-colors hover:bg-slate-50";
+        
+        let typeBadge = '';
+        if (evt.type === 'CHECK_OUT') {
+          typeBadge = `<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded border border-amber-200">📤 Checked Out</span>`;
+        } else if (evt.type === 'CHECK_IN') {
+          typeBadge = `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded border border-emerald-200">📥 Checked In</span>`;
+        } else if (evt.type === 'PERMANENT_CHECK_OUT') {
+          typeBadge = `<span class="bg-rose-100 text-rose-700 text-[10px] font-bold px-2 py-0.5 rounded border border-rose-200">⚠️ Permanent</span>`;
+        } else if (evt.type === 'REMOVE') {
+          typeBadge = `<span class="bg-slate-800 text-slate-100 text-[10px] font-bold px-2 py-0.5 rounded">🗑️ Removed</span>`;
+        }
+
+        div.innerHTML = `
+          <div class="space-y-1 flex-1">
+            <div class="flex items-center gap-2 flex-wrap">
+              ${typeBadge}
+              <strong class="font-mono text-[#5A358E] bg-purple-50 px-1 rounded">${escapeHtml(evt.tag)}</strong>
+              <span class="font-bold text-slate-800">${escapeHtml(evt.name)}</span>
+              <span class="text-slate-400">by <strong>${escapeHtml(evt.user)}</strong></span>
+            </div>
+            <p class="text-slate-600">📍 Destination: <span class="font-semibold text-slate-800">${escapeHtml(evt.destination)}</span></p>
+            ${evt.note ? `<p class="text-slate-400 italic">"${escapeHtml(evt.note)}"</p>` : ''}
+          </div>
+          <div class="text-right">
+            <span class="text-slate-400 text-[10px] block">${new Date(evt.timestamp).toLocaleTimeString()}</span>
+            <span class="text-slate-400 text-[10px] block">${new Date(evt.timestamp).toLocaleDateString()}</span>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function clearHistoryLog() {
+      if (!confirm('Clear the local transaction history log? This will remove log records of consumed and removed items.')) return;
+      localStorage.setItem('PLANT_QR_CONSUMED_H_V8', JSON.stringify([]));
+      localStorage.setItem('PLANT_QR_REMOVALS_V8', JSON.stringify([]));
+      renderDeployments();
     }
 
     function renderAreaCards(deployed) {
