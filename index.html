@@ -67,7 +67,7 @@
       <div class="flex items-center gap-2 shrink-0">
         <button onclick="printSelectedQRCodes()" id="header-print-btn" class="hidden sm:inline-flex items-center gap-1.5 bg-[#0D9488] hover:bg-[#059669] text-white px-3 py-2 rounded-lg text-xs font-bold transition shadow-sm hover:shadow active:scale-95">
           <span>🖨️ Print QR</span>
-          <span id="selected-count" class="bg-black/25 px-1.5 py-0.5 rounded text-[11px] font-mono">0</span>
+          <span id="selected-count" class="bg-black/25 px-1.5 py-0.2 rounded text-[11px] font-mono">0</span>
         </button>
 
         <button onclick="openNotificationsModal()" class="relative bg-[#5A358E]/60 hover:bg-[#5A358E] text-slate-100 border border-purple-500/30 px-3 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 active:scale-95" title="View Check-Out Alerts">
@@ -348,10 +348,10 @@
         </div>
       </div>
 
-      <!-- Clickable Product Categories Bar with Mass QR Select & Category Edit -->
+      <!-- Clickable Plant Locations Bar -->
       <div class="pt-2 border-t border-slate-100">
         <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Product Categories (Click to Filter • 🖨️ Mass Select QR • ✏️ Edit Category & Rename Items):</p>
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Filter Plant Locations:</p>
         </div>
         <div id="category-pills-container" class="flex flex-wrap gap-2"></div>
       </div>
@@ -449,7 +449,7 @@
         <div class="bg-purple-50/60 border border-purple-200 rounded-xl p-3.5 space-y-2">
           <div class="flex items-center justify-between">
             <label for="edit-cat-bulk-item-name" class="block text-xs font-bold text-[#5A358E] uppercase">Rename All Items in This Category (Optional)</label>
-            <span class="text-[10px] font-semibold text-purple-700 bg-purple-100 px-2 py-0.5 rounded">Bulk Update</span>
+            <span class="text-[10px] font-semibold text-purple-700 bg-purple-100 px-2.5 py-0.5 rounded">Bulk Update</span>
           </div>
           <input type="text" id="edit-cat-bulk-item-name" placeholder="Leave blank to keep current item names, or type a new name for all..." class="w-full border border-purple-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
           <p class="text-[11px] text-slate-500">If filled in, every unit inside this category will have its Item Name changed to this value while keeping its unique QR Tag and 4-Digit Item Code intact.</p>
@@ -553,7 +553,7 @@
         </div>
         <div class="flex justify-end space-x-2 pt-3 border-t">
           <button type="button" onclick="closeAutoCheckoutModal()" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium">Cancel</button>
-          <button type="submit" id="auto-checkout-submit-btn" class="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold shadow">Auto-Assign & Check Out</button>
+          <button type="submit" id="auto-checkout-submit-btn" class="px-5 py-2 rounded-lg bg-[#0D9488] hover:bg-[#059669] text-white text-sm font-bold shadow">Auto-Assign & Check Out</button>
         </div>
       </form>
     </div>
@@ -643,7 +643,7 @@
             <option value="Good">✅ Good</option>
             <option value="Used">🛠️ Used</option>
             <option value="Needs Repair">⚠️ Needs Repair</option>
-            <option value="Broken">❌ Broken</option>
+            <option value="Broken">Broken</option>
           </select>
         </div>
         <div id="checkin-repair-fields" class="hidden space-y-3 bg-rose-50/50 p-3 rounded-xl border border-rose-200">
@@ -873,7 +873,7 @@
     const STORAGE_KEY_HELP_LOGS = 'PLANT_QR_HELP_LOGS_V8';
 
     let cloudDbUrl = localStorage.getItem(STORAGE_KEY_CLOUD) || DEFAULT_CLOUD_DB_URL;
-    let permanentQrBaseUrl = localStorage.getItem(STORAGE_KEY_QR_BASE) || '';
+    let permanentQrBaseUrl = localStorage.getItem(STORAGE_KEY_QR_BASE) || 'https://asrieldreemurr2003.github.io/StorageLocator/index.html';
 
     let emailConfig = JSON.parse(localStorage.getItem(STORAGE_KEY_EMAIL)) || {
       mode: 'MAILTO', publicKey: '', serviceId: '', templateId: ''
@@ -1114,22 +1114,33 @@
     }
 
     function buildQRUrl(item) {
-      if (permanentQrBaseUrl && permanentQrBaseUrl.trim() !== '') {
-        let base = permanentQrBaseUrl.trim();
-        if (!base.endsWith('/')) base += '/';
-        return `${base}?tag=${encodeURIComponent(item.tag)}`;
+      let base = (permanentQrBaseUrl && permanentQrBaseUrl.trim() !== '') ? permanentQrBaseUrl.trim() : 'https://asrieldreemurr2003.github.io/StorageLocator/index.html';
+      if (base.endsWith('/')) {
+        base = base.slice(0, -1);
       }
-      const loc = window.location;
-      return `${loc.origin}${loc.pathname}?tag=${encodeURIComponent(item.tag)}`;
+      const separator = base.includes('?') ? '&' : '?';
+      return `${base}${separator}tag=${encodeURIComponent(item.tag)}`;
+    }
+
+    function buildCategoryQRUrl(categoryName) {
+      let base = (permanentQrBaseUrl && permanentQrBaseUrl.trim() !== '') ? permanentQrBaseUrl.trim() : 'https://asrieldreemurr2003.github.io/StorageLocator/index.html';
+      if (base.endsWith('/')) {
+        base = base.slice(0, -1);
+      }
+      const separator = base.includes('?') ? '&' : '?';
+      return `${base}${separator}categoryCheckout=${encodeURIComponent(categoryName)}`;
     }
 
     async function checkUrlForScannedQR() {
       const params = new URLSearchParams(window.location.search);
       const scannedTag = params.get('tag');
+      const categoryCheckout = params.get('categoryCheckout');
       await pullFromCloud(false);
       if (scannedTag) {
         activeScannedTag = scannedTag;
         refreshScannedBanner(scannedTag, true);
+      } else if (categoryCheckout) {
+        openCategoryCheckoutModal(categoryCheckout);
       }
     }
 
@@ -1377,23 +1388,6 @@
       renderInventory();
     }
 
-    function toggleSelectProductGroupQRs(categoryName, productName, event) {
-      if (event) event.stopPropagation();
-      const baseFiltered = getFilteredItems();
-      const grpItems = baseFiltered.filter(i =>
-        (i.category || 'Uncategorized') === categoryName &&
-        i.name.toLowerCase() === productName.toLowerCase()
-      );
-      if (grpItems.length === 0) return;
-
-      const allSelected = grpItems.every(i => selectedItemIds.has(i.id));
-      grpItems.forEach(i => {
-        if (allSelected) selectedItemIds.delete(i.id);
-        else selectedItemIds.add(i.id);
-      });
-      renderInventory();
-    }
-
     // --- EDIT CATEGORY & BULK RENAME ITEMS (WITHOUT CHANGING ITEM CODES OR QR CODES) ---
     function openEditCategoryModal(categoryName, event) {
       if (event) event.stopPropagation();
@@ -1605,741 +1599,6 @@
       await saveState();
     }
 
-    function openAutoCheckoutModal() {
-      const uniqueNames = [...new Set(items.map(i => i.name))].sort();
-      const select = document.getElementById('auto-checkout-item-name');
-      const availCounts = {};
-      items.forEach(i => {
-        if (!i.activeCheckouts || i.activeCheckouts.length === 0) {
-          availCounts[i.name] = (availCounts[i.name] || 0) + 1;
-        }
-      });
-      select.innerHTML = uniqueNames.map(name => {
-        const count = availCounts[name] || 0;
-        return `<option value="${escapeHtml(name)}">📦 ${escapeHtml(name)} (${count} available)</option>`;
-      }).join('');
-
-      document.getElementById('auto-checkout-user-id').value = '';
-      document.getElementById('auto-checkout-email').value = '';
-      document.getElementById('auto-checkout-destination').value = '';
-      document.getElementById('auto-checkout-note').value = '';
-      document.getElementById('auto-checkout-send-email-toggle').checked = false;
-      document.getElementById('auto-checkout-for-good-toggle').checked = false;
-      validateAutoCheckoutUser();
-
-      const modal = document.getElementById('auto-checkout-modal');
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-    }
-
-    function closeAutoCheckoutModal() {
-      document.getElementById('auto-checkout-modal').classList.add('hidden');
-    }
-
-    function validateAutoCheckoutUser() {
-      const idInput = document.getElementById('auto-checkout-user-id');
-      const emailInput = document.getElementById('auto-checkout-email');
-      const msg = document.getElementById('auto-checkout-user-validation-msg');
-      const icon = document.getElementById('auto-checkout-user-validation-icon');
-      const submitBtn = document.getElementById('auto-checkout-submit-btn');
-
-      const typedId = idInput.value.trim().toLowerCase();
-      if (!typedId) {
-        msg.textContent = ''; icon.textContent = ''; submitBtn.disabled = true;
-        submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
-        return;
-      }
-      const found = users.find(u => u.username.toLowerCase() === typedId);
-      if (found) {
-        msg.textContent = `✓ Verified: ${found.name}`;
-        msg.className = 'text-[11px] mt-1 font-semibold text-emerald-600';
-        icon.textContent = '✅';
-        emailInput.value = found.email || '';
-        submitBtn.disabled = false;
-        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-      } else {
-        msg.textContent = '✗ User ID not found. Contact Admin.';
-        msg.className = 'text-[11px] mt-1 font-semibold text-rose-600';
-        icon.textContent = '❌';
-        submitBtn.disabled = true;
-        submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
-      }
-    }
-
-    async function confirmAutoCheckOut(e) {
-      e.preventDefault();
-      const itemName = document.getElementById('auto-checkout-item-name').value;
-      const userId = document.getElementById('auto-checkout-user-id').value.trim();
-      const email = document.getElementById('auto-checkout-email').value.trim();
-      const destination = document.getElementById('auto-checkout-destination').value.trim();
-      const notes = document.getElementById('auto-checkout-note').value.trim();
-      const shouldSendEmail = document.getElementById('auto-checkout-send-email-toggle').checked;
-      const forGood = document.getElementById('auto-checkout-for-good-toggle').checked;
-
-      const user = users.find(u => u.username.toLowerCase() === userId.toLowerCase());
-      if (!user) return;
-
-      const availableItem = items.find(i => i.name === itemName && (!i.activeCheckouts || i.activeCheckouts.length === 0));
-      if (!availableItem) {
-        alert(`No available items left with name "${itemName}".`);
-        return;
-      }
-
-      const now = Date.now();
-      const checkoutId = 'co-' + now;
-
-      if (forGood) {
-        const consumedHistory = JSON.parse(localStorage.getItem('PLANT_QR_CONSUMED_H_V8')) || [];
-        consumedHistory.unshift({
-          ...availableItem, consumedAt: now, consumedBy: user.name, consumedByEmail: email, destination, notes
-        });
-        localStorage.setItem('PLANT_QR_CONSUMED_H_V8', JSON.stringify(consumedHistory));
-        items = items.filter(i => i.id !== availableItem.id);
-        selectedItemIds.delete(availableItem.id);
-      } else {
-        availableItem.quantity = 0;
-        availableItem.activeCheckouts = [{ checkoutId, userName: user.name, userEmail: email, destination, quantity: 1, notes, checkedOutAt: now }];
-        availableItem.checkoutHistory.unshift({ id: 'hist-' + now, checkoutId, type: 'CHECK_OUT', userName: user.name, userEmail: email, destination, quantity: 1, notes, qualityAtEvent: availableItem.quality, timestamp: now, status: 'ACTIVE' });
-      }
-
-      closeAutoCheckoutModal();
-      renderInventory();
-      await saveState();
-
-      document.getElementById('receipt-item-name').textContent = availableItem.name;
-      document.getElementById('receipt-item-tag').textContent = availableItem.tag;
-      document.getElementById('receipt-item-code').textContent = availableItem.itemCode || 'N/A';
-      document.getElementById('receipt-item-serial').textContent = availableItem.serialNumber || 'N/A';
-      document.getElementById('receipt-item-location').textContent = availableItem.location || 'N/A';
-      document.getElementById('receipt-user-name').textContent = user.name;
-      document.getElementById('receipt-destination').textContent = destination;
-
-      const notesBox = document.getElementById('receipt-item-notes-box');
-      if (availableItem.notes) {
-        document.getElementById('receipt-item-notes').textContent = availableItem.notes;
-        notesBox.classList.remove('hidden');
-      } else {
-        notesBox.classList.add('hidden');
-      }
-
-      const instBox = document.getElementById('receipt-item-instructions-box');
-      if (availableItem.instructions) {
-        document.getElementById('receipt-item-instructions').textContent = availableItem.instructions;
-        instBox.classList.remove('hidden');
-      } else {
-        instBox.classList.add('hidden');
-      }
-
-      const successModal = document.getElementById('auto-checkout-success-modal');
-      successModal.classList.remove('hidden');
-      successModal.classList.add('flex');
-
-      const mailtoLink = await dispatchCheckoutEmailAlert(availableItem, user.name, email, destination, notes, now, shouldSendEmail);
-      addAppNotification(
-        forGood ? 'CONSUMED' : 'CHECK_OUT',
-        forGood ? `${availableItem.name} Checked Out For Good` : `${availableItem.name} Checked Out`,
-        forGood ? `${user.name} consumed unit ${availableItem.itemCode}.` : `${user.name} checked out unit ${availableItem.itemCode} to "${destination}".`,
-        forGood ? '' : availableItem.tag, email, mailtoLink
-      );
-    }
-
-    function closeReceiptModal() {
-      document.getElementById('auto-checkout-success-modal').classList.add('hidden');
-    }
-
-    function openCheckOutModal(itemId) {
-      const item = items.find(i => i.id === itemId);
-      if (!item) return;
-      if (item.activeCheckouts && item.activeCheckouts.length > 0) {
-        alert('Unit already checked out.');
-        return;
-      }
-      document.getElementById('checkout-item-id').value = item.id;
-      document.getElementById('checkout-user').value = '';
-      document.getElementById('checkout-email').value = '';
-      document.getElementById('checkout-user-id').value = '';
-      setTimeout(() => { validateCheckoutUser(); }, 50);
-      document.getElementById('checkout-destination').value = '';
-      document.getElementById('checkout-note').value = '';
-      document.getElementById('checkout-send-email-toggle').checked = false;
-      document.getElementById('checkout-for-good-toggle').checked = false;
-      document.getElementById('checkout-modal-subtitle').textContent = `TAG: ${item.tag} | CODE: ${item.itemCode} — ${item.name}`;
-
-      const modal = document.getElementById('checkout-modal');
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-    }
-
-    function closeCheckOutModal() {
-      document.getElementById('checkout-modal').classList.add('hidden');
-    }
-
-    function validateCheckoutUser() {
-      const idInput = document.getElementById('checkout-user-id');
-      const nameHidden = document.getElementById('checkout-user');
-      const emailInput = document.getElementById('checkout-email');
-      const msg = document.getElementById('checkout-user-validation-msg');
-      const icon = document.getElementById('checkout-user-validation-icon');
-      const submitBtn = document.getElementById('checkout-submit-btn');
-
-      const typedId = idInput.value.trim().toLowerCase();
-      if (!typedId) {
-        msg.textContent = ''; icon.textContent = ''; nameHidden.value = ''; submitBtn.disabled = true;
-        submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
-        return;
-      }
-      const found = users.find(u => u.username.toLowerCase() === typedId);
-      if (found) {
-        msg.textContent = `✓ Verified: ${found.name}`;
-        msg.className = 'text-[11px] mt-1 font-semibold text-emerald-600';
-        icon.textContent = '✅';
-        nameHidden.value = found.name;
-        emailInput.value = found.email || '';
-        submitBtn.disabled = false;
-        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-      } else {
-        msg.textContent = '✗ User ID not found.';
-        msg.className = 'text-[11px] mt-1 font-semibold text-rose-600';
-        icon.textContent = '❌';
-        nameHidden.value = '';
-        submitBtn.disabled = true;
-        submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
-      }
-    }
-
-    async function confirmCheckOut(e) {
-      e.preventDefault();
-      const itemId = document.getElementById('checkout-item-id').value;
-      const userName = document.getElementById('checkout-user').value.trim();
-      const userEmail = document.getElementById('checkout-email').value.trim();
-      const destination = document.getElementById('checkout-destination').value.trim();
-      const notes = document.getElementById('checkout-note').value.trim();
-      const shouldSendEmail = document.getElementById('checkout-send-email-toggle').checked;
-      const forGood = document.getElementById('checkout-for-good-toggle').checked;
-
-      const item = items.find(i => i.id === itemId);
-      if (!item) return;
-
-      const now = Date.now();
-      const checkoutId = 'co-' + now;
-
-      if (forGood) {
-        const consumedHistory = JSON.parse(localStorage.getItem('PLANT_QR_CONSUMED_H_V8')) || [];
-        consumedHistory.unshift({ ...item, consumedAt: now, consumedBy: userName, consumedByEmail: userEmail, destination, notes });
-        localStorage.setItem('PLANT_QR_CONSUMED_H_V8', JSON.stringify(consumedHistory));
-        items = items.filter(i => i.id !== item.id);
-        selectedItemIds.delete(item.id);
-      } else {
-        item.quantity = 0;
-        item.activeCheckouts = [{ checkoutId, userName, userEmail, destination, quantity: 1, notes, checkedOutAt: now }];
-        item.checkoutHistory.unshift({ id: 'hist-' + now, checkoutId, type: 'CHECK_OUT', userName, userEmail, destination, quantity: 1, notes, qualityAtEvent: item.quality, timestamp: now, status: 'ACTIVE' });
-      }
-
-      closeCheckOutModal();
-      renderInventory();
-      if (activeScannedTag) {
-        if (forGood) closeScanBanner();
-        else refreshScannedBanner(activeScannedTag, false);
-      }
-      await saveState();
-
-      const mailtoLink = await dispatchCheckoutEmailAlert(item, userName, userEmail, destination, notes, now, shouldSendEmail);
-      addAppNotification(
-        forGood ? 'CONSUMED' : 'CHECK_OUT',
-        forGood ? `${item.name} Checked Out For Good` : `${item.name} Checked Out`,
-        forGood ? `${userName} consumed unit ${item.itemCode}.` : `${userName} checked out unit ${item.itemCode} to "${destination}".`,
-        forGood ? '' : item.tag, userEmail, mailtoLink
-      );
-    }
-
-    async function dispatchCheckoutEmailAlert(item, userName, userEmail, destination, notes, checkedOutAt, shouldTriggerEmail) {
-      const unitUrl = buildQRUrl(item);
-      const timeStr = new Date(checkedOutAt).toLocaleString();
-      const subject = `[StorageLocater Alert] Checked Out: ${item.name} (${item.tag})`;
-      const bodyLines = [
-        `Hello ${userName},`, ``,
-        `Checked out details:`,
-        `• Item Name: ${item.name}`,
-        `• Plant Tag: ${item.tag}`,
-        `• 4-Digit Item Code: ${item.itemCode}`,
-        `• Location: ${item.location}`,
-        `• Destination: ${destination}`,
-        `• Time: ${timeStr}`, ``,
-        `Direct Check-in URL:`, `${unitUrl}`
-      ].join('\n');
-
-      const mailtoLink = `mailto:${encodeURIComponent(userEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyLines)}`;
-      if (!shouldTriggerEmail) return mailtoLink;
-
-      if (emailConfig.mode === 'EMAILJS' && emailConfig.publicKey && emailConfig.serviceId && emailConfig.templateId && window.emailjs) {
-        try {
-          emailjs.init({ publicKey: emailConfig.publicKey });
-          await emailjs.send(emailConfig.serviceId, emailConfig.templateId, {
-            to_email: userEmail, user_name: userName, item_name: item.name, item_tag: item.tag, item_code: item.itemCode, destination, checkout_time: timeStr, return_url: unitUrl, message: bodyLines
-          });
-          return mailtoLink;
-        } catch (err) {
-          console.error(err);
-        }
-      }
-      setTimeout(() => { window.location.href = mailtoLink; }, 350);
-      return mailtoLink;
-    }
-
-    function openCheckInModal(itemId) {
-      const item = items.find(i => i.id === itemId);
-      if (!item) return;
-      document.getElementById('checkin-item-id').value = item.id;
-      const activeRec = (item.activeCheckouts && item.activeCheckouts[0]) || null;
-      document.getElementById('checkin-user').value = activeRec ? activeRec.userName : '';
-      document.getElementById('checkin-quality').value = item.quality || 'Good';
-      document.getElementById('checkin-note').value = '';
-
-      document.getElementById('checkin-concern-desc').value = '';
-      document.getElementById('checkin-concern-impact').value = '';
-      document.getElementById('checkin-repair-fields').classList.add('hidden');
-      document.getElementById('checkin-concern-desc').required = false;
-      document.getElementById('checkin-concern-impact').required = false;
-
-      document.getElementById('checkin-modal-subtitle').textContent = `TAG: ${item.tag} | CODE: ${item.itemCode} — ${item.name}`;
-      const modal = document.getElementById('checkin-modal');
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-    }
-
-    function closeCheckInModal() {
-      document.getElementById('checkin-modal').classList.add('hidden');
-    }
-
-    function toggleCheckInRepairFields() {
-      const qual = document.getElementById('checkin-quality').value;
-      const repairFields = document.getElementById('checkin-repair-fields');
-      const desc = document.getElementById('checkin-concern-desc');
-      const impact = document.getElementById('checkin-concern-impact');
-      if (qual === 'Needs Repair' || qual === 'Broken') {
-        repairFields.classList.remove('hidden');
-        desc.required = true; impact.required = true;
-      } else {
-        repairFields.classList.add('hidden');
-        desc.required = false; impact.required = false;
-      }
-    }
-
-    async function confirmCheckIn(e) {
-      e.preventDefault();
-      const itemId = document.getElementById('checkin-item-id').value;
-      const returnedBy = document.getElementById('checkin-user').value.trim();
-      const quality = document.getElementById('checkin-quality').value;
-      const notes = document.getElementById('checkin-note').value.trim();
-
-      const item = items.find(i => i.id === itemId);
-      if (!item) return;
-
-      if (quality === 'Needs Repair' || quality === 'Broken') {
-        const concernDesc = document.getElementById('checkin-concern-desc').value.trim();
-        const concernImpact = document.getElementById('checkin-concern-impact').value.trim();
-        const now = Date.now();
-        const helpLogs = JSON.parse(localStorage.getItem(STORAGE_KEY_HELP_LOGS)) || [];
-        
-        let maxTk = helpLogs.reduce((max, entry) => {
-          if (entry.ticketNumber && entry.ticketNumber.startsWith('TK-')) {
-            const num = parseInt(entry.ticketNumber.split('-')[1], 10);
-            if (!isNaN(num) && num > max) return num;
-          }
-          return max;
-        }, 1000);
-        const ticketNumber = 'TK-' + (maxTk + 1);
-
-        helpLogs.unshift({
-          id: 'hl-' + now, ticketNumber, type: 'CONCERN', itemName: item.name, itemTag: item.tag, itemCode: item.itemCode, quality, user: returnedBy, description: concernDesc, impact: concernImpact, timestamp: now, status: 'OPEN'
-        });
-        localStorage.setItem(STORAGE_KEY_HELP_LOGS, JSON.stringify(helpLogs));
-      }
-
-      const now = Date.now();
-      let durationMs = null;
-      let originDestination = item.location;
-      let checkoutId = null;
-      let previousEmail = '';
-
-      if (item.activeCheckouts && item.activeCheckouts.length > 0) {
-        const activeRec = item.activeCheckouts[0];
-        checkoutId = activeRec.checkoutId;
-        durationMs = now - activeRec.checkedOutAt;
-        originDestination = activeRec.destination;
-        previousEmail = activeRec.userEmail || '';
-        item.activeCheckouts = [];
-
-        const histMatch = item.checkoutHistory.find(h => h.checkoutId === checkoutId);
-        if (histMatch) {
-          histMatch.status = 'RETURNED'; histMatch.returnedAt = now; histMatch.returnedBy = returnedBy; histMatch.returnQuality = quality; histMatch.returnNotes = notes; histMatch.durationMs = durationMs;
-        }
-      }
-
-      item.quantity = 1;
-      item.quality = quality;
-      item.checkoutHistory.unshift({ id: 'hist-in-' + now, checkoutId, type: 'CHECK_IN', userName: returnedBy, userEmail: previousEmail, destination: originDestination, notes, qualityAtEvent: quality, durationMs, timestamp: now, status: 'COMPLETED' });
-
-      closeCheckInModal();
-      addAppNotification('CHECK_IN', `${item.name} Checked In`, `${returnedBy} returned unit ${item.itemCode} from "${originDestination}" (Quality: ${quality}).`, item.tag, previousEmail);
-      renderInventory();
-      if (activeScannedTag) refreshScannedBanner(activeScannedTag, false);
-      await saveState();
-    }
-
-    function openHistoryModal(itemId) {
-      const item = items.find(i => i.id === itemId);
-      if (!item) return;
-      document.getElementById('history-tag').textContent = `TAG: ${item.tag} | ITEM CODE: ${item.itemCode}`;
-      document.getElementById('history-title').textContent = `${item.name} — Unit Check-Out & History Log`;
-
-      const activeContainer = document.getElementById('history-active-list');
-      const logContainer = document.getElementById('history-log-list');
-      activeContainer.innerHTML = ''; logContainer.innerHTML = '';
-
-      if (!item.activeCheckouts || item.activeCheckouts.length === 0) {
-        activeContainer.innerHTML = `<p class="text-xs text-emerald-700 font-semibold bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl">✅ Unit is currently in storage (${escapeHtml(item.location)}).</p>`;
-      } else {
-        item.activeCheckouts.forEach(rec => {
-          const div = document.createElement('div');
-          div.className = 'p-3 bg-amber-50 border border-amber-200 rounded-xl flex flex-wrap justify-between items-center gap-2 text-xs';
-          div.innerHTML = `
-            <div>
-              <span class="font-bold text-slate-900">👤 ${escapeHtml(rec.userName)}</span>
-              <span class="mx-1.5 text-slate-300">•</span>
-              <span class="font-semibold text-purple-800">📍 ${escapeHtml(rec.destination)}</span>
-            </div>
-            <div class="flex items-center gap-3">
-              <span class="font-mono font-bold text-amber-800 bg-amber-200/70 px-2.5 py-1 rounded-lg" data-live-timer="${rec.checkedOutAt}">${formatElapsedDuration(rec.checkedOutAt)}</span>
-              <button onclick="closeHistoryModal(); openCheckInModal('${item.id}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-lg font-bold">Check In</button>
-            </div>
-          `;
-          activeContainer.appendChild(div);
-        });
-      }
-
-      if (!item.checkoutHistory || item.checkoutHistory.length === 0) {
-        logContainer.innerHTML = `<p class="text-xs text-slate-400 italic">No check-out history recorded.</p>`;
-      } else {
-        item.checkoutHistory.forEach(entry => {
-          const isOut = entry.type === 'CHECK_OUT';
-          const badge = isOut
-            ? `<span class="bg-amber-100 text-amber-800 border border-amber-300 font-bold px-2 py-0.5 rounded text-[10px]">📤 OUT</span>`
-            : `<span class="bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold px-2 py-0.5 rounded text-[10px]">📥 IN</span>`;
-          const durationText = entry.durationMs ? `<span class="font-mono text-[11px] text-slate-600 bg-slate-200 px-2 py-0.5 rounded">Time Out: ${formatElapsedDuration(0, entry.durationMs)}</span>` : '';
-
-          const row = document.createElement('div');
-          row.className = 'p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs flex flex-wrap justify-between items-start gap-2';
-          row.innerHTML = `
-            <div class="space-y-1">
-              <div class="flex items-center gap-2 flex-wrap">
-                ${badge}
-                <span class="font-bold text-slate-900">${escapeHtml(entry.userName)}</span>
-                <span class="text-slate-600">📍 <strong>${escapeHtml(entry.destination)}</strong></span>
-                ${getQualityBadgeHtml(entry.qualityAtEvent)}
-                ${durationText}
-              </div>
-            </div>
-            <div class="text-right text-[11px] text-slate-400 font-mono">${new Date(entry.timestamp).toLocaleString()}</div>
-          `;
-          logContainer.appendChild(row);
-        });
-      }
-
-      const modal = document.getElementById('history-modal');
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-    }
-
-    function closeHistoryModal() {
-      document.getElementById('history-modal').classList.add('hidden');
-    }
-
-    function resetToOverview() {
-      viewMode = 'OVERVIEW'; selectedCategory = null; selectedProductName = null; renderInventory();
-    }
-
-    function selectCategoryView(categoryName) {
-      selectedCategory = categoryName; selectedProductName = null; viewMode = 'UNITS'; renderInventory();
-    }
-
-    function selectProductTypeView(categoryName, productName) {
-      selectedCategory = categoryName; selectedProductName = productName; viewMode = 'UNITS'; renderInventory();
-    }
-
-    function openAllUnitsView() {
-      selectedCategory = null; selectedProductName = null; viewMode = 'UNITS'; renderInventory();
-    }
-
-    function populatePlantDropdowns() {
-      const filterSelect = document.getElementById('filter-plant');
-      const modalSelect = document.getElementById('item-plant');
-      const currentFilter = filterSelect.value || 'ALL';
-      const optionsHtml = plants.map(p => `<option value="${p.code}">${p.code} — ${p.name}</option>`).join('');
-      filterSelect.innerHTML = `<option value="ALL">All Plants</option>` + optionsHtml;
-      modalSelect.innerHTML = optionsHtml;
-      filterSelect.value = currentFilter;
-    }
-
-    function getFilteredItems() {
-      const search = document.getElementById('search-input').value.toLowerCase();
-      const plantFilter = document.getElementById('filter-plant').value;
-      const qualityFilter = document.getElementById('filter-quality').value;
-      const statusFilter = document.getElementById('filter-status').value;
-      const sortFilter = document.getElementById('filter-sort').value;
-
-      let filtered = items.filter(item => {
-        const isCheckedOut = item.activeCheckouts && item.activeCheckouts.length > 0;
-        const matchesPlant = plantFilter === 'ALL' || item.plantCode === plantFilter;
-        const matchesQuality = qualityFilter === 'ALL' || item.quality === qualityFilter;
-        const matchesStatus = statusFilter === 'ALL' ||
-          (statusFilter === 'CHECKED_OUT' && isCheckedOut) || (statusFilter === 'IN_STORAGE' && !isCheckedOut);
-        const matchesSearch = !search ||
-          item.tag.toLowerCase().includes(search) ||
-          (item.itemCode && item.itemCode.toLowerCase().includes(search)) ||
-          (item.serialNumber && item.serialNumber.toLowerCase().includes(search)) ||
-          item.name.toLowerCase().includes(search) ||
-          item.category.toLowerCase().includes(search);
-        return matchesPlant && matchesQuality && matchesStatus && matchesSearch;
-      });
-
-      if (sortFilter === 'AZ') filtered.sort((a, b) => a.name.localeCompare(b.name));
-      else if (sortFilter === 'ZA') filtered.sort((a, b) => b.name.localeCompare(a.name));
-      else if (sortFilter === 'NEWEST') filtered.reverse();
-      return filtered;
-    }
-
-    function renderNavigationAndCategoryPills(baseFiltered) {
-      const btnOverview = document.getElementById('btn-view-overview');
-      const btnAllUnits = document.getElementById('btn-view-all-units');
-      if (viewMode === 'OVERVIEW') {
-        btnOverview.className = 'text-xs px-3 py-1.5 rounded-md font-bold bg-white text-[#5A358E] shadow-sm border border-purple-100';
-        btnAllUnits.className = 'text-xs px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-[#5A358E]';
-      } else {
-        btnOverview.className = 'text-xs px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-[#5A358E]';
-        btnAllUnits.className = 'text-xs px-3 py-1.5 rounded-md font-bold bg-white text-[#5A358E] shadow-sm border border-purple-100';
-      }
-
-      const breadcrumbBar = document.getElementById('breadcrumb-bar');
-      let crumbsHtml = `<button onclick="resetToOverview()" class="text-xs font-bold text-[#5A358E] hover:underline flex items-center gap-1.5">🏠 Overview</button>`;
-      if (selectedCategory) {
-        crumbsHtml += `<span class="text-slate-300 text-xs">/</span>`;
-        crumbsHtml += `<button onclick="selectCategoryView('${escapeJsStr(selectedCategory)}')" class="text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded-md">${escapeHtml(selectedCategory)}</button>`;
-        crumbsHtml += `<button onclick="toggleSelectCategoryQRs('${escapeJsStr(selectedCategory)}', event)" class="text-[11px] font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded-md ml-1" title="Mass Select/Unselect all units in this category for QR printing">🖨️ Select Category QR</button>`;
-        crumbsHtml += `<button onclick="openEditCategoryModal('${escapeJsStr(selectedCategory)}', event)" class="text-[11px] font-bold bg-purple-50 hover:bg-purple-100 text-[#5A358E] border border-purple-200 px-2 py-0.5 rounded-md" title="Edit Category Name & Bulk Rename Items">✏️ Edit Category</button>`;
-      }
-      if (selectedProductName) {
-        crumbsHtml += `<span class="text-slate-300 text-xs">/</span>`;
-        crumbsHtml += `<span class="text-xs font-bold text-[#5A358E] bg-purple-50 border border-purple-200 px-2 py-0.5 rounded-md">${escapeHtml(selectedProductName)}</span>`;
-      }
-      breadcrumbBar.innerHTML = crumbsHtml;
-
-      const categoryMap = new Map();
-      baseFiltered.forEach(item => {
-        const cat = item.category || 'Uncategorized';
-        if (!categoryMap.has(cat)) categoryMap.set(cat, { total: 0, available: 0, selectedCount: 0 });
-        const stat = categoryMap.get(cat);
-        stat.total++;
-        if (!item.activeCheckouts || item.activeCheckouts.length === 0) stat.available++;
-        if (selectedItemIds.has(item.id)) stat.selectedCount++;
-      });
-
-      const pillsContainer = document.getElementById('category-pills-container');
-      const totalAvailableAll = baseFiltered.filter(i => !i.activeCheckouts || i.activeCheckouts.length === 0).length;
-      const allActiveStyle = (!selectedCategory && viewMode === 'OVERVIEW') ? 'bg-[#5A358E] text-white border-[#5A358E]' : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200';
-
-      const pillsHtml = [];
-      pillsHtml.push(`<button onclick="resetToOverview()" class="px-3 py-1.5 rounded-lg border text-xs font-semibold transition flex items-center gap-1.5 ${allActiveStyle}"><span>All Categories</span><span class="px-1.5 py-0.2 rounded bg-[#0D9488] text-white text-[10px] font-bold">${totalAvailableAll}/${baseFiltered.length}</span></button>`);
-
-      Array.from(categoryMap.entries()).sort((a, b) => a[0].localeCompare(b[0])).forEach(([catName, stat]) => {
-        const isSelected = selectedCategory === catName;
-        const allCatQrSelected = stat.total > 0 && stat.selectedCount === stat.total;
-        const wrapClass = isSelected ? 'bg-[#5A358E] text-white border-[#5A358E] shadow-sm' : 'bg-white text-slate-700 border-slate-200';
-        const qrBtnClass = allCatQrSelected
-          ? 'bg-emerald-600 text-white border-emerald-700'
-          : (isSelected ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700');
-        const editBtnClass = isSelected
-          ? 'bg-white/20 hover:bg-white/30 text-white'
-          : 'bg-slate-100 hover:bg-purple-50 text-slate-600 hover:text-[#5A358E]';
-
-        pillsHtml.push(`
-          <div class="inline-flex items-center rounded-lg border text-xs font-semibold transition overflow-hidden ${wrapClass}">
-            <button onclick="selectCategoryView('${escapeJsStr(catName)}')" class="px-2.5 py-1.5 flex items-center gap-1.5 hover:opacity-90">
-              <span>📂 ${escapeHtml(catName)}</span>
-              <span class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">${stat.available} Avail</span>
-            </button>
-            <button onclick="toggleSelectCategoryQRs('${escapeJsStr(catName)}', event)" class="px-2 py-1.5 border-l border-slate-200/40 text-[11px] font-bold transition ${qrBtnClass}" title="Mass select/unselect all ${stat.total} QR codes in ${escapeHtml(catName)}">
-              🖨️ ${stat.selectedCount > 0 ? `${stat.selectedCount}/${stat.total}` : 'QR'}
-            </button>
-            <button onclick="openEditCategoryModal('${escapeJsStr(catName)}', event)" class="px-2 py-1.5 border-l border-slate-200/40 text-[11px] transition ${editBtnClass}" title="Edit Category & Bulk Rename Items in ${escapeHtml(catName)}">
-              ✏️
-            </button>
-          </div>
-        `);
-      });
-      pillsContainer.innerHTML = pillsHtml.join('');
-    }
-
-    function renderInventory() {
-      const baseFiltered = getFilteredItems();
-      renderNavigationAndCategoryPills(baseFiltered);
-      updateUiForRole();
-      if (viewMode === 'OVERVIEW') {
-        document.getElementById('overview-section').classList.remove('hidden');
-        document.getElementById('units-section').classList.add('hidden');
-        renderOverviewCards(baseFiltered);
-      } else {
-        document.getElementById('overview-section').classList.add('hidden');
-        document.getElementById('units-section').classList.remove('hidden');
-        renderUnitsTable(baseFiltered);
-      }
-      updateSelectedCounter();
-    }
-
-    function renderOverviewCards(baseFiltered) {
-      const grid = document.getElementById('product-types-grid');
-      grid.innerHTML = '';
-      const filteredByCat = selectedCategory ? baseFiltered.filter(i => (i.category || 'Uncategorized') === selectedCategory) : baseFiltered;
-
-      if (filteredByCat.length === 0) {
-        grid.innerHTML = `<div class="col-span-full bg-white rounded-2xl p-10 text-center border border-slate-200 text-slate-400 text-sm shadow-inner">No matching item types found.</div>`;
-        return;
-      }
-
-      const productGroups = new Map();
-      filteredByCat.forEach(item => {
-        const key = `${(item.category || 'Uncategorized').toLowerCase()}||${item.name.toLowerCase()}`;
-        if (!productGroups.has(key)) {
-          productGroups.set(key, { name: item.name, category: item.category || 'Uncategorized', total: 0, available: 0, checkedOut: 0, selectedForPrint: 0, plants: new Set(), locations: new Set() });
-        }
-        const grp = productGroups.get(key);
-        grp.total++;
-        if (selectedItemIds.has(item.id)) grp.selectedForPrint++;
-        grp.plants.add(item.plantCode);
-        if (item.location) grp.locations.add(item.location);
-        if (item.activeCheckouts && item.activeCheckouts.length > 0) grp.checkedOut++;
-        else grp.available++;
-      });
-
-      Array.from(productGroups.values()).forEach(grp => {
-        const allGrpSelected = grp.total > 0 && grp.selectedForPrint === grp.total;
-        const qrBtnStyle = allGrpSelected
-          ? 'bg-[#0D9488] text-white border-[#0D9488]'
-          : 'bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 border-slate-200';
-
-        const card = document.createElement('div');
-        card.className = 'bg-white rounded-2xl shadow-sm border-l-4 border-[#5A358E] border-y border-r border-[#DCDDE1] p-5 flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5';
-        card.innerHTML = `
-          <div>
-            <div class="flex justify-between items-center gap-2">
-              <div class="flex items-center gap-1 min-w-0">
-                <button onclick="selectCategoryView('${escapeJsStr(grp.category)}')" class="text-[11px] font-bold bg-purple-50 hover:bg-purple-100 text-[#5A358E] px-2.5 py-0.5 rounded-md transition truncate">📂 ${escapeHtml(grp.category)}</button>
-                <button onclick="openEditCategoryModal('${escapeJsStr(grp.category)}', event)" class="text-[11px] bg-slate-100 hover:bg-purple-100 text-slate-600 hover:text-[#5A358E] px-1.5 py-0.5 rounded transition shrink-0" title="Edit Category & Bulk Rename Items">✏️</button>
-              </div>
-              <span class="text-[11px] font-mono font-bold text-slate-400 shrink-0">🏢 ${Array.from(grp.plants).join(', ')}</span>
-            </div>
-            <h3 onclick="selectProductTypeView('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}')" class="text-base font-bold text-slate-900 mt-2.5 hover:text-[#5A358E] cursor-pointer truncate">${escapeHtml(grp.name)}</h3>
-            <div class="flex items-center justify-between text-[11px] text-slate-400 mt-1 gap-2">
-              <span class="truncate">📍 ${escapeHtml(Array.from(grp.locations).join(', '))}</span>
-            </div>
-            <div class="grid grid-cols-3 gap-2 mt-4 p-2.5 rounded-xl bg-[#FDFDFD] border border-slate-100 shadow-inner">
-              <div class="text-center">
-                <div class="text-xl font-extrabold ${grp.available > 0 ? 'text-[#0D9488]' : 'text-rose-600'}">${grp.available}</div>
-                <div class="text-[10px] font-bold uppercase text-slate-400">Available</div>
-              </div>
-              <div class="text-center border-x border-slate-200">
-                <div class="text-xl font-bold text-amber-600">${grp.checkedOut}</div>
-                <div class="text-[10px] font-bold uppercase text-slate-400">Out</div>
-              </div>
-              <div class="text-center">
-                <div class="text-xl font-bold text-slate-700">${grp.total}</div>
-                <div class="text-[10px] font-bold uppercase text-slate-400">Total</div>
-              </div>
-            </div>
-          </div>
-          <div class="mt-4 pt-3 border-t border-slate-100 flex items-center gap-2">
-            <button onclick="selectProductTypeView('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}')" class="flex-1 bg-[#5A358E] hover:bg-[#3D2566] text-white text-xs font-bold py-2 px-3 rounded-lg transition truncate shadow-sm">View ${grp.total} Unit(s)</button>
-            <button onclick="toggleSelectProductGroupQRs('${escapeJsStr(grp.category)}', '${escapeJsStr(grp.name)}', event)" class="border text-xs font-bold py-2 px-2.5 rounded-lg transition shrink-0 ${qrBtnStyle}" title="Select/Unselect all units of this item for QR printing">
-              🖨️ ${grp.selectedForPrint}/${grp.total}
-            </button>
-          </div>
-        `;
-        grid.appendChild(card);
-      });
-    }
-
-    function renderUnitsTable(baseFiltered) {
-      const tbody = document.getElementById('inventory-tbody');
-      tbody.innerHTML = '';
-      const isAdmin = loggedInUser && loggedInUser.isAdmin;
-
-      const filtered = baseFiltered.filter(item => {
-        const matchesCat = !selectedCategory || (item.category || 'Uncategorized') === selectedCategory;
-        const matchesProd = !selectedProductName || item.name === selectedProductName;
-        return matchesCat && matchesProd;
-      });
-
-      if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-400">No matching units found.</td></tr>`;
-        return;
-      }
-
-      filtered.forEach(item => {
-        const isChecked = selectedItemIds.has(item.id) ? 'checked' : '';
-        const isCheckedOut = item.activeCheckouts && item.activeCheckouts.length > 0;
-        const statusBadge = isCheckedOut
-          ? `<span class="px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">Out</span>`
-          : `<span class="px-2.5 py-1 rounded-md text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">In Stock</span>`;
-
-        let liveCheckoutHtml = '—';
-        if (isCheckedOut) {
-          const rec = item.activeCheckouts[0];
-          liveCheckoutHtml = `<span class="font-bold text-slate-900">👤 ${escapeHtml(rec.userName)}</span> <span class="font-mono text-amber-700 text-[11px]" data-live-timer="${rec.checkedOutAt}">${formatElapsedDuration(rec.checkedOutAt)}</span>`;
-        }
-
-        const primaryActionBtn = isCheckedOut
-          ? `<button onclick="openCheckInModal('${item.id}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-md text-xs font-bold transition">📥 In</button>`
-          : `<button onclick="openCheckOutModal('${item.id}')" class="bg-amber-600 hover:bg-amber-500 text-white px-2.5 py-1 rounded-md text-xs font-bold transition">📤 Out</button>`;
-
-        const adminBtns = isAdmin
-          ? `<button onclick="openItemModal('${item.id}')" class="text-xs bg-purple-50 hover:bg-purple-100 text-[#5A358E] px-2 py-1 rounded">✏️</button>
-             <button onclick="deleteItem('${item.id}')" class="text-xs bg-rose-50 hover:bg-rose-100 text-rose-600 px-2 py-1 rounded">🗑️</button>`
-          : '';
-
-        const tr = document.createElement('tr');
-        tr.className = 'hover:bg-purple-50/30 transition-colors border-b border-slate-100';
-        tr.innerHTML = `
-          <td class="p-3 text-center">
-            <input type="checkbox" ${isChecked} onchange="toggleItemSelect('${item.id}', this.checked)" class="w-4 h-4 accent-[#5A358E] cursor-pointer" />
-          </td>
-          <td class="p-3">
-            <button onclick="openScanViewForItem('${item.id}')" class="font-mono font-bold text-[#5A358E] hover:underline">${escapeHtml(item.tag)}</button>
-            <div class="text-[11px] font-mono text-slate-500">${escapeHtml(item.itemCode)}</div>
-          </td>
-          <td class="p-3">
-            <div class="font-semibold text-slate-900">${escapeHtml(item.name)}</div>
-            <div class="text-xs text-slate-500">${escapeHtml(item.category)} ${item.serialNumber ? `• <span class="font-mono text-purple-800">S/N: ${escapeHtml(item.serialNumber)}</span>` : ''}</div>
-          </td>
-          <td class="p-3">
-            <div class="text-xs font-bold">${escapeHtml(item.plantCode)}</div>
-            <div class="text-[11px] text-slate-500">${escapeHtml(item.location)}</div>
-          </td>
-          <td class="p-3">${getQualityBadgeHtml(item.quality)}</td>
-          <td class="p-3 text-center">${statusBadge}</td>
-          <td class="p-3">${liveCheckoutHtml}</td>
-          <td class="p-3 text-right">
-            <div class="flex items-center justify-end gap-1">
-              ${primaryActionBtn}
-              <button onclick="openDetailModal('${item.id}')" class="text-xs bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded">QR</button>
-              <button onclick="openHistoryModal('${item.id}')" class="text-xs bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded">📜</button>
-              ${adminBtns}
-            </div>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
     function toggleItemSelect(id, checked) {
       if (checked) selectedItemIds.add(id); else selectedItemIds.delete(id);
       renderInventory();
@@ -2434,6 +1693,7 @@
 
       const qrUrl = buildQRUrl(item);
       document.getElementById('detail-qr-link').href = qrUrl;
+      document.getElementById('detail-qr-link').textContent = `🔗 Open Unit Check-Out Page`;
       document.getElementById('detail-open-scan-btn').onclick = () => openScanViewForItem(item.id);
 
       const qrContainer = document.getElementById('single-qr-container');
@@ -2455,6 +1715,300 @@
       return String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
     }
 
+    function populatePlantDropdowns() {
+      const filterSelect = document.getElementById('filter-plant');
+      const modalSelect = document.getElementById('item-plant');
+      const currentFilter = filterSelect.value || 'ALL';
+      const optionsHtml = plants.map(p => `<option value="${p.code}">${p.code} — ${p.name}</option>`).join('');
+      filterSelect.innerHTML = `<option value="ALL">All Plants</option>` + optionsHtml;
+      modalSelect.innerHTML = optionsHtml;
+      filterSelect.value = currentFilter;
+    }
+
+    function getFilteredItems() {
+      const search = document.getElementById('search-input').value.toLowerCase();
+      const plantFilter = document.getElementById('filter-plant').value;
+      const qualityFilter = document.getElementById('filter-quality').value;
+      const statusFilter = document.getElementById('filter-status').value;
+      const sortFilter = document.getElementById('filter-sort').value;
+
+      let filtered = items.filter(item => {
+        const isCheckedOut = item.activeCheckouts && item.activeCheckouts.length > 0;
+        const matchesPlant = plantFilter === 'ALL' || item.plantCode === plantFilter;
+        const matchesQuality = qualityFilter === 'ALL' || item.quality === qualityFilter;
+        const matchesStatus = statusFilter === 'ALL' ||
+          (statusFilter === 'CHECKED_OUT' && isCheckedOut) || (statusFilter === 'IN_STORAGE' && !isCheckedOut);
+        const matchesSearch = !search ||
+          item.tag.toLowerCase().includes(search) ||
+          (item.itemCode && item.itemCode.toLowerCase().includes(search)) ||
+          (item.serialNumber && item.serialNumber.toLowerCase().includes(search)) ||
+          item.name.toLowerCase().includes(search) ||
+          item.category.toLowerCase().includes(search);
+        return matchesPlant && matchesQuality && matchesStatus && matchesSearch;
+      });
+
+      if (sortFilter === 'AZ') filtered.sort((a, b) => a.name.localeCompare(b.name));
+      else if (sortFilter === 'ZA') filtered.sort((a, b) => b.name.localeCompare(a.name));
+      else if (sortFilter === 'NEWEST') filtered.reverse();
+      return filtered;
+    }
+
+    function renderNavigationAndCategoryPills(baseFiltered) {
+      const btnOverview = document.getElementById('btn-view-overview');
+      const btnAllUnits = document.getElementById('btn-view-all-units');
+      if (viewMode === 'OVERVIEW') {
+        btnOverview.className = 'text-xs px-3 py-1.5 rounded-md font-bold bg-white text-[#5A358E] shadow-sm border border-purple-100';
+        btnAllUnits.className = 'text-xs px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-[#5A358E]';
+      } else {
+        btnOverview.className = 'text-xs px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-[#5A358E]';
+        btnAllUnits.className = 'text-xs px-3 py-1.5 rounded-md font-bold bg-white text-[#5A358E] shadow-sm border border-purple-100';
+      }
+
+      const breadcrumbBar = document.getElementById('breadcrumb-bar');
+      let crumbsHtml = `<button onclick="resetToOverview()" class="text-xs font-bold text-[#5A358E] hover:underline flex items-center gap-1.5">🏠 Overview</button>`;
+      if (selectedCategory) {
+        crumbsHtml += `<span class="text-slate-300 text-xs">/</span>`;
+        crumbsHtml += `<button onclick="selectCategoryView('${escapeJsStr(selectedCategory)}')" class="text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded-md">${escapeHtml(selectedCategory)}</button>`;
+      }
+      if (selectedProductName) {
+        crumbsHtml += `<span class="text-slate-300 text-xs">/</span>`;
+        crumbsHtml += `<span class="text-xs font-bold text-[#5A358E] bg-purple-50 border border-purple-200 px-2 py-0.5 rounded-md">${escapeHtml(selectedProductName)}</span>`;
+      }
+      breadcrumbBar.innerHTML = crumbsHtml;
+
+      const pillsContainer = document.getElementById('category-pills-container');
+      if (!pillsContainer) return;
+
+      const plantSelect = document.getElementById('filter-plant');
+      const currentPlant = plantSelect ? plantSelect.value : 'ALL';
+
+      const search = document.getElementById('search-input').value.toLowerCase();
+      const qualityFilter = document.getElementById('filter-quality').value;
+      const statusFilter = document.getElementById('filter-status').value;
+
+      const plantCounts = { ALL: 0, ALL_avail: 0 };
+      plants.forEach(p => {
+        plantCounts[p.code] = 0;
+        plantCounts[p.code + '_avail'] = 0;
+      });
+
+      items.forEach(item => {
+        const isCheckedOut = item.activeCheckouts && item.activeCheckouts.length > 0;
+        const matchesQuality = qualityFilter === 'ALL' || item.quality === qualityFilter;
+        const matchesStatus = statusFilter === 'ALL' ||
+          (statusFilter === 'CHECKED_OUT' && isCheckedOut) || (statusFilter === 'IN_STORAGE' && !isCheckedOut);
+        const matchesSearch = !search ||
+          item.tag.toLowerCase().includes(search) ||
+          (item.itemCode && item.itemCode.toLowerCase().includes(search)) ||
+          (item.serialNumber && item.serialNumber.toLowerCase().includes(search)) ||
+          item.name.toLowerCase().includes(search) ||
+          item.category.toLowerCase().includes(search);
+
+        if (matchesQuality && matchesStatus && matchesSearch) {
+          plantCounts.ALL++;
+          if (!isCheckedOut) plantCounts.ALL_avail++;
+          if (plantCounts[item.plantCode] !== undefined) {
+            plantCounts[item.plantCode]++;
+            if (!isCheckedOut) plantCounts[item.plantCode + '_avail']++;
+          }
+        }
+      });
+
+      const pillsHtml = [];
+      const allActiveStyle = (currentPlant === 'ALL') ? 'bg-[#5A358E] text-white border-[#5A358E]' : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200';
+      pillsHtml.push(`
+        <button onclick="setPlantFilter('ALL')" class="px-3 py-1.5 rounded-lg border text-xs font-semibold transition flex items-center gap-1.5 ${allActiveStyle}">
+          <span>All Plants</span>
+          <span class="px-1.5 py-0.2 rounded bg-[#0D9488] text-white text-[10px] font-bold">${plantCounts.ALL_avail}/${plantCounts.ALL}</span>
+        </button>
+      `);
+
+      plants.forEach(p => {
+        const isSelected = currentPlant === p.code;
+        const wrapClass = isSelected ? 'bg-[#5A358E] text-white border-[#5A358E]' : 'bg-white text-slate-700 border-slate-200';
+        const avail = plantCounts[p.code + '_avail'] || 0;
+        const total = plantCounts[p.code] || 0;
+        pillsHtml.push(`
+          <button onclick="setPlantFilter('${p.code}')" class="px-3 py-1.5 rounded-lg border text-xs font-semibold transition flex items-center gap-1.5 ${wrapClass}">
+            <span>🏢 ${p.code} — ${p.name}</span>
+            <span class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">${avail}/${total}</span>
+          </button>
+        `);
+      });
+
+      pillsContainer.innerHTML = pillsHtml.join('');
+    }
+
+    function setPlantFilter(plantCode) {
+      const plantSelect = document.getElementById('filter-plant');
+      if (plantSelect) {
+        plantSelect.value = plantCode;
+        renderInventory();
+      }
+    }
+
+    function renderInventory() {
+      const baseFiltered = getFilteredItems();
+      renderNavigationAndCategoryPills(baseFiltered);
+      updateUiForRole();
+      if (viewMode === 'OVERVIEW') {
+        document.getElementById('overview-section').classList.remove('hidden');
+        document.getElementById('units-section').classList.add('hidden');
+        renderOverviewCards(baseFiltered);
+      } else {
+        document.getElementById('overview-section').classList.add('hidden');
+        document.getElementById('units-section').classList.remove('hidden');
+        renderUnitsTable(baseFiltered);
+      }
+      updateSelectedCounter();
+    }
+
+    function renderOverviewCards(baseFiltered) {
+      const grid = document.getElementById('product-types-grid');
+      grid.innerHTML = '';
+
+      if (baseFiltered.length === 0) {
+        grid.innerHTML = `<div class="col-span-full bg-white rounded-2xl p-10 text-center border border-slate-200 text-slate-400 text-sm shadow-inner">No items found.</div>`;
+        return;
+      }
+
+      const categoryGroups = new Map();
+      baseFiltered.forEach(item => {
+        const cat = item.category || 'Uncategorized';
+        if (!categoryGroups.has(cat)) {
+          categoryGroups.set(cat, {
+            name: cat,
+            total: 0,
+            available: 0,
+            checkedOut: 0,
+            plants: new Set(),
+            locations: new Set()
+          });
+        }
+        const grp = categoryGroups.get(cat);
+        grp.total++;
+        if (item.activeCheckouts && item.activeCheckouts.length > 0) {
+          grp.checkedOut++;
+        } else {
+          grp.available++;
+        }
+        grp.plants.add(item.plantCode);
+        if (item.location) grp.locations.add(item.location);
+      });
+
+      Array.from(categoryGroups.values()).sort((a, b) => a.name.localeCompare(b.name)).forEach(grp => {
+        const card = document.createElement('div');
+        card.className = 'bg-white rounded-2xl shadow-sm border-l-4 border-[#5A358E] border-y border-r border-[#DCDDE1] p-5 flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5';
+        card.innerHTML = `
+          <div>
+            <div class="flex justify-between items-center gap-2">
+              <div class="flex items-center gap-1 min-w-0">
+                <span class="text-[11px] font-bold bg-purple-50 text-[#5A358E] px-2.5 py-0.5 rounded-md truncate">📂 Category</span>
+              </div>
+              <span class="text-[11px] font-mono font-bold text-slate-400 shrink-0">🏢 ${Array.from(grp.plants).join(', ')}</span>
+            </div>
+            <h3 onclick="selectCategoryView('${escapeJsStr(grp.name)}')" class="text-base font-bold text-slate-900 mt-2.5 hover:text-[#5A358E] cursor-pointer truncate">${escapeHtml(grp.name)}</h3>
+            <div class="flex items-center justify-between text-[11px] text-slate-400 mt-1 gap-2">
+              <span class="truncate">📍 Locations: ${escapeHtml(Array.from(grp.locations).join(', '))}</span>
+            </div>
+            <div class="grid grid-cols-3 gap-2 mt-4 p-2.5 rounded-xl bg-[#FDFDFD] border border-slate-100 shadow-inner">
+              <div class="text-center">
+                <div class="text-xl font-extrabold ${grp.available > 0 ? 'text-[#0D9488]' : 'text-rose-600'}">${grp.available}</div>
+                <div class="text-[10px] font-bold uppercase text-slate-400">Available</div>
+              </div>
+              <div class="text-center border-x border-slate-200">
+                <div class="text-xl font-bold text-amber-600">${grp.checkedOut}</div>
+                <div class="text-[10px] font-bold uppercase text-slate-400">Out</div>
+              </div>
+              <div class="text-center">
+                <div class="text-xl font-bold text-slate-700">${grp.total}</div>
+                <div class="text-[10px] font-bold uppercase text-slate-400">Total</div>
+              </div>
+            </div>
+          </div>
+          <div class="mt-4 pt-3 border-t border-slate-100 flex items-center gap-2">
+            <button onclick="selectCategoryView('${escapeJsStr(grp.name)}')" class="flex-1 bg-[#5A358E] hover:bg-[#3D2566] text-white text-xs font-bold py-2 px-3 rounded-lg transition truncate shadow-sm">View Items (${grp.total})</button>
+            <button onclick="openCategoryDetailModal('${escapeJsStr(grp.name)}')" class="border border-slate-200 text-xs font-bold py-2 px-2.5 rounded-lg bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 transition shrink-0" title="View/Print Category Checkout QR Code">
+              🖨️ QR
+            </button>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function renderUnitsTable(baseFiltered) {
+      const tbody = document.getElementById('inventory-tbody');
+      tbody.innerHTML = '';
+      const isAdmin = loggedInUser && loggedInUser.isAdmin;
+
+      const filtered = baseFiltered.filter(item => {
+        const matchesCat = !selectedCategory || (item.category || 'Uncategorized') === selectedCategory;
+        const matchesProd = !selectedProductName || item.name === selectedProductName;
+        return matchesCat && matchesProd;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-400">No matching units found.</td></tr>`;
+        return;
+      }
+
+      filtered.forEach(item => {
+        const isChecked = selectedItemIds.has(item.id) ? 'checked' : '';
+        const isCheckedOut = item.activeCheckouts && item.activeCheckouts.length > 0;
+        const statusBadge = isCheckedOut
+          ? `<span class="px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">Out</span>`
+          : `<span class="px-2.5 py-1 rounded-md text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">In Stock</span>`;
+
+        let liveCheckoutHtml = '—';
+        if (isCheckedOut) {
+          const rec = item.activeCheckouts[0];
+          liveCheckoutHtml = `<span class="font-bold text-slate-900">👤 ${escapeHtml(rec.userName)}</span> <span class="font-mono text-amber-700 text-[11px]" data-live-timer="${rec.checkedOutAt}">${formatElapsedDuration(rec.checkedOutAt)}</span>`;
+        }
+
+        const primaryActionBtn = isCheckedOut
+          ? `<button onclick="openCheckInModal('${item.id}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-md text-xs font-bold transition">📥 In</button>`
+          : `<button onclick="openCheckOutModal('${item.id}')" class="bg-amber-600 hover:bg-amber-500 text-white px-2.5 py-1 rounded-md text-xs font-bold transition">📤 Out</button>`;
+
+        const adminBtns = isAdmin
+          ? `<button onclick="openItemModal('${item.id}')" class="text-xs bg-purple-50 hover:bg-purple-100 text-[#5A358E] px-2 py-1 rounded">✏️</button>
+             <button onclick="deleteItem('${item.id}')" class="text-xs bg-rose-50 hover:bg-rose-100 text-rose-600 px-2 py-1 rounded">🗑️</button>`
+          : '';
+
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-purple-50/30 transition-colors border-b border-slate-100';
+        tr.innerHTML = `
+          <td class="p-3 text-center">
+            <input type="checkbox" ${isChecked} onchange="toggleItemSelect('${item.id}', this.checked)" class="w-4 h-4 accent-[#5A358E] cursor-pointer" />
+          </td>
+          <td class="p-3">
+            <button onclick="openScanViewForItem('${item.id}')" class="font-mono font-bold text-[#5A358E] hover:underline">${escapeHtml(item.tag)}</button>
+            <div class="text-[11px] font-mono text-slate-500">${escapeHtml(item.itemCode)}</div>
+          </td>
+          <td class="p-3">
+            <div class="font-semibold text-slate-900">${escapeHtml(item.name)}</div>
+            <div class="text-xs text-slate-500">${escapeHtml(item.category)} ${item.serialNumber ? `• <span class="font-mono text-purple-800">S/N: ${escapeHtml(item.serialNumber)}</span>` : ''}</div>
+          </td>
+          <td class="p-3">
+            <div class="text-xs font-bold">${escapeHtml(item.plantCode)}</div>
+            <div class="text-[11px] text-slate-500">${escapeHtml(item.location)}</div>
+          </td>
+          <td class="p-3">${getQualityBadgeHtml(item.quality)}</td>
+          <td class="p-3 text-center">${statusBadge}</td>
+          <td class="p-3">${liveCheckoutHtml}</td>
+          <td class="p-3 text-right">
+            <div class="flex items-center justify-end gap-1">
+              ${primaryActionBtn}
+              <button onclick="openDetailModal('${item.id}')" class="text-xs bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded">QR</button>
+              <button onclick="openHistoryModal('${item.id}')" class="text-xs bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded">📜</button>
+              ${adminBtns}
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
     async function initApp() {
       checkAdminUser();
       normalizeItems();
@@ -2468,6 +2022,564 @@
       }, 6000);
     }
     initApp();
+
+    let autoCheckoutCategory = null;
+
+    function buildCategoryQRUrl(categoryName) {
+      if (permanentQrBaseUrl && permanentQrBaseUrl.trim() !== '') {
+        let base = permanentQrBaseUrl.trim();
+        if (!base.endsWith('/')) base += '/';
+        return `${base}?categoryCheckout=${encodeURIComponent(categoryName)}`;
+      }
+      const loc = window.location;
+      return `${loc.origin}${loc.pathname}?categoryCheckout=${encodeURIComponent(categoryName)}`;
+    }
+
+    function openCategoryCheckoutModal(categoryName) {
+      autoCheckoutCategory = categoryName;
+      
+      // Update Title & Description
+      document.querySelector('#auto-checkout-modal h3').textContent = `🎯 Auto Check-Out: ${categoryName}`;
+      document.querySelector('#auto-checkout-modal p').textContent = `The system will automatically assign you the first available unit from the "${categoryName}" category.`;
+      
+      // Hide product type select div and show category info
+      const selectDiv = document.getElementById('auto-checkout-item-name').closest('div');
+      selectDiv.classList.add('hidden');
+      
+      let infoDiv = document.getElementById('category-checkout-info');
+      if (!infoDiv) {
+        infoDiv = document.createElement('div');
+        infoDiv.id = 'category-checkout-info';
+        infoDiv.className = 'bg-purple-50 border border-purple-200 rounded-xl p-3 text-xs text-[#5A358E] font-semibold mb-3';
+        selectDiv.parentNode.insertBefore(infoDiv, selectDiv);
+      }
+      infoDiv.classList.remove('hidden');
+      infoDiv.innerHTML = `📦 Selected Category: <span class="font-extrabold">${categoryName}</span>`;
+
+      // Clear fields
+      document.getElementById('auto-checkout-user-id').value = '';
+      document.getElementById('auto-checkout-email').value = '';
+      document.getElementById('auto-checkout-destination').value = '';
+      document.getElementById('auto-checkout-note').value = '';
+      document.getElementById('auto-checkout-send-email-toggle').checked = false;
+      document.getElementById('auto-checkout-for-good-toggle').checked = false;
+      validateAutoCheckoutUser();
+
+      const modal = document.getElementById('auto-checkout-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function openCategoryDetailModal(categoryName) {
+      const matchingItems = items.filter(i => (i.category || 'Uncategorized') === categoryName);
+      const total = matchingItems.length;
+      const available = matchingItems.filter(i => !i.activeCheckouts || i.activeCheckouts.length === 0).length;
+
+      document.getElementById('detail-tag').textContent = `CATEGORY: ${categoryName}`;
+      document.getElementById('detail-code').textContent = `${available} / ${total} Avail`;
+      document.getElementById('detail-name').textContent = `${categoryName} - Category Check-Out`;
+      document.getElementById('detail-plant').textContent = [...new Set(matchingItems.map(i => i.plantCode))].join(', ') || 'N/A';
+      document.getElementById('detail-category').textContent = categoryName;
+      document.getElementById('detail-location').textContent = [...new Set(matchingItems.map(i => i.location))].join(', ') || 'N/A';
+      document.getElementById('detail-serial').textContent = 'N/A';
+      document.getElementById('detail-quality').innerHTML = '';
+      document.getElementById('detail-qty').textContent = `${available} available units`;
+      document.getElementById('detail-notes').textContent = `Scan this category QR code to automatically check out an item of this category (similar to autocheckout).`;
+      document.getElementById('detail-instructions').textContent = `Instructions: Print this sticker and place it on the storage bin/rack for this entire category.`;
+
+      const qrUrl = buildCategoryQRUrl(categoryName);
+      document.getElementById('detail-qr-link').href = qrUrl;
+      document.getElementById('detail-qr-link').textContent = `🔗 Open Category Checkout Page`;
+      document.getElementById('detail-open-scan-btn').onclick = () => {
+        closeDetailModal();
+        openCategoryCheckoutModal(categoryName);
+      };
+      document.getElementById('detail-open-scan-btn').textContent = `🎯 Open Category Auto-Checkout`;
+
+      const qrContainer = document.getElementById('single-qr-container');
+      qrContainer.innerHTML = '';
+      new QRCode(qrContainer, { text: qrUrl, width: 150, height: 150 });
+
+      document.getElementById('detail-modal').classList.remove('hidden');
+      document.getElementById('detail-modal').classList.add('flex');
+    }
+
+    // ==========================================
+    // MISSING FUNCTIONS ADDED FOR FULL SUPPORT
+    // ==========================================
+
+    // View Switchers
+    function resetToOverview() {
+      viewMode = 'OVERVIEW';
+      selectedCategory = null;
+      selectedProductName = null;
+      renderInventory();
+    }
+
+    function openAllUnitsView() {
+      viewMode = 'UNITS';
+      selectedCategory = null;
+      selectedProductName = null;
+      renderInventory();
+    }
+
+    function selectCategoryView(categoryName) {
+      viewMode = 'UNITS';
+      selectedCategory = categoryName;
+      selectedProductName = null;
+      renderInventory();
+    }
+
+    // Checkout Modal
+    function openCheckOutModal(itemId) {
+      const item = items.find(i => i.id === itemId);
+      if (!item) return;
+      document.getElementById('checkout-item-id').value = item.id;
+      document.getElementById('checkout-modal-subtitle').textContent = `${item.tag} — ${item.name}`;
+      
+      // Reset fields
+      document.getElementById('checkout-user-id').value = '';
+      document.getElementById('checkout-email').value = '';
+      document.getElementById('checkout-destination').value = '';
+      document.getElementById('checkout-note').value = '';
+      document.getElementById('checkout-send-email-toggle').checked = true;
+      document.getElementById('checkout-for-good-toggle').checked = false;
+      
+      // Reset validation
+      validateCheckoutUser();
+
+      const modal = document.getElementById('checkout-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeCheckOutModal() {
+      document.getElementById('checkout-modal').classList.add('hidden');
+      document.getElementById('checkout-modal').classList.remove('flex');
+    }
+
+    function validateCheckoutUser() {
+      const userIdInput = document.getElementById('checkout-user-id');
+      const valIcon = document.getElementById('checkout-user-validation-icon');
+      const valMsg = document.getElementById('checkout-user-validation-msg');
+      const emailInput = document.getElementById('checkout-email');
+      
+      if (!userIdInput || !valIcon || !valMsg) return;
+
+      const val = userIdInput.value.trim().toLowerCase();
+      if (!val) {
+        valIcon.textContent = '';
+        valMsg.textContent = '';
+        return;
+      }
+
+      const found = users.find(u => u.username.toLowerCase() === val);
+      if (found) {
+        valIcon.textContent = '✅';
+        valMsg.textContent = `Valid User: ${found.name}`;
+        valMsg.className = "text-[11px] mt-1 font-semibold text-emerald-600";
+        if (emailInput) emailInput.value = found.email || '';
+      } else {
+        valIcon.textContent = '❌';
+        valMsg.textContent = 'User ID not found in directory';
+        valMsg.className = "text-[11px] mt-1 font-semibold text-rose-600";
+      }
+    }
+
+    async function confirmCheckOut(e) {
+      e.preventDefault();
+      const itemId = document.getElementById('checkout-item-id').value;
+      const userId = document.getElementById('checkout-user-id').value.trim();
+      const email = document.getElementById('checkout-email').value.trim();
+      const destination = document.getElementById('checkout-destination').value.trim();
+      const note = document.getElementById('checkout-note').value.trim();
+      const sendEmail = document.getElementById('checkout-send-email-toggle').checked;
+      const forGood = document.getElementById('checkout-for-good-toggle').checked;
+
+      const item = items.find(i => i.id === itemId);
+      if (!item) return;
+
+      // Find user name
+      const foundUser = users.find(u => u.username.toLowerCase() === userId.toLowerCase());
+      const userName = foundUser ? foundUser.name : userId;
+
+      const checkoutRecord = {
+        checkoutId: 'co-' + Date.now(),
+        userId,
+        userName,
+        userEmail: email,
+        destination,
+        note,
+        checkedOutAt: Date.now(),
+        forGood
+      };
+
+      // Add to active checkouts
+      if (!item.activeCheckouts) item.activeCheckouts = [];
+      item.activeCheckouts.push(checkoutRecord);
+      item.quantity = 0; // Marked as out
+
+      // Log notification
+      addAppNotification(
+        'CHECK_OUT',
+        `Unit Checked Out: ${item.tag}`,
+        `${userName} checked out ${item.name} to ${destination}.`,
+        item.tag,
+        email
+      );
+
+      closeCheckOutModal();
+      renderInventory();
+      if (activeScannedTag === item.tag) {
+        refreshScannedBanner(item.tag, false);
+      }
+      await saveState();
+    }
+
+    // Check In Modal
+    function openCheckInModal(itemId) {
+      const item = items.find(i => i.id === itemId);
+      if (!item) return;
+      document.getElementById('checkin-item-id').value = item.id;
+      document.getElementById('checkin-modal-subtitle').textContent = `${item.tag} — ${item.name}`;
+      
+      // Pre-fill user name if available from active checkouts
+      let lastUser = '';
+      if (item.activeCheckouts && item.activeCheckouts.length > 0) {
+        lastUser = item.activeCheckouts[0].userName;
+      }
+      document.getElementById('checkin-user').value = lastUser;
+      document.getElementById('checkin-quality').value = item.quality || 'Good';
+      document.getElementById('checkin-note').value = '';
+      
+      // Concern fields
+      document.getElementById('checkin-concern-desc').value = '';
+      document.getElementById('checkin-concern-impact').value = '';
+      
+      toggleCheckInRepairFields();
+
+      const modal = document.getElementById('checkin-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeCheckInModal() {
+      document.getElementById('checkin-modal').classList.add('hidden');
+      document.getElementById('checkin-modal').classList.remove('flex');
+    }
+
+    function toggleCheckInRepairFields() {
+      const q = document.getElementById('checkin-quality').value;
+      const repairFields = document.getElementById('checkin-repair-fields');
+      if (q === 'Needs Repair' || q === 'Broken') {
+        repairFields.classList.remove('hidden');
+      } else {
+        repairFields.classList.add('hidden');
+      }
+    }
+
+    async function confirmCheckIn(e) {
+      e.preventDefault();
+      const itemId = document.getElementById('checkin-item-id').value;
+      const userName = document.getElementById('checkin-user').value.trim();
+      const quality = document.getElementById('checkin-quality').value;
+      const note = document.getElementById('checkin-note').value.trim();
+      const concernDesc = document.getElementById('checkin-concern-desc').value.trim();
+      const concernImpact = document.getElementById('checkin-concern-impact').value.trim();
+
+      const item = items.find(i => i.id === itemId);
+      if (!item) return;
+
+      const activeList = item.activeCheckouts || [];
+      const activeRecord = activeList[0] || {};
+
+      const checkInRecord = {
+        checkInId: 'ci-' + Date.now(),
+        userName,
+        quality,
+        note,
+        concernDesc,
+        concernImpact,
+        checkedInAt: Date.now(),
+        checkedOutAt: activeRecord.checkedOutAt || Date.now(),
+        destination: activeRecord.destination || 'N/A'
+      };
+
+      // Add to checkout history
+      if (!item.checkoutHistory) item.checkoutHistory = [];
+      item.checkoutHistory.push({
+        ...activeRecord,
+        checkedInAt: Date.now(),
+        returnQuality: quality,
+        returnNote: note,
+        concernDesc,
+        concernImpact
+      });
+
+      // Clear active checkout
+      item.activeCheckouts = [];
+      item.quality = quality;
+      item.quantity = 1; // Available again
+
+      // Log notification
+      addAppNotification(
+        'CHECK_IN',
+        `Unit Checked In: ${item.tag}`,
+        `${userName} checked in ${item.name} (Quality: ${quality}).`,
+        item.tag
+      );
+
+      closeCheckInModal();
+      renderInventory();
+      if (activeScannedTag === item.tag) {
+        refreshScannedBanner(item.tag, false);
+      }
+      await saveState();
+    }
+
+    // Auto Checkout Modal
+    function openAutoCheckoutModal() {
+      // Populate auto-checkout-item-name dropdown with unique item names from items that are available
+      const select = document.getElementById('auto-checkout-item-name');
+      if (!select) return;
+
+      // Get unique item names that are currently in stock (quantity > 0)
+      const availableItems = items.filter(i => !i.activeCheckouts || i.activeCheckouts.length === 0);
+      const uniqueNames = [...new Set(availableItems.map(i => i.name))];
+
+      if (uniqueNames.length === 0) {
+        select.innerHTML = '<option value="">No items available for checkout</option>';
+      } else {
+        select.innerHTML = uniqueNames.map(name => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('');
+      }
+
+      // Show select div and hide category info
+      const selectDiv = select.closest('div');
+      selectDiv.classList.remove('hidden');
+      const infoDiv = document.getElementById('category-checkout-info');
+      if (infoDiv) infoDiv.classList.add('hidden');
+
+      autoCheckoutCategory = null;
+
+      // Reset fields
+      document.getElementById('auto-checkout-user-id').value = '';
+      document.getElementById('auto-checkout-email').value = '';
+      document.getElementById('auto-checkout-destination').value = '';
+      document.getElementById('auto-checkout-note').value = '';
+      document.getElementById('auto-checkout-send-email-toggle').checked = true;
+      document.getElementById('auto-checkout-for-good-toggle').checked = false;
+      
+      validateAutoCheckoutUser();
+
+      const modal = document.getElementById('auto-checkout-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeAutoCheckoutModal() {
+      document.getElementById('auto-checkout-modal').classList.add('hidden');
+      document.getElementById('auto-checkout-modal').classList.remove('flex');
+    }
+
+    function validateAutoCheckoutUser() {
+      const userIdInput = document.getElementById('auto-checkout-user-id');
+      const valIcon = document.getElementById('auto-checkout-user-validation-icon');
+      const valMsg = document.getElementById('auto-checkout-user-validation-msg');
+      const emailInput = document.getElementById('auto-checkout-email');
+      
+      if (!userIdInput || !valIcon || !valMsg) return;
+
+      const val = userIdInput.value.trim().toLowerCase();
+      if (!val) {
+        valIcon.textContent = '';
+        valMsg.textContent = '';
+        return;
+      }
+
+      const found = users.find(u => u.username.toLowerCase() === val);
+      if (found) {
+        valIcon.textContent = '✅';
+        valMsg.textContent = `Valid User: ${found.name}`;
+        valMsg.className = "text-[11px] mt-1 font-semibold text-emerald-600";
+        if (emailInput) emailInput.value = found.email || '';
+      } else {
+        valIcon.textContent = '❌';
+        valMsg.textContent = 'User ID not found in directory';
+        valMsg.className = "text-[11px] mt-1 font-semibold text-rose-600";
+      }
+    }
+
+    async function confirmAutoCheckOut(e) {
+      e.preventDefault();
+      const userId = document.getElementById('auto-checkout-user-id').value.trim();
+      const email = document.getElementById('auto-checkout-email').value.trim();
+      const destination = document.getElementById('auto-checkout-destination').value.trim();
+      const note = document.getElementById('auto-checkout-note').value.trim();
+      const sendEmail = document.getElementById('auto-checkout-send-email-toggle').checked;
+      const forGood = document.getElementById('auto-checkout-for-good-toggle').checked;
+
+      let candidateUnit = null;
+
+      if (autoCheckoutCategory) {
+        // Find first available unit in this category
+        candidateUnit = items.find(i => (i.category || 'Uncategorized') === autoCheckoutCategory && (!i.activeCheckouts || i.activeCheckouts.length === 0));
+      } else {
+        // Find first available unit by product name
+        const itemName = document.getElementById('auto-checkout-item-name').value;
+        if (!itemName) {
+          alert('Please select an item type.');
+          return;
+        }
+        candidateUnit = items.find(i => i.name === itemName && (!i.activeCheckouts || i.activeCheckouts.length === 0));
+      }
+
+      if (!candidateUnit) {
+        alert('Sorry, no available units left for checkout.');
+        return;
+      }
+
+      const foundUser = users.find(u => u.username.toLowerCase() === userId.toLowerCase());
+      const userName = foundUser ? foundUser.name : userId;
+
+      const checkoutRecord = {
+        checkoutId: 'co-' + Date.now(),
+        userId,
+        userName,
+        userEmail: email,
+        destination,
+        note,
+        checkedOutAt: Date.now(),
+        forGood
+      };
+
+      if (!candidateUnit.activeCheckouts) candidateUnit.activeCheckouts = [];
+      candidateUnit.activeCheckouts.push(checkoutRecord);
+      candidateUnit.quantity = 0;
+
+      // Log notification
+      addAppNotification(
+        'CHECK_OUT',
+        `Auto Checkout: ${candidateUnit.tag}`,
+        `${userName} checked out ${candidateUnit.name} to ${destination}.`,
+        candidateUnit.tag,
+        email
+      );
+
+      closeAutoCheckoutModal();
+
+      // Show Receipt Modal
+      document.getElementById('receipt-item-name').textContent = candidateUnit.name;
+      document.getElementById('receipt-item-tag').textContent = candidateUnit.tag;
+      document.getElementById('receipt-item-code').textContent = candidateUnit.itemCode;
+      document.getElementById('receipt-item-serial').textContent = candidateUnit.serialNumber || '—';
+      document.getElementById('receipt-item-location').textContent = candidateUnit.location;
+      document.getElementById('receipt-user-name').textContent = userName;
+      document.getElementById('receipt-destination').textContent = destination;
+
+      if (candidateUnit.notes) {
+        document.getElementById('receipt-item-notes-box').classList.remove('hidden');
+        document.getElementById('receipt-item-notes').textContent = candidateUnit.notes;
+      } else {
+        document.getElementById('receipt-item-notes-box').classList.add('hidden');
+      }
+
+      if (candidateUnit.instructions) {
+        document.getElementById('receipt-item-instructions-box').classList.remove('hidden');
+        document.getElementById('receipt-item-instructions').textContent = candidateUnit.instructions;
+      } else {
+        document.getElementById('receipt-item-instructions-box').classList.add('hidden');
+      }
+
+      document.getElementById('auto-checkout-success-modal').classList.remove('hidden');
+      document.getElementById('auto-checkout-success-modal').classList.add('flex');
+
+      renderInventory();
+      if (activeScannedTag === candidateUnit.tag) {
+        refreshScannedBanner(candidateUnit.tag, false);
+      }
+      await saveState();
+    }
+
+    function closeReceiptModal() {
+      document.getElementById('auto-checkout-success-modal').classList.add('hidden');
+      document.getElementById('auto-checkout-success-modal').classList.remove('flex');
+    }
+
+    // History Modal
+    function openHistoryModal(itemId) {
+      const item = items.find(i => i.id === itemId);
+      if (!item) return;
+
+      document.getElementById('history-tag').textContent = item.tag;
+      document.getElementById('history-title').textContent = `${item.name} — Checkout History`;
+
+      const activeListContainer = document.getElementById('history-active-list');
+      const logListContainer = document.getElementById('history-log-list');
+
+      activeListContainer.innerHTML = '';
+      logListContainer.innerHTML = '';
+
+      const activeList = item.activeCheckouts || [];
+      if (activeList.length === 0) {
+        activeListContainer.innerHTML = '<div class="text-xs text-slate-400 italic">No active checkouts.</div>';
+      } else {
+        activeList.forEach(rec => {
+          const div = document.createElement('div');
+          div.className = 'bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs space-y-1';
+          div.innerHTML = `
+            <div class="flex justify-between font-bold">
+              <span>👤 ${escapeHtml(rec.userName)} (${escapeHtml(rec.userId)})</span>
+              <span class="text-amber-700" data-live-timer="${rec.checkedOutAt}">${formatElapsedDuration(rec.checkedOutAt)}</span>
+            </div>
+            <div>📍 Destination: <span class="font-semibold">${escapeHtml(rec.destination)}</span></div>
+            ${rec.note ? `<div class="text-slate-600 italic">Notes: "${escapeHtml(rec.note)}"</div>` : ''}
+          `;
+          activeListContainer.appendChild(div);
+        });
+      }
+
+      const historyList = item.checkoutHistory || [];
+      if (historyList.length === 0) {
+        logListContainer.innerHTML = '<div class="text-xs text-slate-400 italic">No historical checkouts recorded.</div>';
+      } else {
+        // Sort newest first
+        const sortedHistory = [...historyList].reverse();
+        sortedHistory.forEach(rec => {
+          const div = document.createElement('div');
+          div.className = 'bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs space-y-1';
+          const duration = formatElapsedDuration(rec.checkedOutAt, rec.checkedInAt);
+          div.innerHTML = `
+            <div class="flex justify-between font-semibold text-slate-700">
+              <span>👤 ${escapeHtml(rec.userName)}</span>
+              <span>Returned: ${new Date(rec.checkedInAt).toLocaleString()}</span>
+            </div>
+            <div class="grid grid-cols-2 gap-2 text-[11px] text-slate-500">
+              <div>Checked Out: ${new Date(rec.checkedOutAt).toLocaleString()}</div>
+              <div>Duration: ${duration}</div>
+              <div>Destination: ${escapeHtml(rec.destination)}</div>
+              <div>Return Quality: ${getQualityBadgeHtml(rec.returnQuality)}</div>
+            </div>
+            ${rec.note ? `<div class="text-slate-600 italic">Notes: "${escapeHtml(rec.note)}"</div>` : ''}
+            ${rec.concernDesc ? `
+              <div class="mt-1.5 p-2 bg-rose-50 border border-rose-100 rounded text-rose-900">
+                <span class="font-bold">⚠️ Issue:</span> ${escapeHtml(rec.concernDesc)}
+                <br/><span class="font-bold">Impact:</span> ${escapeHtml(rec.concernImpact)}
+              </div>
+            ` : ''}
+          `;
+          logListContainer.appendChild(div);
+        });
+      }
+
+      const modal = document.getElementById('history-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeHistoryModal() {
+      document.getElementById('history-modal').classList.add('hidden');
+      document.getElementById('history-modal').classList.remove('flex');
+    }
   </script>
 </body>
 </html>
