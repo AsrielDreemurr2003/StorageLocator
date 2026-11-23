@@ -4,30 +4,30 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>StorageLocater — Trane Technologies Asset & Quality Tracker</title>
-  <!-- Preload sibling pages for instantaneous zero-lag transitions -->
   <link rel="prefetch" href="deployments.html" />
   <link rel="prefetch" href="admin.html" />
   <link rel="prefetch" href="support.html" />
-  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- QRCode.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <!-- EmailJS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght=500;700&display=swap');
     body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
     .font-mono { font-family: 'JetBrains Mono', monospace; }
-
     @media print {
       body * { visibility: hidden; }
       #print-area, #print-area * { visibility: visible; }
-      #print-area {
+      #print-area.print-grid-mode {
         position: absolute; left: 0; top: 0; width: 100%;
         display: grid !important; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 4px;
       }
+      #print-area.print-poster-mode {
+        position: absolute; left: 0; top: 0; width: 100%;
+        display: block !important; padding: 0; margin: 0;
+      }
       .no-print { display: none !important; }
       .qr-card-print { page-break-inside: avoid; break-inside: avoid; height: 180px; box-sizing: border-box; overflow: hidden; }
+      .qr-poster-print { page-break-after: always; break-after: page; page-break-inside: avoid; break-inside: avoid; width: 100%; min-height: 92vh; display: flex; align-items: center; justify-content: center; box-sizing: border-box; padding: 24px; }
     }
     .qr-card-print { page-break-inside: avoid; border: 1.5px solid #5A358E; border-radius: 8px; padding: 8px; text-align: center; background: #fff; }
     @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
@@ -40,21 +40,15 @@
 </head>
 <body class="bg-[#FAF9F5] text-slate-800 min-h-screen pb-24 overflow-x-hidden">
 
-  <!-- Live Toast Notification Container -->
   <div id="toast-container" class="fixed top-16 right-4 z-50 space-y-2 max-w-sm w-full pointer-events-none no-print"></div>
 
-  <!-- Corporate Header themed in Trane Deep Purple & Green Accent -->
   <header class="bg-[#251440] text-white border-b-4 border-[#0D9488] sticky top-0 z-40 no-print shadow-md">
     <div class="w-full max-w-[96%] sm:max-w-[94%] xl:max-w-[92%] 2xl:max-w-[90%] mx-auto px-2 sm:px-4 h-16 flex items-center justify-between gap-3">
-      
-      <!-- Brand & Live Cloud Status -->
       <div class="flex items-center gap-3 min-w-0">
         <img onclick="resetToOverview()" src="https://brandlogos.net/wp-content/uploads/2026/02/trane_technologies-logo_brandlogos.net_ct15x-1536x432.png" alt="Trane Technologies Logo" class="h-9 md:h-11 w-auto cursor-pointer rounded-lg bg-white p-1.5 hover:opacity-90 transition active:scale-95 shrink-0 shadow-sm border border-slate-200" />
         <div class="min-w-0">
           <div class="flex items-center gap-2">
-            <h1 onclick="resetToOverview()" class="text-base sm:text-xl font-extrabold tracking-tight truncate cursor-pointer hover:text-emerald-300 transition-colors">
-              StorageLocater
-            </h1>
+            <h1 onclick="resetToOverview()" class="text-base sm:text-xl font-extrabold tracking-tight truncate cursor-pointer hover:text-emerald-300 transition-colors">StorageLocater</h1>
             <button id="sync-badge" onclick="window.location.href='admin.html?tab=cloud'" class="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shrink-0 hover:bg-emerald-500/25 transition" title="Cloud Sync Status">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
               <span id="sync-badge-text" class="hidden sm:inline">Connecting...</span>
@@ -64,46 +58,43 @@
         </div>
       </div>
 
-      <!-- Header Action Controls -->
       <div class="flex items-center gap-2 shrink-0">
-        <button onclick="printSelectedQRCodes()" id="header-print-btn" class="hidden sm:inline-flex items-center gap-1.5 bg-[#0D9488] hover:bg-[#059669] text-white px-3 py-2 rounded-lg text-xs font-bold transition shadow-sm hover:shadow active:scale-95">
+        <button onclick="printSelectedQRCodes()" id="header-print-btn" class="hidden sm:inline-flex items-center gap-1.5 bg-[#0D9488] hover:bg-[#059669] text-white px-3 py-2 rounded-lg text-xs font-bold transition shadow-sm active:scale-95">
           <span>🖨️ Print QR</span>
           <span id="selected-count" class="bg-black/25 px-1.5 py-0.2 rounded text-[11px] font-mono">0</span>
         </button>
 
-        <button onclick="openNotificationsModal()" class="relative bg-[#5A358E]/60 hover:bg-[#5A358E] text-slate-100 border border-purple-500/30 px-3 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 active:scale-95" title="View Check-Out Alerts">
+        <button onclick="openNotificationsModal()" class="relative bg-[#5A358E]/60 hover:bg-[#5A358E] text-slate-100 border border-purple-500/30 px-3 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 active:scale-95" title="View Alerts">
           <span>🔔</span>
           <span class="hidden md:inline">Alerts</span>
           <span id="notif-unread-badge" class="hidden bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full">0</span>
         </button>
 
-        <!-- Active Areas & Custodian Roster Link -->
-        <a href="deployments.html" class="bg-amber-600 hover:bg-amber-500 text-white px-3.5 py-2 rounded-lg text-xs font-bold transition-all shadow-md hover:shadow-lg flex items-center gap-1.5 active:scale-95">
+        <a href="deployments.html" class="bg-amber-600 hover:bg-amber-500 text-white px-3.5 py-2 rounded-lg text-xs font-bold transition-all shadow-md flex items-center gap-1.5 active:scale-95">
           <span>📍</span>
           <span class="hidden sm:inline">Active Areas</span>
         </a>
 
-        <button onclick="openAutoCheckoutModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-lg text-xs font-bold transition-all shadow-md hover:shadow-lg flex items-center gap-1.5 active:scale-95">
+        <button onclick="openAutoCheckoutModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-lg text-xs font-bold transition-all shadow-md flex items-center gap-1.5 active:scale-95">
           <span>🎯</span>
           <span class="hidden md:inline">Auto Check-Out</span>
         </button>
 
-        <a href="support.html" class="bg-[#0D9488] hover:bg-[#059669] text-white px-3.5 py-2 rounded-lg text-xs font-bold transition-all shadow-md hover:shadow-lg flex items-center gap-1.5 active:scale-95">
+        <a href="support.html" class="bg-[#0D9488] hover:bg-[#059669] text-white px-3.5 py-2 rounded-lg text-xs font-bold transition-all shadow-md flex items-center gap-1.5 active:scale-95">
           <span>🙋‍♂️</span>
           <span class="hidden lg:inline">Help & Support</span>
         </a>
 
-        <button id="header-add-item-btn" onclick="openItemModal()" class="hidden bg-[#5A358E] hover:bg-[#623a9c] text-white px-3.5 py-2 rounded-lg text-xs font-bold transition-all shadow-md hover:shadow-lg flex items-center gap-1.5 active:scale-95">
+        <button id="header-add-item-btn" onclick="openItemModal()" class="hidden bg-[#5A358E] hover:bg-[#623a9c] text-white px-3.5 py-2 rounded-lg text-xs font-bold transition-all shadow-md flex items-center gap-1.5 active:scale-95">
           <span>➕</span>
           <span class="hidden sm:inline">Add Item</span>
         </button>
 
-        <a id="header-auth-btn" href="admin.html" class="bg-[#5A358E] hover:bg-[#623a9c] text-white px-3.5 py-2 rounded-lg text-xs font-bold transition-all shadow-md hover:shadow-lg flex items-center gap-1.5 active:scale-95">
+        <a id="header-auth-btn" href="admin.html" class="bg-[#5A358E] hover:bg-[#623a9c] text-white px-3.5 py-2 rounded-lg text-xs font-bold transition-all shadow-md flex items-center gap-1.5 active:scale-95">
           <span id="header-auth-btn-icon">🔑</span>
           <span id="header-auth-btn-text" class="hidden sm:inline">Admin Login</span>
         </a>
 
-        <!-- Settings Dropdown Menu -->
         <div class="relative">
           <button onclick="toggleSettingsMenu(event)" class="bg-[#3D2566] hover:bg-[#5A358E] text-slate-100 border border-purple-500/20 px-3 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-1 active:scale-95">
             <span>⚙️</span>
@@ -111,53 +102,34 @@
             <span class="text-[10px] text-slate-300 ml-0.5">▼</span>
           </button>
 
-          <div id="settings-dropdown" class="hidden absolute right-0 mt-2 w-56 bg-white text-slate-800 rounded-xl shadow-2xl border border-slate-200 py-1.5 z-50 text-xs font-medium">
+          <div id="settings-dropdown" class="hidden absolute right-0 mt-2 w-60 bg-white text-slate-800 rounded-xl shadow-2xl border border-slate-200 py-1.5 z-50 text-xs font-medium">
             <div class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-purple-800">System Views & Support</div>
-            <a href="deployments.html" class="w-full text-left px-3.5 py-2 hover:bg-amber-50 text-amber-800 font-bold flex items-center gap-2.5">
-              <span>📍</span> Active Areas & Roster
-            </a>
-            <a href="support.html" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5">
-              <span>🙋‍♂️</span> Help & Feedback Desk
-            </a>
-            <button id="menu-plants-btn" onclick="window.location.href='admin.html?tab=plants'" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5">
-              <span>🏢</span> Manage Plants
-            </button>
-            <button id="menu-users-btn" onclick="window.location.href='admin.html?tab=users'" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5">
-              <span>👤</span> Manage Users
-            </button>
-            <button id="menu-email-btn" onclick="window.location.href='admin.html?tab=email'" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5">
-              <span>✉️</span> Email Alert Settings
-            </button>
-            <button id="menu-qr-btn" onclick="window.location.href='admin.html?tab=qr'" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5">
-              <span>🔗</span> Permanent QR URL Settings
-            </button>
-            <button id="menu-cloud-btn" onclick="window.location.href='admin.html?tab=cloud'" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5">
-              <span>☁️</span> Cloud Database Status
-            </button>
-            <button id="menu-consumed-btn" onclick="window.location.href='admin.html?tab=consumed'" class="hidden w-full text-left px-3.5 py-2 hover:bg-rose-50 text-rose-600 flex items-center gap-2.5 font-bold">
-              <span>🗑️</span> Consumed / Single-Use Log
-            </button>
+            <a href="deployments.html" class="w-full text-left px-3.5 py-2 hover:bg-amber-50 text-amber-800 font-bold flex items-center gap-2.5"><span>📍</span> Active Areas & Roster</a>
+            <a href="support.html" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5"><span>🙋‍♂️</span> Help & Feedback Desk</a>
+            <button id="menu-plants-btn" onclick="window.location.href='admin.html?tab=plants'" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5"><span>🏢</span> Manage Plants</button>
+            <button id="menu-users-btn" onclick="window.location.href='admin.html?tab=users'" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5"><span>👤</span> Manage Users</button>
+            <button id="menu-email-btn" onclick="window.location.href='admin.html?tab=email'" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5"><span>✉️</span> Email Alert Settings</button>
+            <button id="menu-qr-btn" onclick="window.location.href='admin.html?tab=qr'" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5"><span>🔗</span> Permanent QR URL Settings</button>
+            <button id="menu-cloud-btn" onclick="window.location.href='admin.html?tab=cloud'" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5"><span>☁️</span> Cloud Database Status</button>
+            <button id="menu-consumed-btn" onclick="window.location.href='admin.html?tab=consumed'" class="hidden w-full text-left px-3.5 py-2 hover:bg-rose-50 text-rose-600 flex items-center gap-2.5 font-bold"><span>🗑️</span> Consumed / Single-Use Log</button>
             <div class="border-t my-1 border-slate-100"></div>
             <div class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-purple-800">QR Print & Backup</div>
             <button onclick="closeSettingsMenu(); printSelectedQRCodes()" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center justify-between">
-              <span class="flex items-center gap-2.5"><span>🖨️</span> Print Selected QR</span>
+              <span class="flex items-center gap-2.5"><span>🖨️</span> Print Selected Unit QRs</span>
               <span id="menu-selected-count" class="font-mono font-bold text-emerald-600">0</span>
             </button>
-            <button onclick="closeSettingsMenu(); clearAllSelectedQRCodes()" class="w-full text-left px-3.5 py-2 hover:bg-rose-50 text-rose-600 flex items-center gap-2.5">
-              <span>✕</span> Unselect All QR Codes
-            </button>
+            <button onclick="closeSettingsMenu(); printAllCategorySmallQRs()" class="w-full text-left px-3.5 py-2 hover:bg-purple-50 text-[#5A358E] font-semibold flex items-center gap-2.5"><span>🏷️</span> Print All Category Small QRs</button>
+            <button onclick="closeSettingsMenu(); printAllCategoryPosters()" class="w-full text-left px-3.5 py-2 hover:bg-emerald-50 text-emerald-700 font-semibold flex items-center gap-2.5"><span>🪧</span> Print All Category Posters</button>
+            <button onclick="closeSettingsMenu(); clearAllSelectedQRCodes()" class="w-full text-left px-3.5 py-2 hover:bg-rose-50 text-rose-600 flex items-center gap-2.5"><span>✕</span> Unselect All QR Codes</button>
             <div class="border-t my-1 border-slate-100"></div>
-            <a id="menu-export-btn" href="admin.html?tab=backup" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5">
-              <span>💾</span> Export / Import Backup (.json)
-            </a>
+            <a id="menu-export-btn" href="admin.html?tab=backup" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5"><span>💾</span> Export / Import Backup (.json)</a>
           </div>
         </div>
       </div>
     </div>
   </header>
 
-  <!-- Floating Bottom QR Selection Bar -->
-  <div id="floating-print-bar" class="hidden fixed bottom-4 inset-x-4 max-w-3xl mx-auto bg-[#251440] text-white rounded-2xl shadow-2xl border border-purple-500/20 px-5 py-3.5 z-40 no-print flex flex-wrap items-center justify-between gap-3 transition-all duration-300">
+  <div id="floating-print-bar" class="hidden fixed bottom-4 inset-x-4 max-w-3xl mx-auto bg-[#251440] text-white rounded-2xl shadow-2xl border border-purple-500/20 px-5 py-3.5 z-40 no-print flex flex-wrap items-center justify-between gap-3">
     <div class="flex items-center gap-3">
       <span class="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 flex items-center justify-center font-mono font-bold text-sm" id="floating-selected-count">0</span>
       <div>
@@ -166,88 +138,56 @@
       </div>
     </div>
     <div class="flex items-center gap-2">
-      <button onclick="clearAllSelectedQRCodes()" class="bg-rose-600/20 hover:bg-rose-600 border border-rose-500/40 text-rose-200 hover:text-white px-3.5 py-2 rounded-xl text-xs font-bold transition">
-        ✕ Unselect All
-      </button>
-      <button onclick="printSelectedQRCodes()" class="bg-[#0D9488] hover:bg-[#059669] text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg transition">
-        🖨️ Print Selected QR Codes
-      </button>
+      <button onclick="clearAllSelectedQRCodes()" class="bg-rose-600/20 hover:bg-rose-600 border border-rose-500/40 text-rose-200 hover:text-white px-3.5 py-2 rounded-xl text-xs font-bold transition">✕ Unselect All QR</button>
+      <button onclick="printSelectedQRCodes()" class="bg-[#0D9488] hover:bg-[#059669] text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg transition">🖨️ Print Selected QR Codes</button>
     </div>
   </div>
 
-  <!-- Dedicated Individual Item QR Scan View Banner -->
-  <div id="scanned-banner" class="hidden w-full max-w-[96%] sm:max-w-[94%] xl:max-w-[92%] 2xl:max-w-[90%] mx-auto mt-6 px-2 sm:px-4 no-print">
-    <div class="bg-white border border-[#DCDDE1] rounded-2xl p-5 sm:p-6 shadow-xl relative overflow-hidden">
+  <!-- Clean, Device-Responsive QR Scan View Banner -->
+  <div id="scanned-banner" class="hidden w-full max-w-[96%] sm:max-w-[94%] xl:max-w-[92%] 2xl:max-w-[90%] mx-auto mt-4 sm:mt-6 px-2 sm:px-4 no-print">
+    <div class="bg-white border border-[#DCDDE1] rounded-2xl p-4 sm:p-6 shadow-xl relative overflow-hidden">
       <div class="absolute top-0 left-0 w-2 h-full bg-[#5A358E]"></div>
-      <div class="flex flex-wrap justify-between items-start gap-3 border-b pb-4 pl-2">
+      <div class="flex flex-wrap justify-between items-start gap-3 border-b border-slate-100 pb-4 pl-2">
         <div>
           <div class="flex items-center gap-2 flex-wrap">
             <span class="bg-[#5A358E] text-white text-[11px] font-bold px-2.5 py-0.5 rounded-md uppercase tracking-wider">📱 QR Scan View</span>
             <span id="scan-status-pill" class="text-[11px] font-bold px-2.5 py-0.5 rounded-md uppercase"></span>
           </div>
-          <h2 id="scan-title" class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-2"></h2>
+          <h2 id="scan-title" class="text-lg sm:text-2xl font-extrabold text-slate-900 mt-2"></h2>
           <div class="flex flex-wrap items-center gap-2 mt-1.5">
             <span id="scan-tag" class="text-xs font-mono bg-purple-50 text-[#5A358E] border border-purple-200 px-2.5 py-0.5 rounded font-bold"></span>
             <span id="scan-code" class="text-xs font-mono bg-slate-100 px-2.5 py-0.5 rounded border border-slate-200 text-slate-700 font-bold"></span>
             <span id="scan-serial-pill" class="hidden text-xs font-mono bg-indigo-50 text-indigo-700 px-2.5 py-0.5 rounded border border-indigo-200 font-bold"></span>
           </div>
         </div>
-        <button onclick="closeScanBanner()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold transition">
-          ✕ Close View
-        </button>
+        <button onclick="closeScanBanner()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold transition">✕ Close View</button>
       </div>
 
-      <!-- Action Prompt Banner -->
-      <div id="scan-smart-prompt" class="mt-4 p-4 rounded-xl border flex flex-wrap items-center justify-between gap-4">
+      <div id="scan-smart-prompt" class="mt-4 p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h3 id="scan-prompt-title" class="font-bold text-sm sm:text-base"></h3>
           <p id="scan-prompt-desc" class="text-xs mt-0.5"></p>
         </div>
-        <div class="flex flex-wrap gap-2">
-          <button id="scan-checkout-btn" class="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-lg font-bold text-xs sm:text-sm shadow transition">
-            📤 Check Out Unit
-          </button>
-          <button id="scan-checkin-btn" class="bg-[#0D9488] hover:bg-[#059669] text-white px-4 py-2 rounded-lg font-bold text-xs sm:text-sm shadow transition">
-            📥 Check In & Rate Quality
-          </button>
+        <div class="flex flex-wrap gap-2 w-full sm:w-auto">
+          <button id="scan-checkout-btn" class="w-full sm:w-auto justify-center bg-amber-600 hover:bg-amber-500 text-white px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm shadow transition flex items-center gap-1.5">📤 Check Out Unit</button>
+          <button id="scan-checkin-btn" class="w-full sm:w-auto justify-center bg-[#0D9488] hover:bg-[#059669] text-white px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm shadow transition flex items-center gap-1.5">📥 Check In & Rate Quality</button>
         </div>
       </div>
 
-      <!-- Item Specs Grid -->
-      <div class="grid grid-cols-2 sm:grid-cols-6 gap-3 mt-4 bg-slate-50 p-4 rounded-xl border border-slate-200/80">
-        <div>
-          <p class="text-[10px] text-slate-400 uppercase font-bold">Plant</p>
-          <p id="scan-plant" class="font-semibold text-slate-800 text-xs sm:text-sm mt-0.5"></p>
-        </div>
-        <div>
-          <p class="text-[10px] text-slate-400 uppercase font-bold">Category</p>
-          <p id="scan-category" class="font-semibold text-slate-800 text-xs sm:text-sm mt-0.5"></p>
-        </div>
-        <div>
-          <p class="text-[10px] text-slate-400 uppercase font-bold">Home Location</p>
-          <p id="scan-location" class="font-semibold text-slate-800 text-xs sm:text-sm mt-0.5"></p>
-        </div>
-        <div>
-          <p class="text-[10px] text-slate-400 uppercase font-bold">Serial Number (S/N)</p>
-          <p id="scan-serial" class="font-mono text-xs sm:text-sm font-semibold text-purple-900 mt-0.5">—</p>
-        </div>
-        <div>
-          <p class="text-[10px] text-slate-400 uppercase font-bold">Status</p>
-          <p id="scan-qty" class="text-xs sm:text-sm font-bold mt-0.5"></p>
-        </div>
-        <div>
-          <p class="text-[10px] text-slate-400 uppercase font-bold">Quality</p>
-          <div id="scan-quality-badge" class="mt-1"></div>
-        </div>
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mt-4 bg-slate-50 p-4 rounded-xl border border-slate-200/80">
+        <div><p class="text-[10px] text-slate-400 uppercase font-bold">Plant</p><p id="scan-plant" class="font-semibold text-slate-800 text-xs sm:text-sm mt-0.5"></p></div>
+        <div><p class="text-[10px] text-slate-400 uppercase font-bold">Category</p><p id="scan-category" class="font-semibold text-slate-800 text-xs sm:text-sm mt-0.5"></p></div>
+        <div><p class="text-[10px] text-slate-400 uppercase font-bold">Home Location</p><p id="scan-location" class="font-semibold text-slate-800 text-xs sm:text-sm mt-0.5"></p></div>
+        <div><p class="text-[10px] text-slate-400 uppercase font-bold">Serial Number (S/N)</p><p id="scan-serial" class="font-mono text-xs sm:text-sm font-semibold text-purple-900 mt-0.5">—</p></div>
+        <div><p class="text-[10px] text-slate-400 uppercase font-bold">Status</p><p id="scan-qty" class="text-xs sm:text-sm font-bold mt-0.5"></p></div>
+        <div><p class="text-[10px] text-slate-400 uppercase font-bold">Quality</p><div id="scan-quality-badge" class="mt-1"></div></div>
       </div>
 
-      <!-- Active Check-Out List -->
       <div id="scan-active-checkouts-box" class="mt-4 hidden">
         <h4 class="text-[11px] font-bold uppercase text-amber-800 mb-2">⏱️ Active Check-Out Timer</h4>
         <div id="scan-active-checkouts-list" class="space-y-2"></div>
       </div>
 
-      <!-- Notes & Work Instructions -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
         <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200/80">
           <p class="text-[11px] font-bold text-slate-400 uppercase mb-1">📋 Details & Notes</p>
@@ -261,29 +201,20 @@
 
       <div class="mt-4 pt-3 border-t border-slate-100 flex flex-wrap justify-between items-center gap-2">
         <div class="flex flex-wrap gap-2">
-          <button id="scan-history-btn" class="text-xs bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg font-semibold transition">
-            📜 History Log
-          </button>
-          <button id="scan-qr-btn" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg font-semibold transition">
-            🔍 QR Code
-          </button>
+          <button id="scan-history-btn" class="text-xs bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg font-semibold transition">📜 History Log</button>
+          <button id="scan-qr-btn" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg font-semibold transition">🔍 QR Code</button>
         </div>
-        <button id="scan-edit-btn" class="text-xs bg-purple-50 hover:bg-purple-100 text-[#5A358E] px-3 py-1.5 rounded-lg font-semibold transition">
-          ✏️ Edit Unit
-        </button>
+        <button id="scan-edit-btn" class="text-xs bg-purple-50 hover:bg-purple-100 text-[#5A358E] px-3 py-1.5 rounded-lg font-semibold transition">✏️ Edit Unit</button>
       </div>
     </div>
   </div>
 
-  <!-- Main Content Container -->
   <main class="w-full max-w-[96%] sm:max-w-[94%] xl:max-w-[92%] 2xl:max-w-[90%] mx-auto px-2 sm:px-4 py-6 no-print space-y-5">
-
-    <!-- Control Card: Search, Filters & Category Navigation -->
     <div class="bg-white rounded-2xl shadow-sm border border-[#DCDDE1] p-4 sm:p-5 space-y-4">
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
         <div>
           <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Search Inventory</label>
-          <input type="text" id="search-input" oninput="renderInventory()" placeholder="Name, S/N, tag, category..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
+          <input type="text" id="search-input" oninput="renderInventory()" placeholder="Name, S/N, tag, category, rack..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
         </div>
         <div>
           <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Plant Location</label>
@@ -321,7 +252,6 @@
         </div>
       </div>
 
-      <!-- Breadcrumb Row -->
       <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100">
         <div class="flex items-center gap-1.5 flex-wrap" id="breadcrumb-bar"></div>
         <div class="flex flex-wrap items-center gap-1.5">
@@ -329,27 +259,25 @@
             <button id="btn-view-overview" onclick="resetToOverview()" class="text-xs px-3 py-1.5 rounded-md font-semibold transition">📦 Product Types</button>
             <button id="btn-view-all-units" onclick="openAllUnitsView()" class="text-xs px-3 py-1.5 rounded-md font-semibold transition">📋 Individual Units</button>
           </div>
+          <button onclick="printAllCategorySmallQRs()" class="text-xs bg-purple-50 hover:bg-purple-100 text-[#5A358E] border border-purple-200 font-bold px-3 py-2 rounded-lg transition active:scale-95" title="Print a compact sheet of all Category QR codes for your desk">🏷️ Category Sheet</button>
           <a href="deployments.html" class="text-xs bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-bold px-3 py-2 rounded-lg transition active:scale-95">📍 Active Areas</a>
           <button onclick="pullFromCloud(true)" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 font-semibold px-3 py-2 rounded-lg transition active:scale-95" title="Sync with Cloud">🔄 Sync</button>
-          <button id="bar-unselect-all-btn" onclick="clearAllSelectedQRCodes()" class="hidden text-xs bg-[#FFF1F2] hover:bg-[#rose-100] text-rose-700 border border-rose-200 px-3 py-2 rounded-lg font-bold transition">
+          <button id="bar-unselect-all-btn" onclick="clearAllSelectedQRCodes()" class="hidden text-xs bg-[#FFF1F2] hover:bg-rose-100 text-rose-700 border border-rose-200 px-3 py-2 rounded-lg font-bold transition">
             ✕ Unselect All (<span id="bar-selected-count">0</span>)
           </button>
         </div>
       </div>
 
-      <!-- Clickable Plant Locations Bar -->
       <div class="pt-2 border-t border-slate-100">
         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Filter Plant Locations:</p>
         <div id="category-pills-container" class="flex flex-wrap gap-2"></div>
       </div>
     </div>
 
-    <!-- OVERVIEW DISPLAY: Grouped Product Types Grid -->
     <div id="overview-section">
       <div id="product-types-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6"></div>
     </div>
 
-    <!-- DRILL-DOWN DISPLAY: Individual Serialized Units Table -->
     <div id="units-section" class="hidden bg-white rounded-2xl shadow-md border border-[#DCDDE1] overflow-hidden">
       <div class="bg-[#251440] text-white px-4 sm:px-5 py-3.5 flex flex-wrap justify-between items-center gap-3">
         <div class="flex items-center gap-3">
@@ -360,7 +288,7 @@
           </div>
         </div>
         <div class="flex flex-wrap items-center gap-2">
-          <button id="units-edit-cat-btn" onclick="openEditCategoryModal(selectedCategory)" class="hidden text-xs bg-amber-500 hover:bg-amber-600 text-white font-bold px-3 py-1.5 rounded-lg shadow-sm transition">✏️ Edit Category / Rename Items</button>
+          <button id="units-edit-cat-btn" onclick="openEditCategoryModal(selectedCategory)" class="hidden text-xs bg-amber-500 hover:bg-amber-600 text-white font-bold px-3 py-1.5 rounded-lg shadow-sm transition">✏️ Edit Category / Rack Code</button>
           <button id="units-add-more-btn" onclick="openAddMoreUnitsForProduct()" class="hidden text-xs bg-[#0D9488] hover:bg-[#059669] text-white font-bold px-3 py-1.5 rounded-lg shadow-sm transition">➕ Add More Units</button>
           <button onclick="toggleSelectAll(true)" class="text-xs bg-[#5A358E] hover:bg-[#623a9c] border border-purple-500/30 text-slate-200 font-medium px-2.5 py-1.5 rounded-lg transition">Select Visible</button>
           <button onclick="toggleSelectAll(false)" class="text-xs bg-[#5A358E] hover:bg-[#623a9c] border border-purple-500/30 text-slate-200 font-medium px-2.5 py-1.5 rounded-lg transition">Unselect Visible</button>
@@ -372,9 +300,7 @@
         <table class="w-full text-left border-collapse">
           <thead>
             <tr class="bg-slate-100/90 text-slate-600 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider">
-              <th class="p-3 w-10 text-center">
-                <input type="checkbox" id="master-checkbox" onchange="toggleSelectAll(this.checked)" class="w-4 h-4 accent-[#5A358E] cursor-pointer rounded" />
-              </th>
+              <th class="p-3 w-10 text-center"><input type="checkbox" id="master-checkbox" onchange="toggleSelectAll(this.checked)" class="w-4 h-4 accent-[#5A358E] cursor-pointer rounded" /></th>
               <th class="p-3">Plant Tag & Code</th>
               <th class="p-3">Item, Category & S/N</th>
               <th class="p-3">Plant & Location</th>
@@ -392,12 +318,12 @@
 
   <div id="print-area" class="hidden"></div>
 
-  <!-- MODAL: Edit Category & Bulk Rename Items -->
+  <!-- MODAL: Edit Category, Rack Code & Bulk Rename Items -->
   <div id="edit-category-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print backdrop-blur-sm">
     <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl">
       <div class="flex justify-between items-center border-b pb-3 mb-4">
         <div>
-          <h3 class="text-base font-bold text-slate-900">✏️ Edit Category & Bulk Rename Items</h3>
+          <h3 class="text-base font-bold text-slate-900">✏️ Edit Category & Rack Code</h3>
           <p id="edit-cat-subtitle" class="text-xs text-[#5A358E] font-semibold mt-0.5"></p>
         </div>
         <button onclick="closeEditCategoryModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
@@ -407,19 +333,20 @@
         <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-xs text-emerald-900 flex items-start gap-2.5">
           <span class="text-base leading-none">🔒</span>
           <div>
-            <strong class="font-bold block">QR Codes & Item Codes Protected</strong>
-            Updating the category or item names below will <u>never</u> alter any unit's Plant Tag (e.g., <code class="font-mono">KEN000001</code>) or 4-Digit Item Code. All existing QR stickers remain 100% valid.
+            <strong class="font-bold block">Permanent Category QR & Rack Code Protected</strong>
+            Updating the category name below will <u>never</u> break your printed Category QR posters or small desk cards. The QR code is permanently bound to the category's unique ID and 5-digit Rack Code (e.g., <code class="font-mono">A-1500</code>).
           </div>
         </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Category Name *</label>
-          <input type="text" id="edit-cat-new-name" required placeholder="e.g. Motors & Drives" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Category Name *</label>
+            <input type="text" id="edit-cat-new-name" required placeholder="e.g. Motors & Drives" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">5-Char Rack Code *</label>
+            <input type="text" id="edit-cat-rack-code" required maxlength="6" placeholder="A-1500" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E] font-mono font-bold uppercase" />
+          </div>
         </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Rack Code (5-Digit Combination, e.g. A-1500) *</label>
-          <input type="text" id="edit-cat-rack-code" required maxlength="6" placeholder="A-1500" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E] font-mono" />
-        </div>
-
         <div class="bg-purple-50/60 border border-purple-200 rounded-xl p-3.5 space-y-2">
           <div class="flex items-center justify-between">
             <label for="edit-cat-bulk-item-name" class="block text-xs font-bold text-[#5A358E] uppercase">Rename All Items in This Category (Optional)</label>
@@ -547,32 +474,14 @@
           <h3 id="receipt-item-name" class="text-lg font-bold text-[#5A358E]"></h3>
         </div>
         <div class="grid grid-cols-2 gap-3 text-xs">
-          <div>
-            <span class="font-bold text-slate-400 block text-[10px]">PLANT TAG</span>
-            <span id="receipt-item-tag" class="font-mono font-bold text-slate-800"></span>
-          </div>
-          <div>
-            <span class="font-bold text-slate-400 block text-[10px]">ITEM CODE</span>
-            <span id="receipt-item-code" class="font-mono font-bold text-slate-800"></span>
-          </div>
-          <div>
-            <span class="font-bold text-slate-400 block text-[10px]">SERIAL NUMBER (S/N)</span>
-            <span id="receipt-item-serial" class="font-mono font-bold text-slate-800"></span>
-          </div>
-          <div>
-            <span class="font-bold text-slate-400 block text-[10px]">HOME STORAGE LOCATION</span>
-            <span id="receipt-item-location" class="font-semibold text-slate-800"></span>
-          </div>
+          <div><span class="font-bold text-slate-400 block text-[10px]">PLANT TAG</span><span id="receipt-item-tag" class="font-mono font-bold text-slate-800"></span></div>
+          <div><span class="font-bold text-slate-400 block text-[10px]">ITEM CODE</span><span id="receipt-item-code" class="font-mono font-bold text-slate-800"></span></div>
+          <div><span class="font-bold text-slate-400 block text-[10px]">SERIAL NUMBER (S/N)</span><span id="receipt-item-serial" class="font-mono font-bold text-slate-800"></span></div>
+          <div><span class="font-bold text-slate-400 block text-[10px]">HOME STORAGE LOCATION</span><span id="receipt-item-location" class="font-semibold text-slate-800"></span></div>
         </div>
         <div class="border-t pt-3 grid grid-cols-2 gap-3 text-xs">
-          <div>
-            <span class="font-bold text-slate-400 block text-[10px]">CHECKED OUT TO</span>
-            <span id="receipt-user-name" class="font-bold text-slate-800"></span>
-          </div>
-          <div>
-            <span class="font-bold text-slate-400 block text-[10px]">DESTINATION</span>
-            <span id="receipt-destination" class="font-bold text-slate-800"></span>
-          </div>
+          <div><span class="font-bold text-slate-400 block text-[10px]">CHECKED OUT TO</span><span id="receipt-user-name" class="font-bold text-slate-800"></span></div>
+          <div><span class="font-bold text-slate-400 block text-[10px]">DESTINATION</span><span id="receipt-destination" class="font-bold text-slate-800"></span></div>
         </div>
         <div id="receipt-item-notes-box" class="border-t pt-2 text-xs hidden">
           <span class="font-bold text-slate-400 block text-[10px]">SPECS & STORAGE NOTES</span>
@@ -642,7 +551,7 @@
         <div class="flex items-center gap-2">
           <span class="text-xl">🔔</span>
           <div>
-            <h2 class="text-base font-bold text-slate-900">Live App Check-Out Notifications</h2>
+            <h2 class="text-base font-bold text-slate-900">Live App Check-Out & Repair Notifications</h2>
             <p class="text-xs text-slate-500">Synced across all connected devices in real time</p>
           </div>
         </div>
@@ -650,9 +559,7 @@
       </div>
       <div id="notifications-list" class="overflow-y-auto flex-1 space-y-2.5 pr-1"></div>
       <div class="flex justify-between items-center pt-4 mt-4 border-t">
-        <button onclick="clearAllNotifications()" class="text-xs bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold px-3 py-2 rounded-lg">
-          🗑️ Clear All Notifications
-        </button>
+        <button onclick="clearAllNotifications()" class="text-xs bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold px-3 py-2 rounded-lg">🗑️ Clear All Notifications</button>
         <button onclick="closeNotificationsModal()" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium">Close</button>
       </div>
     </div>
@@ -683,14 +590,8 @@
         </div>
         <div class="bg-slate-50 border border-slate-200 rounded-xl p-3">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-            <div>
-              <span class="font-bold text-slate-400 uppercase block text-[10px]">Assigned Plant Tag(s):</span>
-              <span id="item-tag-preview" class="font-mono font-bold text-[#5A358E] text-xs sm:text-sm"></span>
-            </div>
-            <div>
-              <span class="font-bold text-slate-400 uppercase block text-[10px]">Assigned 4-Digit Item Code(s):</span>
-              <span id="item-code-preview" class="font-mono font-bold text-emerald-700 text-xs sm:text-sm"></span>
-            </div>
+            <div><span class="font-bold text-slate-400 uppercase block text-[10px]">Assigned Plant Tag(s):</span><span id="item-tag-preview" class="font-mono font-bold text-[#5A358E] text-xs sm:text-sm"></span></div>
+            <div><span class="font-bold text-slate-400 uppercase block text-[10px]">Assigned 4-Digit Item Code(s):</span><span id="item-code-preview" class="font-mono font-bold text-emerald-700 text-xs sm:text-sm"></span></div>
           </div>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -767,7 +668,7 @@
     </div>
   </div>
 
-  <!-- MODAL: Single Item Details & QR View -->
+  <!-- MODAL: Single Item / Category Details & QR View -->
   <div id="detail-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print backdrop-blur-sm">
     <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl">
       <div class="flex justify-between items-start border-b pb-3 mb-4">
@@ -780,7 +681,6 @@
         </div>
         <button onclick="closeDetailModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
       </div>
-
       <div class="flex flex-col sm:flex-row gap-5 items-center">
         <div class="flex flex-col items-center">
           <div id="single-qr-container" class="p-3 border-2 border-[#5A358E] rounded-xl bg-white"></div>
@@ -789,7 +689,7 @@
         <div class="space-y-1.5 text-xs sm:text-sm flex-1">
           <p><strong>Plant:</strong> <span id="detail-plant"></span></p>
           <p><strong>Category:</strong> <span id="detail-category"></span></p>
-          <p><strong>Home Location:</strong> <span id="detail-location"></span></p>
+          <p><strong>Home Location / Rack:</strong> <span id="detail-location" class="font-mono font-bold text-[#5A358E]"></span></p>
           <p><strong>Serial Number (S/N):</strong> <span id="detail-serial" class="font-mono text-purple-900 font-semibold">—</span></p>
           <p><strong>Quality:</strong> <span id="detail-quality"></span></p>
           <p><strong>Status:</strong> <span id="detail-qty" class="font-bold"></span></p>
@@ -805,8 +705,10 @@
           <p id="detail-instructions" class="text-slate-700 whitespace-pre-line"></p>
         </div>
       </div>
-      <div class="flex justify-between gap-2 mt-4 pt-3 border-t">
-        <button id="detail-open-scan-btn" class="px-4 py-2 rounded-lg bg-[#5A358E] hover:bg-[#3D2566] text-white text-xs font-bold">📱 Open Dedicated Unit Page</button>
+      <div class="flex flex-wrap justify-between items-center gap-2 mt-4 pt-3 border-t">
+        <div class="flex flex-wrap gap-2" id="detail-action-buttons">
+          <button id="detail-open-scan-btn" class="px-3.5 py-2 rounded-lg bg-[#5A358E] hover:bg-[#3D2566] text-white text-xs font-bold">📱 Open Dedicated Unit Page</button>
+        </div>
         <button onclick="closeDetailModal()" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium">Close</button>
       </div>
     </div>
@@ -827,32 +729,72 @@
     const STORAGE_KEY_USERS  = 'PLANT_QR_USERS_V8';
     const STORAGE_KEY_HELP_LOGS = 'PLANT_QR_HELP_LOGS_V8';
     const STORAGE_KEY_CATEGORIES = 'PLANT_QR_CATEGORIES_V8';
+    const STORAGE_KEY_REMOVALS = 'PLANT_QR_REMOVALS_V8';
     
     let categories = JSON.parse(localStorage.getItem(STORAGE_KEY_CATEGORIES)) || [];
 
+    function generateDeterministicRackCode(str, index) {
+      const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+      let hash = 0;
+      const clean = String(str || 'CAT');
+      for (let i = 0; i < clean.length; i++) {
+        hash = ((hash << 5) - hash) + clean.charCodeAt(i);
+        hash |= 0;
+      }
+      const letterIdx = Math.abs(hash + index) % letters.length;
+      const numPart = 1000 + (Math.abs(hash * 31 + index * 100) % 9000);
+      return `${letters[letterIdx]}-${numPart}`;
+    }
+
     function initializeCategories() {
-      const existingCategoryNames = [...new Set(items.map(i => i.category || 'Uncategorized'))];
+      if (!Array.isArray(categories)) categories = [];
+      const existingCategoryNames = [...new Set(items.map(i => String(i.category || 'Uncategorized').trim()))];
       let updated = false;
       
-      existingCategoryNames.forEach(name => {
-        if (!categories.some(c => c.name.toLowerCase() === name.toLowerCase())) {
-          const letters = 'ABCDEFGH';
-          const randomLetter = letters.charAt(Math.floor(Math.random() * letters.length));
-          const randomNum = Math.floor(1000 + Math.random() * 9000);
-          const rackCode = `${randomLetter}-${randomNum}`;
-          
+      categories = categories.filter(c => c && typeof c.name === 'string' && c.name.trim() !== '');
+
+      existingCategoryNames.forEach((name, idx) => {
+        if (!name) return;
+        const found = categories.find(c => c.name.toLowerCase() === name.toLowerCase());
+        if (!found) {
+          let rackCode = generateDeterministicRackCode(name, categories.length + idx);
+          while (categories.some(c => c.rackCode === rackCode)) {
+            rackCode = generateDeterministicRackCode(name + Math.random(), categories.length + idx);
+          }
+          const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'cat';
           categories.push({
-            id: 'cat-' + Math.random().toString(36).substring(2, 9),
+            id: `cat-${slug}-${(1000 + categories.length)}`,
             name: name,
             rackCode: rackCode
           });
           updated = true;
+        } else if (!found.rackCode) {
+          found.rackCode = generateDeterministicRackCode(found.name, idx);
+          updated = true;
         }
       });
 
-      if (updated || categories.length === 0) {
+      if (updated) {
         localStorage.setItem(STORAGE_KEY_CATEGORIES, JSON.stringify(categories));
       }
+    }
+
+    function getCategoryObjectByName(categoryName) {
+      initializeCategories();
+      const clean = String(categoryName || 'Uncategorized').trim();
+      let catObj = categories.find(c => c.name.toLowerCase() === clean.toLowerCase());
+      if (!catObj) {
+        const rackCode = generateDeterministicRackCode(clean, categories.length);
+        const slug = clean.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'cat';
+        catObj = {
+          id: `cat-${slug}-${1000 + categories.length}`,
+          name: clean,
+          rackCode: rackCode
+        };
+        categories.push(catObj);
+        localStorage.setItem(STORAGE_KEY_CATEGORIES, JSON.stringify(categories));
+      }
+      return catObj;
     }
 
     let cloudDbUrl = localStorage.getItem(STORAGE_KEY_CLOUD) || DEFAULT_CLOUD_DB_URL;
@@ -878,7 +820,7 @@
         plantCode: 'KEN', name: '5HP Induction Motor', category: 'Motors & Drives',
         quality: 'Good', quantity: 1, location: 'Aisle 2, Shelf C',
         notes: '480V 3-Phase, NEMA Frame 184T. Keep dry.',
-        instructions: '1. Lockout/Tagout main breaker before install.\\n2. Verify shaft alignment within 0.002 in.\\n3. Torque mounting bolts to 45 ft-lbs.',
+        instructions: '1. Lockout/Tagout main breaker before install.\n2. Verify shaft alignment within 0.002 in.\n3. Torque mounting bolts to 45 ft-lbs.',
         activeCheckouts: [], checkoutHistory: []
       },
       {
@@ -974,6 +916,7 @@
         item.quantity = item.activeCheckouts.length > 0 ? 0 : 1;
       });
       if (!Array.isArray(appNotifications)) appNotifications = [];
+      initializeCategories();
     }
 
     function formatElapsedDuration(startMs, endMs = Date.now()) {
@@ -1010,6 +953,7 @@
       localStorage.setItem(STORAGE_KEY_EMAIL, JSON.stringify(emailConfig));
       localStorage.setItem(STORAGE_KEY_QR_BASE, permanentQrBaseUrl);
       localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
+      localStorage.setItem(STORAGE_KEY_CATEGORIES, JSON.stringify(categories));
       await pushToCloud(false);
     }
 
@@ -1019,9 +963,10 @@
       try {
         updateSyncBadge('Syncing...', true);
         const helpLogs = JSON.parse(localStorage.getItem(STORAGE_KEY_HELP_LOGS)) || [];
+        const removals = JSON.parse(localStorage.getItem(STORAGE_KEY_REMOVALS)) || [];
         const payload = {
           plants, items, plantSequences, appNotifications, emailConfig,
-          permanentQrBaseUrl, users, helpLogs, updatedAt: Date.now()
+          permanentQrBaseUrl, users, helpLogs, categories, removals, updatedAt: Date.now()
         };
         const res = await fetch(endpoint, {
           method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
@@ -1049,6 +994,13 @@
           users = data.users || [{ username: 'u123456', name: 'Jane Doe', email: 'jane.doe@tranetechnologies.com' }];
           localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
 
+          if (Array.isArray(data.categories) && data.categories.length > 0) {
+            categories = data.categories;
+            localStorage.setItem(STORAGE_KEY_CATEGORIES, JSON.stringify(categories));
+          }
+          if (Array.isArray(data.removals)) {
+            localStorage.setItem(STORAGE_KEY_REMOVALS, JSON.stringify(data.removals));
+          }
           if (Array.isArray(data.helpLogs)) {
             localStorage.setItem(STORAGE_KEY_HELP_LOGS, JSON.stringify(data.helpLogs));
           }
@@ -1099,27 +1051,14 @@
 
     function buildQRUrl(item) {
       let base = (permanentQrBaseUrl && permanentQrBaseUrl.trim() !== '') ? permanentQrBaseUrl.trim() : 'https://asrieldreemurr2003.github.io/StorageLocator/index.html';
-      if (base.endsWith('/')) {
-        base = base.slice(0, -1);
-      }
+      if (base.endsWith('/')) base = base.slice(0, -1);
       const separator = base.includes('?') ? '&' : '?';
       return `${base}${separator}tag=${encodeURIComponent(item.tag)}`;
     }
 
     function buildCategoryQRUrl(categoryId) {
       let base = (permanentQrBaseUrl && permanentQrBaseUrl.trim() !== '') ? permanentQrBaseUrl.trim() : 'https://asrieldreemurr2003.github.io/StorageLocator/index.html';
-      if (base.endsWith('/')) {
-        base = base.slice(0, -1);
-      }
-      const separator = base.includes('?') ? '&' : '?';
-      return `${base}${separator}categoryCheckoutId=${encodeURIComponent(categoryId)}`;
-    }
-
-    function buildCategoryQRUrl(categoryId) {
-      let base = (permanentQrBaseUrl && permanentQrBaseUrl.trim() !== '') ? permanentQrBaseUrl.trim() : 'https://asrieldreemurr2003.github.io/StorageLocator/index.html';
-      if (base.endsWith('/')) {
-        base = base.slice(0, -1);
-      }
+      if (base.endsWith('/')) base = base.slice(0, -1);
       const separator = base.includes('?') ? '&' : '?';
       return `${base}${separator}categoryCheckoutId=${encodeURIComponent(categoryId)}`;
     }
@@ -1137,27 +1076,15 @@
         activeScannedTag = scannedTag;
         refreshScannedBanner(scannedTag, true);
       } else if (categoryCheckoutId) {
-        const cat = categories.find(c => c.id === categoryCheckoutId);
+        const cat = categories.find(c => c.id === categoryCheckoutId || c.rackCode === categoryCheckoutId);
         if (cat) {
           openCategoryCheckoutModal(cat.id);
         } else {
-          alert("Scanned category ID not found.");
+          alert("Scanned category QR was not recognized.");
         }
       } else if (categoryCheckout) {
-        let cat = categories.find(c => c.name.toLowerCase() === categoryCheckout.toLowerCase());
-        if (!cat) {
-          const letters = 'ABCDEFGH';
-          const randomLetter = letters.charAt(Math.floor(Math.random() * letters.length));
-          const randomNum = Math.floor(1000 + Math.random() * 9000);
-          cat = {
-            id: 'cat-' + Math.random().toString(36).substring(2, 9),
-            name: categoryCheckout,
-            rackCode: `${randomLetter}-${randomNum}`
-          };
-          categories.push(cat);
-          localStorage.setItem(STORAGE_KEY_CATEGORIES, JSON.stringify(categories));
-        }
-        openCategoryCheckoutModal(cat.id);
+        const catObj = getCategoryObjectByName(categoryCheckout);
+        openCategoryCheckoutModal(catObj.id);
       }
     }
 
@@ -1223,27 +1150,27 @@
         statusPill.className = 'text-[11px] font-bold px-2.5 py-0.5 rounded-md uppercase bg-amber-100 text-amber-800 border border-amber-300';
         statusPill.textContent = `⏱️ Checked Out to ${rec.destination}`;
 
-        smartPrompt.className = 'mt-4 p-4 rounded-xl border border-emerald-400 bg-emerald-50/70 flex flex-wrap items-center justify-between gap-4';
+        smartPrompt.className = 'mt-4 p-4 rounded-xl border border-emerald-400 bg-emerald-50/70 flex flex-col sm:flex-row sm:items-center justify-between gap-4';
         promptTitle.className = 'font-bold text-sm sm:text-base text-emerald-950';
         promptTitle.textContent = 'Returning this checked-out unit?';
         promptDesc.className = 'text-xs text-emerald-800 mt-0.5';
         promptDesc.textContent = 'Tap "Check In & Rate Quality" to return it to storage and update its condition.';
 
         checkoutBtn.className = 'hidden';
-        checkinBtn.className = 'bg-[#0D9488] hover:bg-[#059669] text-white px-4 py-2 rounded-lg font-bold text-xs sm:text-sm shadow transition';
+        checkinBtn.className = 'w-full sm:w-auto justify-center bg-[#0D9488] hover:bg-[#059669] text-white px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm shadow transition flex items-center gap-1.5';
       } else {
         scanQtyEl.className = 'text-xs sm:text-sm font-bold text-[#0D9488] mt-0.5';
         scanQtyEl.textContent = 'Available in Storage';
         statusPill.className = 'text-[11px] font-bold px-2.5 py-0.5 rounded-md uppercase bg-emerald-100 text-emerald-800 border border-emerald-300';
         statusPill.textContent = '✅ Ready for Check-Out';
 
-        smartPrompt.className = 'mt-4 p-4 rounded-xl border border-purple-400 bg-purple-50/70 flex flex-wrap items-center justify-between gap-4';
+        smartPrompt.className = 'mt-4 p-4 rounded-xl border border-purple-400 bg-purple-50/70 flex flex-col sm:flex-row sm:items-center justify-between gap-4';
         promptTitle.className = 'font-bold text-sm sm:text-base text-purple-950';
         promptTitle.textContent = 'Checking out this unit?';
         promptDesc.className = 'text-xs text-purple-800 mt-0.5';
-        promptDesc.textContent = 'Tap "Check Out Unit" to enter your name, email, and destination location.';
+        promptDesc.textContent = 'Tap "Check Out Unit" to enter your User ID, email, and destination location.';
 
-        checkoutBtn.className = 'bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-lg font-bold text-xs sm:text-sm shadow transition';
+        checkoutBtn.className = 'w-full sm:w-auto justify-center bg-amber-600 hover:bg-amber-500 text-white px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm shadow transition flex items-center gap-1.5';
         checkinBtn.className = 'hidden';
       }
 
@@ -1292,8 +1219,9 @@
       const container = document.getElementById('toast-container');
       if (!container) return;
       const isOut = notif.type === 'CHECK_OUT';
-      const borderClass = isOut ? 'border-amber-500 bg-[#251440]' : 'border-emerald-500 bg-[#251440]';
-      const icon = isOut ? '📤' : '📥';
+      const isRepair = notif.type === 'REPAIR_ALERT';
+      const borderClass = isRepair ? 'border-rose-500 bg-[#251440]' : (isOut ? 'border-amber-500 bg-[#251440]' : 'border-emerald-500 bg-[#251440]');
+      const icon = isRepair ? '⚠️' : (isOut ? '📤' : '📥');
       const toast = document.createElement('div');
       toast.className = `pointer-events-auto ${borderClass} text-white border-l-4 rounded-xl p-4 shadow-2xl toast-animate flex justify-between items-start gap-3`;
       toast.innerHTML = `
@@ -1358,10 +1286,13 @@
       }
       appNotifications.forEach(n => {
         const isOut = n.type === 'CHECK_OUT';
-        const cardStyle = isOut ? 'bg-amber-50/70 border-amber-200' : 'bg-[#E8F8F5] border-emerald-200';
-        const badgeHtml = isOut
-          ? `<span class="bg-amber-500 text-white text-[10px] font-bold px-2.5 py-0.5 rounded uppercase">📤 Checked Out</span>`
-          : `<span class="bg-emerald-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded uppercase">📥 Checked In</span>`;
+        const isRepair = n.type === 'REPAIR_ALERT';
+        const cardStyle = isRepair ? 'bg-rose-50 border-rose-200' : (isOut ? 'bg-amber-50/70 border-amber-200' : 'bg-[#E8F8F5] border-emerald-200');
+        const badgeHtml = isRepair
+          ? `<span class="bg-rose-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded uppercase">⚠️ Repair Alert</span>`
+          : (isOut
+            ? `<span class="bg-amber-500 text-white text-[10px] font-bold px-2.5 py-0.5 rounded uppercase">📤 Checked Out</span>`
+            : `<span class="bg-emerald-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded uppercase">📥 Checked In</span>`);
 
         const div = document.createElement('div');
         div.className = `p-3.5 rounded-xl border ${cardStyle} flex flex-wrap justify-between items-start gap-3 text-xs`;
@@ -1390,35 +1321,11 @@
       await saveState();
     }
 
-    function toggleSelectCategoryQRs(categoryName, event) {
-      if (event) event.stopPropagation();
-      const baseFiltered = getFilteredItems();
-      const catItems = baseFiltered.filter(i => (i.category || 'Uncategorized') === categoryName);
-      if (catItems.length === 0) return;
-
-      const allSelected = catItems.every(i => selectedItemIds.has(i.id));
-      catItems.forEach(i => {
-        if (allSelected) selectedItemIds.delete(i.id);
-        else selectedItemIds.add(i.id);
-      });
-      renderInventory();
-    }
-
     function openEditCategoryModal(categoryName, event) {
       if (event) event.stopPropagation();
       if (!categoryName) return;
 
-      initializeCategories();
-      let cat = categories.find(c => c.name.toLowerCase() === categoryName.toLowerCase());
-      if (!cat) {
-        const letters = 'ABCDEFGH';
-        const randomLetter = letters.charAt(Math.floor(Math.random() * letters.length));
-        const randomNum = Math.floor(1000 + Math.random() * 9000);
-        cat = { id: 'cat-' + Math.random().toString(36).substring(2, 9), name: categoryName, rackCode: `${randomLetter}-${randomNum}` };
-        categories.push(cat);
-        localStorage.setItem(STORAGE_KEY_CATEGORIES, JSON.stringify(categories));
-      }
-
+      const cat = getCategoryObjectByName(categoryName);
       const matchingItems = items.filter(i => (i.category || 'Uncategorized') === categoryName);
       const uniqueNames = [...new Set(matchingItems.map(i => i.name))];
 
@@ -1426,7 +1333,7 @@
       document.getElementById('edit-cat-new-name').value = cat.name;
       document.getElementById('edit-cat-rack-code').value = cat.rackCode || '';
       document.getElementById('edit-cat-bulk-item-name').value = uniqueNames.length === 1 ? uniqueNames[0] : '';
-      document.getElementById('edit-cat-subtitle').textContent = `Applies to ${matchingItems.length} unit(s) currently in "${cat.name}" [Stable ID: ${cat.id}]`;
+      document.getElementById('edit-cat-subtitle').textContent = `Applies to ${matchingItems.length} unit(s) • Rack Code: ${cat.rackCode} • Permanent QR ID: ${cat.id}`;
 
       const modal = document.getElementById('edit-category-modal');
       modal.classList.remove('hidden');
@@ -1441,7 +1348,7 @@
       e.preventDefault();
       const oldCategoryName = document.getElementById('edit-cat-original-name').value;
       const newCategoryName = document.getElementById('edit-cat-new-name').value.trim();
-      const newRackCode = document.getElementById('edit-cat-rack-code').value.trim();
+      const newRackCode = document.getElementById('edit-cat-rack-code').value.trim().toUpperCase();
       const bulkNewItemName = document.getElementById('edit-cat-bulk-item-name').value.trim();
 
       if (!newCategoryName || !newRackCode) return;
@@ -1600,6 +1507,7 @@
       } else {
         const { tags, codes } = getNextAvailableTags(plantCode, count, customCode, name, category);
         plantSequences[plantCode] = (plantSequences[plantCode] || 0) + count;
+
         const now = Date.now();
         for (let idx = 0; idx < count; idx++) {
           items.push({
@@ -1613,6 +1521,7 @@
         }
       }
 
+      getCategoryObjectByName(category);
       closeItemModal();
       renderInventory();
       if (activeScannedTag) refreshScannedBanner(activeScannedTag, false);
@@ -1624,8 +1533,7 @@
       const item = items.find(i => i.id === itemId);
       if (!item || !confirm(`Delete unit ${item.tag} (${item.name})?`)) return;
       
-      // Log item removal
-      const removals = JSON.parse(localStorage.getItem('PLANT_QR_REMOVALS_V8')) || [];
+      const removals = JSON.parse(localStorage.getItem(STORAGE_KEY_REMOVALS)) || [];
       removals.push({
         id: 'rem-' + Date.now(),
         type: 'REMOVE',
@@ -1637,7 +1545,7 @@
         removedBy: loggedInUser ? loggedInUser.name : 'Administrator',
         timestamp: Date.now()
       });
-      localStorage.setItem('PLANT_QR_REMOVALS_V8', JSON.stringify(removals));
+      localStorage.setItem(STORAGE_KEY_REMOVALS, JSON.stringify(removals));
 
       items = items.filter(i => i.id !== itemId);
       selectedItemIds.delete(itemId);
@@ -1684,11 +1592,12 @@
 
     function printSelectedQRCodes() {
       if (selectedItemIds.size === 0) {
-        alert('Select at least one unit checkbox or category QR button to print QR labels.');
+        alert('Select at least one unit checkbox to print QR labels.');
         return;
       }
       const printArea = document.getElementById('print-area');
       printArea.innerHTML = '';
+      printArea.className = 'print-grid-mode';
       const selectedItems = items.filter(i => selectedItemIds.has(i.id));
       selectedItems.forEach(item => {
         const card = document.createElement('div');
@@ -1704,11 +1613,149 @@
           </div>
         `;
         printArea.appendChild(card);
-
         const qrDiv = card.querySelector('.qr-code-wrapper');
         new QRCode(qrDiv, { text: buildQRUrl(item), width: 80, height: 80 });
       });
-      setTimeout(() => { window.print(); }, 350);
+      setTimeout(() => {
+        window.print();
+        printArea.className = 'hidden';
+      }, 350);
+    }
+
+    function printCategoryPoster(categoryId) {
+      initializeCategories();
+      const cat = categories.find(c => c.id === categoryId);
+      if (!cat) return;
+
+      const printArea = document.getElementById('print-area');
+      printArea.innerHTML = '';
+      printArea.className = 'print-poster-mode';
+      
+      const posterWrap = document.createElement('div');
+      posterWrap.className = 'qr-poster-print';
+      posterWrap.innerHTML = `
+        <div style="width: 100%; max-width: 680px; margin: 0 auto; padding: 48px 36px; border: 6px solid #251440; border-radius: 28px; background: #ffffff; text-align: center; font-family: 'Inter', sans-serif;">
+          <div style="font-size: 16px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.18em; color: #0D9488; margin-bottom: 6px;">TRANE TECHNOLOGIES</div>
+          <div style="font-size: 13px; font-weight: 700; color: #5A358E; letter-spacing: 0.08em; margin-bottom: 28px;">STORAGELOCATER CATEGORY CHECK-OUT POSTER</div>
+          <div style="font-size: 44px; font-weight: 900; color: #251440; line-height: 1.15; margin-bottom: 18px;">${escapeHtml(cat.name)}</div>
+          <div style="display: inline-block; background: #FAF9F5; border: 3px solid #5A358E; border-radius: 16px; padding: 12px 28px; margin-bottom: 36px;">
+            <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #64748B; letter-spacing: 0.1em;">ASSIGNED RACK CODE</div>
+            <div style="font-size: 34px; font-weight: 900; font-family: monospace; color: #5A358E; letter-spacing: 0.06em;">${escapeHtml(cat.rackCode)}</div>
+          </div>
+          <div class="qr-code-wrapper" style="display: flex; justify-content: center; align-items: center; margin: 0 auto 32px auto; padding: 20px; border: 3px dashed #CBD5E1; border-radius: 24px; width: 340px; height: 340px;"></div>
+          <div style="font-size: 16px; font-weight: 700; color: #1E293B; margin-bottom: 8px;">📱 Scan with any device to auto-assign & check out an available unit</div>
+          <div style="font-size: 11px; font-family: monospace; color: #94A3B8;">Permanent Category ID: ${escapeHtml(cat.id)} • QR code remains valid even if category is renamed</div>
+        </div>
+      `;
+      printArea.appendChild(posterWrap);
+      
+      const qrDiv = posterWrap.querySelector('.qr-code-wrapper');
+      new QRCode(qrDiv, { text: buildCategoryQRUrl(cat.id), width: 300, height: 300 });
+
+      setTimeout(() => {
+        window.print();
+        printArea.className = 'hidden';
+      }, 400);
+    }
+
+    function printAllCategoryPosters() {
+      initializeCategories();
+      if (categories.length === 0) return;
+
+      const printArea = document.getElementById('print-area');
+      printArea.innerHTML = '';
+      printArea.className = 'print-poster-mode';
+
+      categories.forEach(cat => {
+        const posterWrap = document.createElement('div');
+        posterWrap.className = 'qr-poster-print';
+        posterWrap.innerHTML = `
+          <div style="width: 100%; max-width: 680px; margin: 0 auto; padding: 48px 36px; border: 6px solid #251440; border-radius: 28px; background: #ffffff; text-align: center; font-family: 'Inter', sans-serif;">
+            <div style="font-size: 16px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.18em; color: #0D9488; margin-bottom: 6px;">TRANE TECHNOLOGIES</div>
+            <div style="font-size: 13px; font-weight: 700; color: #5A358E; letter-spacing: 0.08em; margin-bottom: 28px;">STORAGELOCATER CATEGORY CHECK-OUT POSTER</div>
+            <div style="font-size: 44px; font-weight: 900; color: #251440; line-height: 1.15; margin-bottom: 18px;">${escapeHtml(cat.name)}</div>
+            <div style="display: inline-block; background: #FAF9F5; border: 3px solid #5A358E; border-radius: 16px; padding: 12px 28px; margin-bottom: 36px;">
+              <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #64748B; letter-spacing: 0.1em;">ASSIGNED RACK CODE</div>
+              <div style="font-size: 34px; font-weight: 900; font-family: monospace; color: #5A358E; letter-spacing: 0.06em;">${escapeHtml(cat.rackCode)}</div>
+            </div>
+            <div class="qr-code-wrapper" style="display: flex; justify-content: center; align-items: center; margin: 0 auto 32px auto; padding: 20px; border: 3px dashed #CBD5E1; border-radius: 24px; width: 340px; height: 340px;"></div>
+            <div style="font-size: 16px; font-weight: 700; color: #1E293B; margin-bottom: 8px;">📱 Scan with any device to auto-assign & check out an available unit</div>
+            <div style="font-size: 11px; font-family: monospace; color: #94A3B8;">Permanent Category ID: ${escapeHtml(cat.id)}</div>
+          </div>
+        `;
+        printArea.appendChild(posterWrap);
+        const qrDiv = posterWrap.querySelector('.qr-code-wrapper');
+        new QRCode(qrDiv, { text: buildCategoryQRUrl(cat.id), width: 300, height: 300 });
+      });
+
+      setTimeout(() => {
+        window.print();
+        printArea.className = 'hidden';
+      }, 500);
+    }
+
+    function printCategoryLabel(categoryId) {
+      initializeCategories();
+      const cat = categories.find(c => c.id === categoryId);
+      if (!cat) return;
+
+      const printArea = document.getElementById('print-area');
+      printArea.innerHTML = '';
+      printArea.className = 'print-grid-mode';
+      
+      const card = document.createElement('div');
+      card.className = 'qr-card-print';
+      card.innerHTML = `
+        <div class="flex flex-col justify-between h-full w-full">
+          <div>
+            <div style="font-family: monospace; font-weight: bold; font-size: 12px; color: #5A358E;">RACK: ${escapeHtml(cat.rackCode)}</div>
+            <div style="font-weight: 800; font-size: 11px; color: #251440; margin-top: 2px;">${escapeHtml(cat.name)}</div>
+          </div>
+          <div class="qr-code-wrapper flex justify-center my-1" style="height: 85px; display: flex; align-items: center; justify-content: center;"></div>
+          <div style="font-size: 8px; color: #64748B; font-family: monospace;">CATEGORY SCAN CARD</div>
+        </div>
+      `;
+      printArea.appendChild(card);
+      
+      const qrDiv = card.querySelector('.qr-code-wrapper');
+      new QRCode(qrDiv, { text: buildCategoryQRUrl(cat.id), width: 85, height: 85 });
+
+      setTimeout(() => {
+        window.print();
+        printArea.className = 'hidden';
+      }, 350);
+    }
+
+    function printAllCategorySmallQRs() {
+      initializeCategories();
+      if (categories.length === 0) return;
+
+      const printArea = document.getElementById('print-area');
+      printArea.innerHTML = '';
+      printArea.className = 'print-grid-mode';
+
+      categories.slice().sort((a, b) => a.name.localeCompare(b.name)).forEach(cat => {
+        const card = document.createElement('div');
+        card.className = 'qr-card-print';
+        card.innerHTML = `
+          <div class="flex flex-col justify-between h-full w-full">
+            <div>
+              <div style="font-family: monospace; font-weight: bold; font-size: 12px; color: #5A358E;">RACK: ${escapeHtml(cat.rackCode)}</div>
+              <div style="font-weight: 800; font-size: 10px; color: #251440; margin-top: 2px;">${escapeHtml(cat.name)}</div>
+            </div>
+            <div class="qr-code-wrapper flex justify-center my-1" style="height: 85px; display: flex; align-items: center; justify-content: center;"></div>
+            <div style="font-size: 8px; color: #64748B; font-family: monospace;">CATEGORY DESK SHEET</div>
+          </div>
+        `;
+        printArea.appendChild(card);
+        const qrDiv = card.querySelector('.qr-code-wrapper');
+        new QRCode(qrDiv, { text: buildCategoryQRUrl(cat.id), width: 85, height: 85 });
+      });
+
+      setTimeout(() => {
+        window.print();
+        printArea.className = 'hidden';
+      }, 450);
     }
 
     function getQualityBadgeHtml(quality) {
@@ -1726,6 +1773,14 @@
     function openDetailModal(itemId) {
       const item = items.find(i => i.id === itemId);
       if (!item) return;
+      
+      const existingPosterBtn = document.getElementById('category-poster-btn');
+      if (existingPosterBtn) existingPosterBtn.remove();
+      const existingLabelBtn = document.getElementById('category-label-btn');
+      if (existingLabelBtn) existingLabelBtn.remove();
+      const existingEditCatBtn = document.getElementById('category-modal-edit-btn');
+      if (existingEditCatBtn) existingEditCatBtn.remove();
+
       document.getElementById('detail-tag').textContent = item.tag;
       document.getElementById('detail-code').textContent = `Code: ${item.itemCode}`;
       document.getElementById('detail-name').textContent = item.name;
@@ -1741,7 +1796,9 @@
       const qrUrl = buildQRUrl(item);
       document.getElementById('detail-qr-link').href = qrUrl;
       document.getElementById('detail-qr-link').textContent = `🔗 Open Unit Check-Out Page`;
-      document.getElementById('detail-open-scan-btn').onclick = () => openScanViewForItem(item.id);
+      const openScanBtn = document.getElementById('detail-open-scan-btn');
+      openScanBtn.textContent = `📱 Open Dedicated Unit Page`;
+      openScanBtn.onclick = () => openScanViewForItem(item.id);
 
       const qrContainer = document.getElementById('single-qr-container');
       qrContainer.innerHTML = '';
@@ -1772,29 +1829,34 @@
       filterSelect.value = currentFilter;
     }
 
+    // FIXED: Uses .value on filter-plant so all 755+ items display properly
     function getFilteredItems() {
-      const search = document.getElementById('search-input').value.toLowerCase();
-      const plantFilter = document.getElementById('filter-plant').value;
-      const qualityFilter = document.getElementById('filter-quality').value;
-      const statusFilter = document.getElementById('filter-status').value;
-      const sortFilter = document.getElementById('filter-sort').value;
+      const search = document.getElementById('search-input').value.toLowerCase().trim();
+      const plantFilter = document.getElementById('filter-plant').value || 'ALL';
+      const qualityFilter = document.getElementById('filter-quality').value || 'ALL';
+      const statusFilter = document.getElementById('filter-status').value || 'ALL';
+      const sortFilter = document.getElementById('filter-sort').value || 'AZ';
 
       let filtered = items.filter(item => {
         const isCheckedOut = item.activeCheckouts && item.activeCheckouts.length > 0;
         const matchesPlant = plantFilter === 'ALL' || item.plantCode === plantFilter;
         const matchesQuality = qualityFilter === 'ALL' || item.quality === qualityFilter;
-        const matchesStatus = statusFilter === 'ALL' || (statusFilter === 'CHECKED_OUT' && isCheckedOut) || (statusFilter === 'IN_STORAGE' && !isCheckedOut);
+        const matchesStatus = statusFilter === 'ALL' ||
+          (statusFilter === 'CHECKED_OUT' && isCheckedOut) || (statusFilter === 'IN_STORAGE' && !isCheckedOut);
+        const catObj = categories.find(c => c.name && item.category && c.name.toLowerCase() === item.category.toLowerCase());
+        const rackStr = catObj && catObj.rackCode ? catObj.rackCode.toLowerCase() : '';
         const matchesSearch = !search ||
-          item.tag.toLowerCase().includes(search) ||
+          (item.tag && item.tag.toLowerCase().includes(search)) ||
           (item.itemCode && item.itemCode.toLowerCase().includes(search)) ||
           (item.serialNumber && item.serialNumber.toLowerCase().includes(search)) ||
-          item.name.toLowerCase().includes(search) ||
-          item.category.toLowerCase().includes(search);
+          (item.name && item.name.toLowerCase().includes(search)) ||
+          (item.category && item.category.toLowerCase().includes(search)) ||
+          (rackStr && rackStr.includes(search));
         return matchesPlant && matchesQuality && matchesStatus && matchesSearch;
       });
 
-      if (sortFilter === 'AZ') filtered.sort((a, b) => a.name.localeCompare(b.name));
-      else if (sortFilter === 'ZA') filtered.sort((a, b) => b.name.localeCompare(a.name));
+      if (sortFilter === 'AZ') filtered.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      else if (sortFilter === 'ZA') filtered.sort((a, b) => (b.name || '').localeCompare(a.name || ''));
       else if (sortFilter === 'NEWEST') filtered.reverse();
       return filtered;
     }
@@ -1817,7 +1879,6 @@
         crumbsHtml += `<span class="text-slate-300 text-xs">/</span>`;
         crumbsHtml += `<button onclick="selectCategoryView('${escapeJsStr(selectedCategory)}')" class="text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded-md">${escapeHtml(selectedCategory)}</button>`;
       }
-
       if (selectedProductName) {
         crumbsHtml += `<span class="text-slate-300 text-xs">/</span>`;
         crumbsHtml += `<span class="text-xs font-bold text-[#5A358E] bg-purple-50 border border-purple-200 px-2 py-0.5 rounded-md">${escapeHtml(selectedProductName)}</span>`;
@@ -1829,7 +1890,8 @@
 
       const plantSelect = document.getElementById('filter-plant');
       const currentPlant = plantSelect ? plantSelect.value : 'ALL';
-      const search = document.getElementById('search-input').value.toLowerCase();
+
+      const search = document.getElementById('search-input').value.toLowerCase().trim();
       const qualityFilter = document.getElementById('filter-quality').value;
       const statusFilter = document.getElementById('filter-status').value;
 
@@ -1842,13 +1904,14 @@
       items.forEach(item => {
         const isCheckedOut = item.activeCheckouts && item.activeCheckouts.length > 0;
         const matchesQuality = qualityFilter === 'ALL' || item.quality === qualityFilter;
-        const matchesStatus = statusFilter === 'ALL' || (statusFilter === 'CHECKED_OUT' && isCheckedOut) || (statusFilter === 'IN_STORAGE' && !isCheckedOut);
+        const matchesStatus = statusFilter === 'ALL' ||
+          (statusFilter === 'CHECKED_OUT' && isCheckedOut) || (statusFilter === 'IN_STORAGE' && !isCheckedOut);
         const matchesSearch = !search ||
-          item.tag.toLowerCase().includes(search) ||
+          (item.tag && item.tag.toLowerCase().includes(search)) ||
           (item.itemCode && item.itemCode.toLowerCase().includes(search)) ||
           (item.serialNumber && item.serialNumber.toLowerCase().includes(search)) ||
-          item.name.toLowerCase().includes(search) ||
-          item.category.toLowerCase().includes(search);
+          (item.name && item.name.toLowerCase().includes(search)) ||
+          (item.category && item.category.toLowerCase().includes(search));
 
         if (matchesQuality && matchesStatus && matchesSearch) {
           plantCounts.ALL++;
@@ -1874,7 +1937,6 @@
         const wrapClass = isSelected ? 'bg-[#5A358E] text-white border-[#5A358E]' : 'bg-white text-slate-700 border-slate-200';
         const avail = plantCounts[p.code + '_avail'] || 0;
         const total = plantCounts[p.code] || 0;
-
         pillsHtml.push(`
           <button onclick="setPlantFilter('${p.code}')" class="px-3 py-1.5 rounded-lg border text-xs font-semibold transition flex items-center gap-1.5 ${wrapClass}">
             <span>🏢 ${p.code} — ${p.name}</span>
@@ -1939,30 +2001,22 @@
       });
 
       Array.from(categoryGroups.values()).sort((a, b) => a.name.localeCompare(b.name)).forEach(grp => {
-        initializeCategories();
-        let catObj = categories.find(c => c.name.toLowerCase() === grp.name.toLowerCase());
-        if (!catObj) {
-          const letters = 'ABCDEFGH';
-          const randomLetter = letters.charAt(Math.floor(Math.random() * letters.length));
-          const randomNum = Math.floor(1000 + Math.random() * 9000);
-          catObj = { id: 'cat-' + Math.random().toString(36).substring(2, 9), name: grp.name, rackCode: `${randomLetter}-${randomNum}` };
-          categories.push(catObj);
-          localStorage.setItem(STORAGE_KEY_CATEGORIES, JSON.stringify(categories));
-        }
+        const catObj = getCategoryObjectByName(grp.name);
         
         const card = document.createElement('div');
         card.className = 'bg-white rounded-2xl shadow-sm border border-l-4 border-[#5A358E] border-y border-r border-[#DCDDE1] p-5 flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5';
         card.innerHTML = `
           <div>
             <div class="flex justify-between items-center gap-2">
-              <div class="flex items-center gap-1 min-w-0">
-                <span class="text-[11px] font-bold bg-purple-50 text-[#5A358E] px-2.5 py-0.5 rounded-md truncate">📂 Category</span>
+              <div class="flex items-center gap-1.5 min-w-0">
+                <span class="text-[11px] font-mono font-bold bg-purple-50 text-[#5A358E] border border-purple-200 px-2 py-0.5 rounded-md">RACK: ${escapeHtml(catObj.rackCode)}</span>
+                <button onclick="openEditCategoryModal('${escapeJsStr(grp.name)}', event)" class="text-xs text-slate-400 hover:text-[#5A358E] px-1" title="Edit Category Name & Rack Code">✏️</button>
               </div>
               <span class="text-[11px] font-mono font-bold text-slate-400 shrink-0">🏢 ${Array.from(grp.plants).join(', ')}</span>
             </div>
             <h3 onclick="selectCategoryView('${escapeJsStr(grp.name)}')" class="text-base font-bold text-slate-900 mt-2.5 hover:text-[#5A358E] cursor-pointer truncate">${escapeHtml(grp.name)}</h3>
             <div class="flex items-center justify-between text-[11px] text-slate-400 mt-1 gap-2">
-              <span class="truncate">📍 Rack Code: <span class="font-bold text-[#5A358E] font-mono">${escapeHtml(catObj.rackCode)}</span></span>
+              <span class="truncate">📍 Locations: ${escapeHtml(Array.from(grp.locations).join(', '))}</span>
             </div>
             <div class="grid grid-cols-3 gap-2 mt-4 p-2.5 rounded-xl bg-[#FDFDFD] border border-slate-100 shadow-inner">
               <div class="text-center">
@@ -1979,9 +2033,10 @@
               </div>
             </div>
           </div>
-          <div class="mt-4 pt-3 border-t border-slate-100 flex items-center gap-2">
-            <button onclick="selectCategoryView('${escapeJsStr(grp.name)}')" class="flex-1 bg-[#5A358E] hover:bg-[#3D2566] text-white text-xs font-bold py-2 px-3 rounded-lg transition truncate shadow-sm">View Items (${grp.total})</button>
-            <button onclick="openCategoryDetailModal('${escapeJsStr(grp.name)}')" class="border border-slate-200 text-xs font-bold py-2 px-2.5 rounded-lg bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 transition shrink-0" title="View/Print Category Checkout QR Code">🖨️ QR</button>
+          <div class="mt-4 pt-3 border-t border-slate-100 flex items-center gap-1.5">
+            <button onclick="selectCategoryView('${escapeJsStr(grp.name)}')" class="flex-1 bg-[#5A358E] hover:bg-[#3D2566] text-white text-xs font-bold py-2 px-2.5 rounded-lg transition truncate shadow-sm">View (${grp.total})</button>
+            <button onclick="printCategoryPoster('${escapeJsStr(catObj.id)}')" class="border border-emerald-200 text-xs font-bold py-2 px-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 transition shrink-0" title="Print 1-Per-Page Category Poster">🪧 Poster</button>
+            <button onclick="openCategoryDetailModal('${escapeJsStr(grp.name)}')" class="border border-slate-200 text-xs font-bold py-2 px-2 rounded-lg bg-slate-100 hover:bg-purple-50 text-slate-700 hover:text-[#5A358E] transition shrink-0" title="View/Print Category QR Options">🖨️ QR</button>
           </div>
         `;
         grid.appendChild(card);
@@ -2026,6 +2081,8 @@
              <button onclick="deleteItem('${item.id}')" class="text-xs bg-rose-50 hover:bg-rose-100 text-rose-600 px-2 py-1 rounded">🗑️</button>`
           : '';
 
+        const catObj = getCategoryObjectByName(item.category);
+
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-purple-50/30 transition-colors border-b border-slate-100';
         tr.innerHTML = `
@@ -2038,7 +2095,7 @@
           </td>
           <td class="p-3">
             <div class="font-semibold text-slate-900">${escapeHtml(item.name)}</div>
-            <div class="text-xs text-slate-500">${escapeHtml(item.category)} ${item.serialNumber ? `• <span class="font-mono text-purple-800">S/N: ${escapeHtml(item.serialNumber)}</span>` : ''}</div>
+            <div class="text-xs text-slate-500">${escapeHtml(item.category)} <span class="font-mono text-[10px] bg-purple-50 text-[#5A358E] px-1.5 py-0.2 rounded">Rack: ${escapeHtml(catObj.rackCode)}</span> ${item.serialNumber ? `• <span class="font-mono text-purple-800">S/N: ${escapeHtml(item.serialNumber)}</span>` : ''}</div>
           </td>
           <td class="p-3">
             <div class="text-xs font-bold">${escapeHtml(item.plantCode)}</div>
@@ -2087,12 +2144,11 @@
       autoCheckoutCategory = categoryName;
       
       document.querySelector('#auto-checkout-modal h3').textContent = `🎯 Auto Check-Out: ${categoryName}`;
-      document.querySelector('#auto-checkout-modal p').textContent = `Please select your specific Item Type below. The system will automatically allocate and assign you the first available unit from the "${categoryName}" category (Rack: ${cat.rackCode}).`;
+      document.querySelector('#auto-checkout-modal p').textContent = `Select your specific Item Type below. The system will automatically assign you the first available unit from "${categoryName}" (Rack: ${cat.rackCode}).`;
       
       const select = document.getElementById('auto-checkout-item-name');
       const selectDiv = select.closest('div');
       
-      // Filter available units to ONLY show items belonging to the scanned category
       const availableItems = items.filter(i => (i.category || 'Uncategorized').toLowerCase() === categoryName.toLowerCase() && (!i.activeCheckouts || i.activeCheckouts.length === 0));
       const uniqueNames = [...new Set(availableItems.map(i => i.name))];
 
@@ -2102,7 +2158,7 @@
         select.innerHTML = uniqueNames.map(name => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('');
       }
 
-      selectDiv.classList.remove('hidden'); // Keep dropdown visible so user can choose the item they want to check out
+      selectDiv.classList.remove('hidden');
       
       let infoDiv = document.getElementById('category-checkout-info');
       if (!infoDiv) {
@@ -2112,7 +2168,7 @@
         selectDiv.parentNode.insertBefore(infoDiv, selectDiv);
       }
       infoDiv.classList.remove('hidden');
-      infoDiv.innerHTML = `📦 Selected Category: <span class="font-extrabold">${categoryName}</span> [Rack: <span class="font-mono">${cat.rackCode}</span>]`;
+      infoDiv.innerHTML = `📦 Selected Category: <span class="font-extrabold">${escapeHtml(categoryName)}</span> • Rack Code: <span class="font-mono font-bold">${escapeHtml(cat.rackCode)}</span>`;
 
       document.getElementById('auto-checkout-user-id').value = '';
       document.getElementById('auto-checkout-email').value = '';
@@ -2128,17 +2184,7 @@
     }
 
     function openCategoryDetailModal(categoryName) {
-      initializeCategories();
-      let catObj = categories.find(c => c.name.toLowerCase() === categoryName.toLowerCase());
-      if (!catObj) {
-        const letters = 'ABCDEFGH';
-        const randomLetter = letters.charAt(Math.floor(Math.random() * letters.length));
-        const randomNum = Math.floor(1000 + Math.random() * 9000);
-        catObj = { id: 'cat-' + Math.random().toString(36).substring(2, 9), name: categoryName, rackCode: `${randomLetter}-${randomNum}` };
-        categories.push(catObj);
-        localStorage.setItem(STORAGE_KEY_CATEGORIES, JSON.stringify(categories));
-      }
-
+      const catObj = getCategoryObjectByName(categoryName);
       const matchingItems = items.filter(i => (i.category || 'Uncategorized') === categoryName);
       const total = matchingItems.length;
       const available = matchingItems.filter(i => !i.activeCheckouts || i.activeCheckouts.length === 0).length;
@@ -2148,21 +2194,56 @@
       document.getElementById('detail-name').textContent = `${categoryName} [Rack: ${catObj.rackCode}]`;
       document.getElementById('detail-plant').textContent = [...new Set(matchingItems.map(i => i.plantCode))].join(', ') || 'N/A';
       document.getElementById('detail-category').textContent = categoryName;
-      document.getElementById('detail-location').textContent = `Rack: ${catObj.rackCode}`;
-      document.getElementById('detail-serial').textContent = 'N/A';
-      document.getElementById('detail-quality').innerHTML = '';
+      document.getElementById('detail-location').textContent = `Rack ${catObj.rackCode}`;
+      document.getElementById('detail-serial').textContent = catObj.id;
+      document.getElementById('detail-quality').innerHTML = '<span class="px-2 py-0.5 rounded bg-purple-50 text-[#5A358E] font-mono text-xs font-bold">Permanent QR</span>';
       document.getElementById('detail-qty').textContent = `${available} available units`;
-      document.getElementById('detail-notes').textContent = `Scan this category QR code to open the assignment page and select your exact item type (e.g. Black Tubing).`;
-      document.getElementById('detail-instructions').textContent = `Instructions: Print this sticker and place it on the storage bin/rack for this entire category.`;
+      document.getElementById('detail-notes').textContent = `Scan this category QR code to open the assignment page and select your exact item type. Even if you edit this category's name, this QR code will stay 100% the same.`;
+      document.getElementById('detail-instructions').textContent = `Use "Print Poster (1/Page)" for a large sign to hang on the rack, or "Small QR Card" to keep a compact scanning sheet next to the computer.`;
 
       const qrUrl = buildCategoryQRUrl(catObj.id);
       document.getElementById('detail-qr-link').href = qrUrl;
       document.getElementById('detail-qr-link').textContent = `🔗 Open Category Checkout Page`;
-      document.getElementById('detail-open-scan-btn').onclick = () => {
+      
+      const openScanBtn = document.getElementById('detail-open-scan-btn');
+      openScanBtn.onclick = () => {
         closeDetailModal();
         openCategoryCheckoutModal(catObj.id);
       };
-      document.getElementById('detail-open-scan-btn').textContent = `🎯 Open Category Auto-Checkout`;
+      openScanBtn.textContent = `🎯 Auto-Checkout`;
+
+      const btnContainer = document.getElementById('detail-action-buttons');
+      const existingPosterBtn = document.getElementById('category-poster-btn');
+      if (existingPosterBtn) existingPosterBtn.remove();
+      const existingLabelBtn = document.getElementById('category-label-btn');
+      if (existingLabelBtn) existingLabelBtn.remove();
+      const existingEditCatBtn = document.getElementById('category-modal-edit-btn');
+      if (existingEditCatBtn) existingEditCatBtn.remove();
+
+      const posterBtn = document.createElement('button');
+      posterBtn.id = 'category-poster-btn';
+      posterBtn.className = 'px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-sm';
+      posterBtn.textContent = '🪧 Print Poster (1/Page)';
+      posterBtn.onclick = () => printCategoryPoster(catObj.id);
+
+      const labelBtn = document.createElement('button');
+      labelBtn.id = 'category-label-btn';
+      labelBtn.className = 'px-3 py-2 rounded-lg bg-[#0D9488] hover:bg-[#059669] text-white text-xs font-bold transition shadow-sm';
+      labelBtn.textContent = '🏷️ Small QR Card';
+      labelBtn.onclick = () => printCategoryLabel(catObj.id);
+
+      const editCatBtn = document.createElement('button');
+      editCatBtn.id = 'category-modal-edit-btn';
+      editCatBtn.className = 'px-3 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition shadow-sm';
+      editCatBtn.textContent = '✏️ Edit Category';
+      editCatBtn.onclick = () => {
+        closeDetailModal();
+        openEditCategoryModal(categoryName);
+      };
+
+      btnContainer.insertBefore(posterBtn, openScanBtn);
+      btnContainer.insertBefore(labelBtn, openScanBtn);
+      btnContainer.insertBefore(editCatBtn, openScanBtn);
 
       const qrContainer = document.getElementById('single-qr-container');
       qrContainer.innerHTML = '';
@@ -2171,10 +2252,6 @@
       document.getElementById('detail-modal').classList.remove('hidden');
       document.getElementById('detail-modal').classList.add('flex');
     }
-
-    // ==========================================
-    // MISSING FUNCTIONS ADDED FOR FULL SUPPORT
-    // ==========================================
 
     function resetToOverview() {
       viewMode = 'OVERVIEW';
@@ -2202,12 +2279,14 @@
       if (!item) return;
       document.getElementById('checkout-item-id').value = item.id;
       document.getElementById('checkout-modal-subtitle').textContent = `${item.tag} — ${item.name}`;
+      
       document.getElementById('checkout-user-id').value = '';
       document.getElementById('checkout-email').value = '';
       document.getElementById('checkout-destination').value = '';
       document.getElementById('checkout-note').value = '';
       document.getElementById('checkout-send-email-toggle').checked = true;
       document.getElementById('checkout-for-good-toggle').checked = false;
+      
       validateCheckoutUser();
 
       const modal = document.getElementById('checkout-modal');
@@ -2255,7 +2334,6 @@
       const email = document.getElementById('checkout-email').value.trim();
       const destination = document.getElementById('checkout-destination').value.trim();
       const note = document.getElementById('checkout-note').value.trim();
-      const sendEmail = document.getElementById('checkout-send-email-toggle').checked;
       const forGood = document.getElementById('checkout-for-good-toggle').checked;
 
       const item = items.find(i => i.id === itemId);
@@ -2275,8 +2353,8 @@
 
       addAppNotification(
         'CHECK_OUT',
-        `Unit Checked Out: ${item.tag}`,
-        `${userName} checked out ${item.name} to ${destination}.`,
+        `${forGood ? 'Permanent ' : ''}Unit Checked Out: ${item.tag}`,
+        `${userName} checked out ${item.name} to ${destination}${forGood ? ' (Permanent)' : ''}.`,
         item.tag,
         email
       );
@@ -2356,12 +2434,21 @@
       item.quality = quality;
       item.quantity = 1;
 
-      addAppNotification(
-        'CHECK_IN',
-        `Unit Checked In: ${item.tag}`,
-        `${userName} checked in ${item.name} (Quality: ${quality}).`,
-        item.tag
-      );
+      if (quality === 'Needs Repair' || quality === 'Broken') {
+        addAppNotification(
+          'REPAIR_ALERT',
+          `⚠️ ${quality}: ${item.tag} (${item.name})`,
+          `Reported by ${userName}: ${concernDesc || note || 'Flagged upon return'}`,
+          item.tag
+        );
+      } else {
+        addAppNotification(
+          'CHECK_IN',
+          `Unit Checked In: ${item.tag}`,
+          `${userName} checked in ${item.name} (Quality: ${quality}).`,
+          item.tag
+        );
+      }
 
       closeCheckInModal();
       renderInventory();
@@ -2397,6 +2484,7 @@
       document.getElementById('auto-checkout-note').value = '';
       document.getElementById('auto-checkout-send-email-toggle').checked = true;
       document.getElementById('auto-checkout-for-good-toggle').checked = false;
+      
       validateAutoCheckoutUser();
 
       const modal = document.getElementById('auto-checkout-modal');
@@ -2443,7 +2531,6 @@
       const email = document.getElementById('auto-checkout-email').value.trim();
       const destination = document.getElementById('auto-checkout-destination').value.trim();
       const note = document.getElementById('auto-checkout-note').value.trim();
-      const sendEmail = document.getElementById('auto-checkout-send-email-toggle').checked;
       const forGood = document.getElementById('auto-checkout-for-good-toggle').checked;
 
       const itemName = document.getElementById('auto-checkout-item-name').value;
