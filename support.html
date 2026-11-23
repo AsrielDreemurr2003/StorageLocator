@@ -51,29 +51,29 @@
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <!-- Forms Tab Navigation -->
-      <div class="lg:col-span-1 space-y-2">
+      <!-- Forms Tab Navigation (Fully accessible) -->
+      <div role="tablist" aria-label="Support Categories" class="lg:col-span-1 space-y-2">
         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Select support category</p>
-        <button id="help-tab-concern" onclick="switchHelpTab('concern')" class="w-full text-left p-3.5 rounded-xl border font-bold text-sm transition flex items-center gap-3 bg-[#5A358E] text-white border-[#5A358E]">
-          <span class="text-lg">⚠️</span>
+        <button id="help-tab-concern" role="tab" aria-selected="true" aria-controls="help-section-concern" onclick="switchHelpTab('concern')" class="w-full text-left p-3.5 rounded-xl border font-bold text-sm transition flex items-center gap-3 bg-[#5A358E] text-white border-[#5A358E] focus:ring-2 focus:ring-[#5A358E] focus:outline-none">
+          <span class="text-lg" aria-hidden="true">⚠️</span>
           <div class="min-w-0">
             <p class="truncate">Report Issue / Broken Item</p>
           </div>
         </button>
-        <button id="help-tab-request" onclick="switchHelpTab('request')" class="w-full text-left p-3.5 rounded-xl border font-bold text-sm transition flex items-center gap-3 bg-white hover:bg-slate-50 border-slate-200 text-slate-700">
-          <span class="text-lg">➕</span>
+        <button id="help-tab-request" role="tab" aria-selected="false" aria-controls="help-section-request" onclick="switchHelpTab('request')" class="w-full text-left p-3.5 rounded-xl border font-bold text-sm transition flex items-center gap-3 bg-white hover:bg-slate-50 border-slate-200 text-slate-700 focus:ring-2 focus:ring-[#5A358E] focus:outline-none">
+          <span class="text-lg" aria-hidden="true">➕</span>
           <div class="min-w-0">
             <p class="truncate">Request New Inventory</p>
           </div>
         </button>
-        <button id="help-tab-instructions" onclick="switchHelpTab('instructions')" class="w-full text-left p-3.5 rounded-xl border font-bold text-sm transition flex items-center gap-3 bg-white hover:bg-slate-50 border-slate-200 text-slate-700">
-          <span class="text-lg">🛠️</span>
+        <button id="help-tab-instructions" role="tab" aria-selected="false" aria-controls="help-section-instructions" onclick="switchHelpTab('instructions')" class="w-full text-left p-3.5 rounded-xl border font-bold text-sm transition flex items-center gap-3 bg-white hover:bg-slate-50 border-slate-200 text-slate-700 focus:ring-2 focus:ring-[#5A358E] focus:outline-none">
+          <span class="text-lg" aria-hidden="true">🛠️</span>
           <div class="min-w-0">
             <p class="truncate">Improve Work Instructions</p>
           </div>
         </button>
-        <button id="help-tab-logs" onclick="switchHelpTab('logs')" class="w-full text-left p-3.5 rounded-xl border font-bold text-sm transition flex items-center gap-3 bg-white hover:bg-slate-50 border-slate-200 text-slate-700">
-          <span class="text-lg">📜</span>
+        <button id="help-tab-logs" role="tab" aria-selected="false" aria-controls="help-section-logs" onclick="switchHelpTab('logs')" class="w-full text-left p-3.5 rounded-xl border font-bold text-sm transition flex items-center gap-3 bg-white hover:bg-slate-50 border-slate-200 text-slate-700 focus:ring-2 focus:ring-[#5A358E] focus:outline-none">
+          <span class="text-lg" aria-hidden="true">📜</span>
           <div class="min-w-0">
             <p class="truncate">Live Concerns & Wishlist Log</p>
           </div>
@@ -84,84 +84,109 @@
       <div class="lg:col-span-2">
         <div class="bg-white rounded-xl p-5 border border-[#DCDDE1] min-h-[380px]">
           
-          <!-- Report Concern -->
-          <div id="help-section-concern" class="space-y-4">
+          <!-- Report Concern (Fully accessible with labels & focus indicators) -->
+          <div id="help-section-concern" role="tabpanel" aria-labelledby="help-tab-concern" class="space-y-4">
             <div>
               <h3 class="text-base font-bold text-slate-900">⚠️ Report Issue or Broken Item</h3>
               <p class="text-xs text-slate-500">Flag an existing item in inventory that is currently damaged, broken, or has other concerns.</p>
             </div>
             <form onsubmit="submitHelpConcern(event)" class="space-y-3.5">
               <div>
-                <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Select Existing Item *</label>
-                <input type="text" id="help-concern-search" oninput="filterHelpConcernItems()" placeholder="🔍 Type to search name or item code..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs mb-1.5" />
-                <select id="help-concern-item-id" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"></select>
+                <label for="help-concern-search" class="block text-xs font-bold text-slate-600 uppercase mb-1">Select Existing Item *</label>
+                <input type="text" id="help-concern-search" oninput="filterHelpConcernItems()" placeholder="🔍 Type to search name or item code..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs mb-1.5 focus:ring-2 focus:ring-[#5A358E] focus:outline-none" />
+                <label for="help-concern-item-id" class="sr-only">Choose Item from list</label>
+                <select id="help-concern-item-id" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-[#5A358E] focus:outline-none"></select>
               </div>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Select New Quality State *</label>
-                  <select id="help-concern-quality" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white">
+                  <label for="help-concern-quality" class="block text-xs font-bold text-slate-600 uppercase mb-1">Select New Quality State *</label>
+                  <select id="help-concern-quality" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-[#5A358E] focus:outline-none">
                     <option value="Needs Repair">⚠️ Needs Repair</option>
                     <option value="Broken">❌ Broken / Non-Functional</option>
                   </select>
                 </div>
                 <div>
-                  <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Your User ID *</label>
-                  <input type="text" id="help-concern-user" required placeholder="e.g. u123456" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+                  <label for="help-concern-user" class="block text-xs font-bold text-slate-600 uppercase mb-1">Your User ID *</label>
+                  <input type="text" id="help-concern-user" required placeholder="e.g. u123456" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#5A358E] focus:outline-none" />
                 </div>
               </div>
               <div>
-                <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Describe the Concern *</label>
-                <textarea id="help-concern-desc" required rows="3" placeholder="Explain what is wrong with the unit..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"></textarea>
+                <label for="help-concern-desc" class="block text-xs font-bold text-slate-600 uppercase mb-1">Describe the Concern *</label>
+                <textarea id="help-concern-desc" required rows="3" placeholder="Explain what is wrong with the unit..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#5A358E] focus:outline-none"></textarea>
               </div>
               <div>
-                <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Job Impact *</label>
-                <textarea id="help-concern-impact" required rows="2" placeholder="e.g. Delay, safety hazard..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"></textarea>
+                <label for="help-concern-impact" class="block text-xs font-bold text-slate-600 uppercase mb-1">Job Impact *</label>
+                <textarea id="help-concern-impact" required rows="2" placeholder="e.g. Delay, safety hazard..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#5A358E] focus:outline-none"></textarea>
               </div>
-              <button type="submit" class="bg-[#5A358E] hover:bg-[#3D2566] text-white font-bold text-xs px-6 py-2.5 rounded-lg">Submit Concern</button>
+              <button type="submit" class="bg-[#5A358E] hover:bg-[#3D2566] text-white font-bold text-xs px-6 py-2.5 rounded-lg focus:ring-2 focus:ring-[#5A358E] focus:ring-offset-2">Submit Concern</button>
             </form>
           </div>
 
-          <!-- Request New Inventory -->
-          <div id="help-section-request" class="space-y-4 hidden">
+          <!-- Request New Inventory (Accessible with proper labels and inputs) -->
+          <div id="help-section-request" role="tabpanel" aria-labelledby="help-tab-request" class="space-y-4 hidden">
             <div>
               <h3 class="text-base font-bold text-slate-900">➕ Request New Items / Inventory</h3>
               <p class="text-xs text-slate-500">Suggest new tools or items to add to stock.</p>
             </div>
             <form onsubmit="submitHelpInventoryRequest(event)" class="space-y-3.5">
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <input type="text" id="help-req-name" required placeholder="Requested Item Name" class="w-full border rounded px-3 py-2 text-sm" />
-                <input type="text" id="help-req-category" required placeholder="Category / Type" class="w-full border rounded px-3 py-2 text-sm" />
+                <div>
+                  <label for="help-req-name" class="block text-xs font-bold text-slate-600 uppercase mb-1">Requested Item Name *</label>
+                  <input type="text" id="help-req-name" required placeholder="e.g. Torque Sensor" class="w-full border rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-600 focus:outline-none" />
+                </div>
+                <div>
+                  <label for="help-req-category" class="block text-xs font-bold text-slate-600 uppercase mb-1">Category / Type *</label>
+                  <input type="text" id="help-req-category" required placeholder="e.g. Electronics" class="w-full border rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-600 focus:outline-none" />
+                </div>
               </div>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <select id="help-req-plant" required class="w-full border rounded px-3 py-2 text-sm bg-white"></select>
-                <input type="text" id="help-req-user" required placeholder="Your User ID" class="w-full border rounded px-3 py-2 text-sm" />
+                <div>
+                  <label for="help-req-plant" class="block text-xs font-bold text-slate-600 uppercase mb-1">Target Plant *</label>
+                  <select id="help-req-plant" required class="w-full border rounded px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-emerald-600 focus:outline-none"></select>
+                </div>
+                <div>
+                  <label for="help-req-user" class="block text-xs font-bold text-slate-600 uppercase mb-1">Your User ID *</label>
+                  <input type="text" id="help-req-user" required placeholder="Your User ID" class="w-full border rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-600 focus:outline-none" />
+                </div>
               </div>
-              <textarea id="help-req-reason" required rows="3" placeholder="Explain how this would be helpful..." class="w-full border rounded px-3 py-2 text-sm"></textarea>
-              <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-6 py-2.5 rounded-lg">Submit Wishlist Request</button>
+              <div>
+                <label for="help-req-reason" class="block text-xs font-bold text-slate-600 uppercase mb-1">Reason for Request *</label>
+                <textarea id="help-req-reason" required rows="3" placeholder="Explain how this would be helpful..." class="w-full border rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-600 focus:outline-none"></textarea>
+              </div>
+              <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-6 py-2.5 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2">Submit Wishlist Request</button>
             </form>
           </div>
 
-          <!-- Suggest Work Instructions -->
-          <div id="help-section-instructions" class="space-y-4 hidden">
+          <!-- Suggest Work Instructions (Accessible with labels and focus indicators) -->
+          <div id="help-section-instructions" role="tabpanel" aria-labelledby="help-tab-instructions" class="space-y-4 hidden">
             <div>
               <h3 class="text-base font-bold text-slate-900">🛠️ Suggest / Update Work Instructions</h3>
               <p class="text-xs text-slate-500">Propose safer or better torque/usage steps.</p>
             </div>
             <form onsubmit="submitHelpWorkInstructions(event)" class="space-y-3.5">
               <div>
-                <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Select Item *</label>
-                <select id="help-inst-item-id" required onchange="showCurrentInstructions()" class="w-full border rounded px-3 py-2 text-sm bg-white"></select>
+                <label for="help-inst-item-id" class="block text-xs font-bold text-slate-600 uppercase mb-1">Select Item *</label>
+                <select id="help-inst-item-id" required onchange="showCurrentInstructions()" class="w-full border rounded px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-[#5A358E] focus:outline-none"></select>
               </div>
               <div class="bg-slate-50 p-3 rounded-lg border text-xs">
                 <span class="font-bold text-slate-400 uppercase block text-[10px]">Current Work Instructions:</span>
                 <p id="help-current-inst-preview" class="text-slate-700 whitespace-pre-line mt-1"></p>
               </div>
-              <textarea id="help-inst-new-text" required rows="4" placeholder="Proposed better instructions..." class="w-full border rounded px-3 py-2 text-sm font-mono"></textarea>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <input type="text" id="help-inst-user" required placeholder="Submitter User ID" class="w-full border rounded px-3 py-2 text-sm" />
-                <input type="text" id="help-inst-reason" required placeholder="Reason for update" class="w-full border rounded px-3 py-2 text-sm" />
+              <div>
+                <label for="help-inst-new-text" class="block text-xs font-bold text-slate-600 uppercase mb-1">Proposed Work Instructions *</label>
+                <textarea id="help-inst-new-text" required rows="4" placeholder="Proposed better instructions..." class="w-full border rounded px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-[#5A358E] focus:outline-none"></textarea>
               </div>
-              <button type="submit" class="bg-[#5A358E] hover:bg-[#3D2566] text-white font-bold text-xs px-6 py-2.5 rounded-lg">Update Work Instructions</button>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label for="help-inst-user" class="block text-xs font-bold text-slate-600 uppercase mb-1">Submitter User ID *</label>
+                  <input type="text" id="help-inst-user" required placeholder="Submitter User ID" class="w-full border rounded px-3 py-2 text-sm focus:ring-2 focus:ring-[#5A358E] focus:outline-none" />
+                </div>
+                <div>
+                  <label for="help-inst-reason" class="block text-xs font-bold text-slate-600 uppercase mb-1">Reason for update *</label>
+                  <input type="text" id="help-inst-reason" required placeholder="Reason for update" class="w-full border rounded px-3 py-2 text-sm focus:ring-2 focus:ring-[#5A358E] focus:outline-none" />
+                </div>
+              </div>
+              <button type="submit" class="bg-[#5A358E] hover:bg-[#3D2566] text-white font-bold text-xs px-6 py-2.5 rounded-lg focus:ring-2 focus:ring-[#5A358E] focus:ring-offset-2">Update Work Instructions</button>
             </form>
           </div>
 
@@ -208,10 +233,12 @@
         const btn = document.getElementById(`help-tab-${t}`);
         const sec = document.getElementById(`help-section-${t}`);
         if (t === tabId) {
-          btn.className = "w-full text-left p-3.5 rounded-xl border font-bold text-sm transition flex items-center gap-3 bg-[#5A358E] text-white border-[#5A358E]";
+          btn.className = "w-full text-left p-3.5 rounded-xl border font-bold text-sm transition flex items-center gap-3 bg-[#5A358E] text-white border-[#5A358E] focus:ring-2 focus:ring-[#5A358E] focus:outline-none";
+          btn.setAttribute('aria-selected', 'true');
           sec.classList.remove('hidden');
         } else {
-          btn.className = "w-full text-left p-3.5 rounded-xl border font-bold text-sm transition flex items-center gap-3 bg-white hover:bg-slate-50 border-slate-200 text-slate-700";
+          btn.className = "w-full text-left p-3.5 rounded-xl border font-bold text-sm transition flex items-center gap-3 bg-white hover:bg-slate-50 border-slate-200 text-slate-700 focus:ring-2 focus:ring-[#5A358E] focus:outline-none";
+          btn.setAttribute('aria-selected', 'false');
           sec.classList.add('hidden');
         }
       });
@@ -296,8 +323,23 @@
         helpLogs.unshift({
           id: 'hl-' + now, ticketNumber: generateTicketNumber(), type: 'CONCERN',
           itemName: item.name, itemTag: item.tag, itemCode: item.itemCode,
-          quality: newQuality, user: submitter, description: desc, impact, timestamp: now, status: 'OPEN'
+          quality: newQuality, user: submitter, description: desc, impact, timestamp: now, status: 'OPEN', notes: []
         });
+
+        // Push notification to local storage & cloud
+        const appNotifications = JSON.parse(localStorage.getItem(STORAGE_KEY_NOTIFS)) || [];
+        appNotifications.unshift({
+          id: 'notif-' + now + '-' + Math.random().toString(36).substring(2, 5),
+          type: 'REPAIR_ALERT',
+          title: `⚠️ ${newQuality}: ${item.tag}`,
+          message: `Reported by ${submitter}: ${desc} (Impact: ${impact})`,
+          itemTag: item.tag,
+          userEmail: '',
+          mailtoLink: '',
+          timestamp: now
+        });
+        localStorage.setItem(STORAGE_KEY_NOTIFS, JSON.stringify(appNotifications));
+
         e.target.reset();
         await syncSupportState();
         alert('Concern submitted and item quality updated!');
@@ -316,8 +358,23 @@
       const now = Date.now();
       helpLogs.unshift({
         id: 'hl-' + now, ticketNumber: generateTicketNumber(), type: 'WISHLIST_REQ',
-        itemName: name, category, plantCode: plant, user, description: reason, timestamp: now, status: 'OPEN'
+        itemName: name, category, plantCode: plant, user, description: reason, timestamp: now, status: 'OPEN', notes: []
       });
+
+      // Push notification to local storage & cloud
+      const appNotifications = JSON.parse(localStorage.getItem(STORAGE_KEY_NOTIFS)) || [];
+      appNotifications.unshift({
+        id: 'notif-' + now + '-' + Math.random().toString(36).substring(2, 5),
+        type: 'WISHLIST_REQ',
+        title: `➕ Wishlist Request: ${name}`,
+        message: `Requested by ${user} for plant ${plant}: ${reason}`,
+        itemTag: '',
+        userEmail: '',
+        mailtoLink: '',
+        timestamp: now
+      });
+      localStorage.setItem(STORAGE_KEY_NOTIFS, JSON.stringify(appNotifications));
+
       e.target.reset();
       await syncSupportState();
       alert('Inventory request submitted!');
@@ -364,6 +421,36 @@
       renderHelpLogs();
     }
 
+    function escapeHtml(str) {
+      return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    async function addTicketNote(entryId) {
+      const inputEl = document.getElementById(`note-input-${entryId}`);
+      const userEl = document.getElementById(`note-user-${entryId}`);
+      if (!inputEl) return;
+      const noteText = inputEl.value.trim();
+      const noteUser = userEl ? userEl.value.trim() : 'Anonymous';
+      
+      if (!noteText) {
+        alert('Please enter some text for the note.');
+        return;
+      }
+      
+      const entry = helpLogs.find(h => h.id === entryId);
+      if (entry) {
+        if (!Array.isArray(entry.notes)) entry.notes = [];
+        entry.notes.push({
+          user: noteUser || 'Anonymous',
+          text: noteText,
+          timestamp: Date.now()
+        });
+        
+        await syncSupportState();
+        renderHelpLogs();
+      }
+    }
+
     function renderHelpLogs() {
       const container = document.getElementById('help-logs-container');
       container.innerHTML = '';
@@ -382,21 +469,48 @@
           ? `<button onclick="resolveTicket('${entry.id}')" class="bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold px-2.5 py-1 rounded">Mark Resolved</button>`
           : '';
 
-        const div = document.createElement('div');
-        div.className = 'p-4 rounded-xl border text-xs bg-slate-50 flex flex-wrap justify-between items-start gap-3';
-        div.innerHTML = `
-          <div class="space-y-1 flex-1">
-            <div class="flex items-center gap-2 flex-wrap">
-              <strong class="font-mono text-[#5A358E]">#${entry.ticketNumber || 'TK'}</strong>
-              <span class="font-bold text-slate-800">[${entry.type}]</span>
-              ${statusBadge}
-              <span class="font-semibold text-slate-900">${entry.itemName || ''} ${entry.itemTag ? `(${entry.itemTag})` : ''}</span>
-              <span class="text-slate-400">by <strong>${entry.user}</strong> • ${new Date(entry.timestamp).toLocaleString()}</span>
+        let notesHtml = '';
+        if (entry.notes && entry.notes.length > 0) {
+          notesHtml = `
+            <div class="mt-3 pl-3 border-l-2 border-purple-400 space-y-1.5 bg-white p-2.5 rounded-lg shadow-inner">
+              <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Ticket Notes:</span>
+              ${entry.notes.map(note => `
+                <div class="text-[11px] text-slate-700">
+                  <span class="font-bold text-slate-900">${escapeHtml(note.user || 'User')}:</span> ${escapeHtml(note.text)} 
+                  <span class="text-slate-400 text-[9px]">• ${new Date(note.timestamp).toLocaleString()}</span>
+                </div>
+              `).join('')}
             </div>
-            <p class="text-slate-700">${entry.description || ''}</p>
-            ${entry.impact ? `<p class="text-rose-700 font-medium">Impact: ${entry.impact}</p>` : ''}
+          `;
+        }
+
+        const addNoteFormHtml = `
+          <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center gap-2">
+            <input type="text" id="note-input-${entry.id}" placeholder="Type a note about this issue..." class="flex-1 border border-slate-300 rounded-lg px-2.5 py-1 text-xs focus:ring-2 focus:ring-[#5A358E] outline-none" />
+            <input type="text" id="note-user-${entry.id}" placeholder="User ID" class="w-20 border border-slate-300 rounded-lg px-2.5 py-1 text-xs focus:ring-2 focus:ring-[#5A358E] outline-none" />
+            <button onclick="addTicketNote('${entry.id}')" class="bg-[#5A358E] hover:bg-[#3D2566] text-white font-bold text-[10px] px-3 py-1.5 rounded-lg transition-colors">Add Note</button>
           </div>
-          <div>${resolveBtn}</div>
+        `;
+
+        const div = document.createElement('div');
+        div.className = 'p-4 rounded-xl border text-xs bg-slate-50 flex flex-col justify-between gap-3';
+        div.innerHTML = `
+          <div class="flex flex-wrap justify-between items-start gap-3">
+            <div class="space-y-1 flex-1">
+              <div class="flex items-center gap-2 flex-wrap">
+                <strong class="font-mono text-[#5A358E]">#${entry.ticketNumber || 'TK'}</strong>
+                <span class="font-bold text-slate-800">[${entry.type}]</span>
+                ${statusBadge}
+                <span class="font-semibold text-slate-900">${entry.itemName || ''} ${entry.itemTag ? '(' + entry.itemTag + ')' : ''}</span>
+                <span class="text-slate-400">by <strong>${entry.user}</strong> • ${new Date(entry.timestamp).toLocaleString()}</span>
+              </div>
+              <p class="text-slate-700">${entry.description || ''}</p>
+              ${entry.impact ? '<p class="text-rose-700 font-medium">Impact: ' + entry.impact + '</p>' : ''}
+              ${notesHtml}
+            </div>
+            <div>${resolveBtn}</div>
+          </div>
+          ${addNoteFormHtml}
         `;
         container.appendChild(div);
       });
