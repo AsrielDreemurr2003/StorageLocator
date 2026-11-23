@@ -4,12 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>StorageLocater — Active Areas & Technician Deployment Roster</title>
-  <!-- Preload sibling files for instant zero-lag transitions -->
   <link rel="prefetch" href="index.html" />
   <link rel="prefetch" href="admin.html" />
   <link rel="prefetch" href="support.html" />
-  
-  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght=500;700&display=swap');
@@ -19,31 +16,22 @@
 </head>
 <body class="bg-[#FAF9F5] text-slate-800 min-h-screen pb-24 overflow-x-hidden">
 
-  <!-- Corporate Header -->
   <header class="bg-[#251440] text-white border-b-4 border-[#0D9488] sticky top-0 z-40 shadow-md">
     <div class="w-full max-w-[96%] sm:max-w-[94%] xl:max-w-[92%] 2xl:max-w-[90%] mx-auto px-2 sm:px-4 h-16 flex items-center justify-between gap-3">
-      
       <div class="flex items-center gap-3">
         <a href="index.html">
           <img src="https://brandlogos.net/wp-content/uploads/2026/02/trane_technologies-logo_brandlogos.net_ct15x-1536x432.png" alt="Trane Technologies Logo" class="h-9 md:h-11 w-auto cursor-pointer rounded-lg bg-white p-1.5 hover:opacity-90 shadow-sm border border-slate-200" />
         </a>
         <div>
-          <a href="index.html" class="text-base sm:text-xl font-extrabold tracking-tight hover:text-emerald-300">
-            StorageLocater Deployments
-          </a>
+          <a href="index.html" class="text-base sm:text-xl font-extrabold tracking-tight hover:text-emerald-300">StorageLocater Deployments</a>
           <p class="text-[10px] text-slate-300 uppercase tracking-widest font-semibold hidden sm:block">Active Floor Areas & Custodian Roster</p>
         </div>
       </div>
 
       <div class="flex items-center gap-2">
-        <a href="support.html" class="bg-[#5A358E] hover:bg-[#623a9c] text-white px-3.5 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-md">
-          <span>🙋‍♂️</span> Help Desk
-        </a>
-        <a href="index.html" class="bg-[#0D9488] hover:bg-[#059669] text-white px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-md">
-          <span>⬅️</span> Dashboard
-        </a>
+        <a href="support.html" class="bg-[#5A358E] hover:bg-[#623a9c] text-white px-3.5 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-md"><span>🙋‍♂️</span> Help Desk</a>
+        <a href="index.html" class="bg-[#0D9488] hover:bg-[#059669] text-white px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-md"><span>⬅️</span> Dashboard</a>
       </div>
-
     </div>
   </header>
 
@@ -99,15 +87,9 @@
       </div>
 
       <div class="inline-flex rounded-lg bg-slate-100 p-1 border border-slate-200">
-        <button id="btn-view-cards" onclick="setViewMode('CARDS')" class="text-xs px-3 py-1.5 rounded-md font-bold bg-white text-[#5A358E] shadow-sm">
-          📍 Grouped by Area
-        </button>
-        <button id="btn-view-table" onclick="setViewMode('TABLE')" class="text-xs px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-[#5A358E]">
-          📋 Custodian Roster
-        </button>
-        <button id="btn-view-history" onclick="setViewMode('HISTORY')" class="text-xs px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-[#5A358E]">
-          📜 History Log
-        </button>
+        <button id="btn-view-cards" onclick="setViewMode('CARDS')" class="text-xs px-3 py-1.5 rounded-md font-bold bg-white text-[#5A358E] shadow-sm">📍 Grouped by Area</button>
+        <button id="btn-view-table" onclick="setViewMode('TABLE')" class="text-xs px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-[#5A358E]">📋 Custodian Roster</button>
+        <button id="btn-view-history" onclick="setViewMode('HISTORY')" class="text-xs px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-[#5A358E]">📜 History Log</button>
       </div>
     </div>
 
@@ -155,7 +137,6 @@
     const STORAGE_KEY_PLANTS = 'PLANT_QR_PLANTS_V8';
     const STORAGE_KEY_ITEMS  = 'PLANT_QR_ITEMS_V8';
     const STORAGE_KEY_CLOUD  = 'PLANT_QR_CLOUD_URL_V8';
-    const STORAGE_KEY_NOTIFS = 'PLANT_QR_NOTIFS_V8';
 
     let cloudDbUrl = localStorage.getItem(STORAGE_KEY_CLOUD) || DEFAULT_CLOUD_DB_URL;
     let plants = JSON.parse(localStorage.getItem(STORAGE_KEY_PLANTS)) || [];
@@ -172,7 +153,6 @@
       const secTable = document.getElementById('section-roster-table');
       const secHistory = document.getElementById('section-history-log');
 
-      // Reset classes
       btnCards.className = "text-xs px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-[#5A358E]";
       btnTable.className = "text-xs px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-[#5A358E]";
       btnHistory.className = "text-xs px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-[#5A358E]";
@@ -201,7 +181,6 @@
       const mins = Math.floor((diffSec % 3600) / 60);
       const secs = diffSec % 60;
       const pad = n => String(n).padStart(2, '0');
-
       if (days > 0) return `${days}d ${pad(hrs)}h ${pad(mins)}m ${pad(secs)}s`;
       return `${pad(hrs)}h ${pad(mins)}m ${pad(secs)}s`;
     }
@@ -216,7 +195,6 @@
     function getActiveDeployments() {
       const search = document.getElementById('filter-search').value.toLowerCase().trim();
       const plantFilter = document.getElementById('filter-plant').value;
-
       const deployed = [];
 
       items.forEach(item => {
@@ -229,8 +207,8 @@
           const matchSearch = !search ||
             area.toLowerCase().includes(search) ||
             tech.toLowerCase().includes(search) ||
-            item.name.toLowerCase().includes(search) ||
-            item.tag.toLowerCase().includes(search) ||
+            (item.name && item.name.toLowerCase().includes(search)) ||
+            (item.tag && item.tag.toLowerCase().includes(search)) ||
             (item.itemCode && item.itemCode.toLowerCase().includes(search));
 
           if (matchPlant && matchSearch) {
@@ -244,8 +222,6 @@
 
     function renderDeployments() {
       const deployed = getActiveDeployments();
-
-      // Update KPI counters
       document.getElementById('stat-total-deployed').textContent = deployed.length;
       const uniqueAreas = new Set(deployed.map(d => d.area.toLowerCase()));
       document.getElementById('stat-total-areas').textContent = uniqueAreas.size;
@@ -267,7 +243,6 @@
       const alertsContainer = document.getElementById('quality-alerts-list');
       const alertsSection = document.getElementById('section-quality-alerts');
       const countBadge = document.getElementById('quality-alerts-count-badge');
-      
       if (!alertsContainer || !alertsSection || !countBadge) return;
 
       alertsContainer.innerHTML = '';
@@ -298,9 +273,7 @@
           </div>
           <div class="pt-1.5 border-t border-rose-100/60 flex items-center justify-between">
             <span class="text-[10px] uppercase font-bold text-slate-400">Status: ${item.activeCheckouts && item.activeCheckouts.length > 0 ? 'Checked Out' : 'In Storage'}</span>
-            <button onclick="markQualityRepaired('${item.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold px-2 py-1 rounded transition shadow-sm">
-              🛠️ Mark Repaired
-            </button>
+            <button onclick="markQualityRepaired('${item.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold px-2 py-1 rounded transition shadow-sm">🛠️ Mark Repaired</button>
           </div>
         `;
         alertsContainer.appendChild(div);
@@ -316,7 +289,6 @@
       localStorage.setItem(STORAGE_KEY_ITEMS, JSON.stringify(items));
       renderDeployments();
 
-      // Push back to Firebase Cloud
       if (cloudDbUrl) {
         try {
           const clean = cloudDbUrl.trim();
@@ -337,40 +309,37 @@
 
       const historyEvents = [];
 
-      // Gather from items checkout history
       items.forEach(item => {
         const checkouts = item.checkoutHistory || [];
         checkouts.forEach(rec => {
-          // Check-out event
-          historyEvents.push({
-            id: rec.checkoutId || 'hist-' + rec.checkedOutAt,
-            type: rec.forGood ? 'PERMANENT_CHECK_OUT' : 'CHECK_OUT',
-            tag: item.tag,
-            name: item.name,
-            user: rec.userName || 'Unknown Technician',
-            destination: rec.destination || 'Unassigned',
-            timestamp: rec.checkedOutAt,
-            quality: rec.qualityAtEvent || 'Good',
-            note: rec.note || ''
-          });
-
-          // Check-in event
-          if (rec.checkedInAt) {
+          if (rec.checkedOutAt) {
             historyEvents.push({
-              id: rec.checkInId || 'hist-in-' + rec.checkedInAt,
+              id: rec.checkoutId || 'hist-' + rec.checkedOutAt,
+              type: rec.forGood ? 'PERMANENT_CHECK_OUT' : 'CHECK_OUT',
+              tag: item.tag,
+              name: item.name,
+              user: rec.userName || 'Unknown Technician',
+              destination: rec.destination || 'Unassigned',
+              timestamp: rec.checkedOutAt,
+              quality: rec.qualityAtEvent || 'Good',
+              note: rec.note || ''
+            });
+          }
+          if (rec.checkedInAt || rec.type === 'CHECK_IN') {
+            historyEvents.push({
+              id: rec.checkInId || rec.id || 'hist-in-' + (rec.checkedInAt || rec.timestamp),
               type: 'CHECK_IN',
               tag: item.tag,
               name: item.name,
               user: rec.userName || 'Unknown Technician',
               destination: rec.destination || 'Unassigned',
-              timestamp: rec.checkedInAt,
-              quality: rec.returnQuality || 'Good',
+              timestamp: rec.checkedInAt || rec.timestamp,
+              quality: rec.returnQuality || rec.qualityAtEvent || 'Good',
               note: rec.returnNote || ''
             });
           }
         });
 
-        // Current active checkouts
         const active = item.activeCheckouts || [];
         active.forEach(rec => {
           historyEvents.push({
@@ -387,7 +356,6 @@
         });
       });
 
-      // Gather from single-use consumable logs (PLANT_QR_CONSUMED_H_V8)
       const consumedList = JSON.parse(localStorage.getItem('PLANT_QR_CONSUMED_H_V8')) || [];
       consumedList.forEach(c => {
         historyEvents.push({
@@ -403,7 +371,6 @@
         });
       });
 
-      // Gather from removals (PLANT_QR_REMOVALS_V8)
       const removalsList = JSON.parse(localStorage.getItem('PLANT_QR_REMOVALS_V8')) || [];
       removalsList.forEach(r => {
         historyEvents.push({
@@ -419,8 +386,7 @@
         });
       });
 
-      // Sort by timestamp descending
-      historyEvents.sort((a, b) => b.timestamp - a.timestamp);
+      historyEvents.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
       if (historyEvents.length === 0) {
         container.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs">No transaction history found.</div>`;
@@ -454,8 +420,8 @@
             ${evt.note ? `<p class="text-slate-400 italic">"${escapeHtml(evt.note)}"</p>` : ''}
           </div>
           <div class="text-right">
-            <span class="text-slate-400 text-[10px] block">${new Date(evt.timestamp).toLocaleTimeString()}</span>
-            <span class="text-slate-400 text-[10px] block">${new Date(evt.timestamp).toLocaleDateString()}</span>
+            <span class="text-slate-400 text-[10px] block">${evt.timestamp ? new Date(evt.timestamp).toLocaleTimeString() : ''}</span>
+            <span class="text-slate-400 text-[10px] block">${evt.timestamp ? new Date(evt.timestamp).toLocaleDateString() : ''}</span>
           </div>
         `;
         container.appendChild(div);
@@ -501,11 +467,8 @@
                     <span class="font-mono text-[10px] text-slate-500">${escapeHtml(rec.item.itemCode || '')}</span>
                   </div>
                 </div>
-                <button onclick="returnUnitDirectly('${rec.item.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold px-2 py-1 rounded transition shadow-sm">
-                  📥 Check In
-                </button>
+                <button onclick="returnUnitDirectly('${rec.item.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold px-2 py-1 rounded transition shadow-sm">📥 Check In</button>
               </div>
-
               <div class="pt-2 border-t border-slate-200/60 flex items-center justify-between text-[11px]">
                 <div>
                   <span class="font-bold text-slate-800">👤 ${escapeHtml(rec.tech)}</span>
@@ -513,9 +476,7 @@
                 </div>
                 <div class="text-right">
                   <span class="text-[9px] uppercase font-bold text-slate-400 block">Out For</span>
-                  <span class="font-mono font-bold text-amber-700 text-xs" data-deploy-timer="${rec.checkout.checkedOutAt}">
-                    ${formatElapsedDuration(rec.checkout.checkedOutAt)}
-                  </span>
+                  <span class="font-mono font-bold text-amber-700 text-xs" data-deploy-timer="${rec.checkout.checkedOutAt}">${formatElapsedDuration(rec.checkout.checkedOutAt)}</span>
                 </div>
               </div>
             </div>
@@ -529,13 +490,9 @@
                 <span class="text-lg">📍</span>
                 <h3 class="font-extrabold text-slate-900 text-sm sm:text-base">${escapeHtml(areaName)}</h3>
               </div>
-              <span class="bg-purple-50 text-[#5A358E] border border-purple-200 font-bold px-2.5 py-0.5 rounded-full text-xs">
-                ${records.length} Unit${records.length > 1 ? 's' : ''}
-              </span>
+              <span class="bg-purple-50 text-[#5A358E] border border-purple-200 font-bold px-2.5 py-0.5 rounded-full text-xs">${records.length} Unit${records.length > 1 ? 's' : ''}</span>
             </div>
-            <div class="space-y-2.5">
-              ${unitRowsHtml}
-            </div>
+            <div class="space-y-2.5">${unitRowsHtml}</div>
           </div>
         `;
         container.appendChild(card);
@@ -566,13 +523,9 @@
           </td>
           <td class="p-3 font-mono font-bold text-[#5A358E]">${escapeHtml(rec.item.tag)}</td>
           <td class="p-3 text-slate-600 text-xs">${escapeHtml(rec.item.location)}</td>
-          <td class="p-3 font-mono font-bold text-amber-700 text-xs" data-deploy-timer="${rec.checkout.checkedOutAt}">
-            ${formatElapsedDuration(rec.checkout.checkedOutAt)}
-          </td>
+          <td class="p-3 font-mono font-bold text-amber-700 text-xs" data-deploy-timer="${rec.checkout.checkedOutAt}">${formatElapsedDuration(rec.checkout.checkedOutAt)}</td>
           <td class="p-3 text-right">
-            <button onclick="returnUnitDirectly('${rec.item.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow-sm transition">
-              📥 Check In
-            </button>
+            <button onclick="returnUnitDirectly('${rec.item.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow-sm transition">📥 Check In</button>
           </td>
         `;
         tbody.appendChild(tr);
@@ -601,13 +554,14 @@
         qualityAtEvent: item.quality || 'Good',
         durationMs,
         timestamp: now,
+        checkedInAt: now,
+        checkedOutAt: prev ? prev.checkedOutAt : now,
         status: 'COMPLETED'
       });
 
       localStorage.setItem(STORAGE_KEY_ITEMS, JSON.stringify(items));
       renderDeployments();
 
-      // Cloud background push
       if (cloudDbUrl) {
         try {
           const clean = cloudDbUrl.trim();
@@ -634,7 +588,6 @@
     populatePlantFilter();
     renderDeployments();
 
-    // Auto sync from cloud every 6 seconds
     setInterval(async () => {
       if (cloudDbUrl && document.visibilityState === 'visible') {
         try {
