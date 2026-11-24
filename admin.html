@@ -151,15 +151,20 @@
                 <button type="submit" class="w-full bg-[#5A358E] hover:bg-[#3D2566] text-white py-2 rounded text-xs font-semibold">Add User</button>
               </form>
             </div>
-            <div class="bg-slate-50 p-4 border rounded-xl flex flex-col justify-between">
+            <div class="bg-slate-50 p-4 border rounded-xl flex flex-col justify-between space-y-3">
               <div>
                 <h3 class="text-xs font-bold text-[#0D9488] uppercase mb-1">Bulk Excel Import (.xlsx, .csv)</h3>
                 <p class="text-[11px] text-slate-500">Upload a spreadsheet with columns: <code>Username</code>, <code>Name</code>, and <code>Email</code>.</p>
               </div>
-              <label class="w-full bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 px-4 py-2.5 rounded-lg text-xs font-semibold cursor-pointer flex items-center justify-center gap-2">
-                <span>📊 Select Spreadsheet File</span>
-                <input type="file" id="user-excel-file" class="hidden" accept=".csv, .xlsx, .xls" onchange="importUserFile(event)" />
-              </label>
+              <div class="space-y-2">
+                <button type="button" onclick="downloadUserTemplate()" class="w-full bg-[#5A358E]/10 hover:bg-[#5A358E]/20 text-[#5A358E] border border-purple-200 px-4 py-2.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-2">
+                  <span>Download Spreadsheet Template (.xlsx)</span>
+                </button>
+                <label class="w-full bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 px-4 py-2.5 rounded-lg text-xs font-semibold cursor-pointer flex items-center justify-center gap-2">
+                  <span>Select Spreadsheet File</span>
+                  <input type="file" id="user-excel-file" class="hidden" accept=".csv, .xlsx, .xls" onchange="importUserFile(event)" />
+                </label>
+              </div>
             </div>
           </div>
           <div class="border rounded-xl p-3">
@@ -516,6 +521,18 @@
       users = users.filter(u => u.username !== uname);
       await saveState();
       renderUsers();
+    }
+
+    function downloadUserTemplate() {
+      const data = [
+        ["Username", "Name", "Email"],
+        ["u123456", "Jane Doe", "jane.doe@tranetechnologies.com"],
+        ["u987654", "John Smith", "john.smith@tranetechnologies.com"]
+      ];
+      const worksheet = XLSX.utils.aoa_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "User Template");
+      XLSX.writeFile(workbook, "storagelocater_user_template.xlsx");
     }
 
     function importUserFile(event) {
