@@ -7,29 +7,7 @@
   <link rel="prefetch" href="deployments.html" />
   <link rel="prefetch" href="admin.html" />
   <link rel="prefetch" href="support.html" />
-  <script src="https://cdn.tailwindcss.com">
-    async function bulkMoveSelectedToCategory() {
-      const select = document.getElementById('floating-move-category-select');
-      if (!select) return;
-      const targetCategory = select.value;
-      if (!targetCategory) return;
-      if (selectedItemIds.size === 0) return;
-      
-      if (!confirm(`Reassign category of ${selectedItemIds.size} selected item(s) to "${targetCategory}"?`)) return;
-
-      items.forEach(item => {
-        if (selectedItemIds.has(item.id)) {
-          item.category = targetCategory;
-        }
-      });
-
-      selectedItemIds.clear();
-      await saveState();
-      renderInventory();
-      alert('Selected items reassigned successfully.');
-    }
-    
-    </script>
+<script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
@@ -164,7 +142,11 @@
         <p class="text-[11px] text-slate-300">Choose actions to perform in bulk on checked items below</p>
       </div>
       <!-- Bulk Category Move Panel inside Floating bar -->
-      <div id="floating-admin-move-container" class="hidden"></div>
+      <div id="floating-admin-move-container" class="hidden flex items-center gap-1.5 bg-[#3D2566] p-1.5 rounded-xl border border-purple-400/40">
+        <span class="text-[10px] uppercase font-bold text-purple-300 font-sans">Move Category:</span>
+        <select id="floating-move-category-select" class="border border-purple-400 rounded bg-[#251440] text-white text-xs px-2 py-1 outline-none"></select>
+        <button onclick="bulkMoveSelectedToCategory()" class="bg-[#0D9488] hover:bg-[#059669] text-white text-xs font-bold px-3 py-1.5 rounded-lg transition">Move</button>
+      </div>
     </div>
     <div class="flex items-center gap-2">
       <button onclick="clearAllSelectedQRCodes()" class="bg-rose-600/20 hover:bg-rose-600 border border-rose-500/40 text-rose-200 hover:text-white px-3.5 py-2 rounded-xl text-xs font-bold transition">✕ Unselect All QR</button>
@@ -1735,16 +1717,10 @@
         const isAdmin = loggedInUser && loggedInUser.isAdmin;
         adminMoveContainer.classList.toggle('hidden', !isAdmin);
         if (isAdmin) {
-          initializeCategories();
-          adminMoveContainer.innerHTML = `
-            <div class="flex items-center gap-1.5 bg-[#3D2566] p-1.5 rounded-xl border border-purple-400/40">
-              <span class="text-[10px] uppercase font-bold text-purple-300 font-sans">Move Category:</span>
-              <select id="floating-move-category-select" class="border border-purple-400 rounded bg-[#251440] text-white text-xs px-2 py-1 outline-none">
-                ${categories.map(c => `<option value="${escapeHtml(c.name)}">${escapeHtml(c.name)}</option>`).join('')}
-              </select>
-              <button onclick="bulkMoveSelectedToCategory()" class="bg-[#0D9488] hover:bg-[#059669] text-white text-xs font-bold px-3 py-1 rounded-lg transition">Move</button>
-            </div>
-          `;
+          const select = document.getElementById('floating-move-category-select');
+          if (select && select.options.length === 0) {
+            populateFloatingMoveCategorySelect();
+          }
         }
       }
     }
@@ -2437,6 +2413,35 @@
       });
     }
 
+    
+    function populateFloatingMoveCategorySelect() {
+      const select = document.getElementById('floating-move-category-select');
+      if (!select) return;
+      initializeCategories();
+      select.innerHTML = categories.map(c => `<option value="${escapeHtml(c.name)}">${escapeHtml(c.name)}</option>`).join('');
+    }
+
+    async function bulkMoveSelectedToCategory() {
+      const select = document.getElementById('floating-move-category-select');
+      if (!select) return;
+      const targetCategory = select.value;
+      if (!targetCategory) return;
+      if (selectedItemIds.size === 0) return;
+      
+      if (!confirm(`Reassign category of ${selectedItemIds.size} selected item(s) to "${targetCategory}"?`)) return;
+
+      items.forEach(item => {
+        if (selectedItemIds.has(item.id)) {
+          item.category = targetCategory;
+        }
+      });
+
+      selectedItemIds.clear();
+      await saveState();
+      renderInventory();
+      alert('Selected items reassigned successfully.');
+    }
+
     async function initApp() {
       checkAdminUser();
       normalizeItems();
@@ -2445,6 +2450,7 @@
       renderInventory();
       updateNotificationBadge();
       await checkUrlForScannedQR();
+      populateFloatingMoveCategorySelect();
       setInterval(() => {
         if (cloudDbUrl && document.visibilityState === 'visible') pullFromCloud(false);
       }, 6000);
