@@ -112,6 +112,7 @@
             <a href="deployments.html" class="w-full text-left px-3.5 py-2 hover:bg-amber-50 text-amber-800 font-bold flex items-center gap-2.5"><span>📍</span> Active Areas & Roster</a>
             <a href="support.html" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5"><span>🙋‍♂️</span> Help & Feedback Desk</a>
             <button id="menu-plants-btn" onclick="window.location.href='admin.html?tab=plants'" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5"><span>🏢</span> Manage Plants</button>
+            <button id="menu-areas-btn" onclick="window.location.href='admin.html?tab=areas'" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5"><span>📍</span> Manage Areas</button>
             <button id="menu-users-btn" onclick="window.location.href='admin.html?tab=users'" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5"><span>👤</span> Manage Users</button>
             <button id="menu-email-btn" onclick="window.location.href='admin.html?tab=email'" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5"><span>✉️</span> Email Alert Settings</button>
             <button id="menu-qr-btn" onclick="window.location.href='admin.html?tab=qr'" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5"><span>🔗</span> Permanent QR URL Settings</button>
@@ -653,7 +654,7 @@
     <div class="bg-white rounded-2xl max-w-4xl w-full p-6 shadow-2xl max-h-[90vh] flex flex-col">
       <div class="flex justify-between items-start border-b pb-3 mb-4">
         <div>
-          <span id="history-tag" class="font-mono text-xs font-bold bg-purple-100 text-[#5A358E] px-2 py-0.5 rounded"></span>
+          <span id="history-tag" class="font-mono text-xs font-bold bg-purple-100 text-[#5A358E] px-2.5 py-0.5 rounded"></span>
           <h3 id="history-title" class="text-base font-bold text-slate-900 mt-1">Unit Check-Out & Check-In History</h3>
         </div>
         <button onclick="closeHistoryModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
@@ -899,7 +900,7 @@
       }
 
       const adminMenuIds = [
-        'menu-plants-btn', 'menu-users-btn', 'menu-email-btn', 'menu-qr-btn', 'menu-cloud-btn', 'menu-consumed-btn', 'menu-export-btn'
+        'menu-plants-btn', 'menu-areas-btn', 'menu-users-btn', 'menu-email-btn', 'menu-qr-btn', 'menu-cloud-btn', 'menu-consumed-btn', 'menu-export-btn'
       ];
       adminMenuIds.forEach(id => {
         const el = document.getElementById(id);
@@ -2406,7 +2407,7 @@
 
     function openCategoryDetailModal(categoryName) {
       const catObj = getCategoryObjectByName(categoryName);
-      const matchingItems = items.filter(i => (i.category || 'Uncategorized') === categoryName);
+      const matchingItems = items.filter(i => (i.category || 'Uncategorized').toLowerCase() === categoryName.toLowerCase());
       const total = matchingItems.length;
       const available = matchingItems.filter(i => !i.activeCheckouts || i.activeCheckouts.length === 0).length;
 
