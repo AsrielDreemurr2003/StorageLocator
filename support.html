@@ -517,6 +517,55 @@
     }
 
     populateDropdowns();
+    
+    function checkQueryParameters() {
+      const params = new URLSearchParams(window.location.search);
+      const tab = params.get('tab');
+      if (tab) {
+        switchHelpTab(tab);
+      }
+      
+      const itemId = params.get('itemId');
+      if (itemId) {
+        const concernSelect = document.getElementById('help-concern-item-id');
+        if (concernSelect) {
+          concernSelect.value = itemId;
+        }
+      }
+      
+      const quality = params.get('quality');
+      if (quality) {
+        const qualitySelect = document.getElementById('help-concern-quality');
+        if (qualitySelect) {
+          qualitySelect.value = quality;
+        }
+      }
+      
+      const user = params.get('user');
+      if (user) {
+        const userEl = document.getElementById('help-concern-user');
+        if (userEl) {
+          userEl.value = user;
+        }
+      }
+      
+      const desc = params.get('desc');
+      if (desc) {
+        const descEl = document.getElementById('help-concern-desc');
+        if (descEl) {
+          descEl.value = desc;
+        }
+      }
+      
+      const impact = params.get('impact');
+      if (impact) {
+        const impactEl = document.getElementById('help-concern-impact');
+        if (impactEl) {
+          impactEl.value = impact;
+        }
+      }
+    }
+    checkQueryParameters();
   </script>
 </body>
 </html>
