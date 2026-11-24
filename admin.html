@@ -419,7 +419,7 @@
       container.innerHTML = '';
       document.getElementById('userbase-count').textContent = users.length;
       users.forEach(u => {
-        const adminBadge = u.isAdmin ? `<span class="bg-purple-100 text-[#5A358E] text-[10px] font-bold px-2 py-0.5 rounded ml-1">ADMIN</span>` : '';
+        const adminBadge = u.isAdmin ? `<span class="bg-purple-100 text-[#5A358E] text-[10px] font-bold px-2.5 py-0.5 rounded ml-1">ADMIN</span>` : '';
         const div = document.createElement('div');
         div.className = 'p-2.5 flex justify-between items-center text-xs border-b border-slate-100 py-2';
         div.innerHTML = `
@@ -669,7 +669,11 @@
       areas.forEach(a => {
         const div = document.createElement('div');
         div.className = 'p-3 flex justify-between items-center text-sm bg-white';
-        div.innerHTML = `<div><span class="font-medium">${escapeHtml(a)}</span></div><button onclick="deleteArea('${escapeJsStr(a)}')" class="text-xs bg-rose-50 hover:bg-rose-100 text-rose-700 px-2.5 py-1 rounded font-semibold">Remove</button>`;
+        div.innerHTML = `<div><span class="font-medium">${escapeHtml(a)}</span></div>
+        <div class="flex items-center gap-2">
+          <button onclick="editArea('${escapeJsStr(a)}')" class="text-xs bg-purple-50 hover:bg-purple-100 text-[#5A358E] px-2.5 py-1 rounded font-semibold">Edit</button>
+          <button onclick="deleteArea('${escapeJsStr(a)}')" class="text-xs bg-rose-50 hover:bg-rose-100 text-rose-700 px-2.5 py-1 rounded font-semibold">Remove</button>
+        </div>`;
         container.appendChild(div);
       });
     }
@@ -682,6 +686,37 @@
         areas.push(name);
       }
       document.getElementById('area-name').value = '';
+      await saveState();
+      renderAreas();
+    }
+
+    async function editArea(oldName) {
+      const newName = prompt(`Rename destination area "${oldName}" to:`, oldName);
+      if (newName === null) return; // Cancelled
+      const cleanNewName = newName.trim();
+      if (!cleanNewName) {
+        alert("Area name cannot be empty.");
+        return;
+      }
+      if (cleanNewName === oldName) return;
+      
+      areas = areas.map(a => a === oldName ? cleanNewName : a);
+      
+      if (typeof items !== 'undefined' && Array.isArray(items)) {
+        items.forEach(item => {
+          if (item.activeCheckouts && Array.isArray(item.activeCheckouts)) {
+            item.activeCheckouts.forEach(checkout => {
+              if (checkout.destination === oldName) checkout.destination = cleanNewName;
+            });
+          }
+          if (item.checkoutHistory && Array.isArray(item.checkoutHistory)) {
+            item.checkoutHistory.forEach(rec => {
+              if (rec.destination === oldName) rec.destination = cleanNewName;
+            });
+          }
+        });
+      }
+      
       await saveState();
       renderAreas();
     }
