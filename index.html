@@ -112,7 +112,6 @@
             <a href="deployments.html" class="w-full text-left px-3.5 py-2 hover:bg-amber-50 text-amber-800 font-bold flex items-center gap-2.5"><span>📍</span> Active Areas & Roster</a>
             <a href="support.html" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5"><span>🙋‍♂️</span> Help & Feedback Desk</a>
             <button id="menu-plants-btn" onclick="window.location.href='admin.html?tab=plants'" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5"><span>🏢</span> Manage Plants</button>
-            <button id="menu-areas-btn" onclick="window.location.href='admin.html?tab=areas'" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5"><span>📍</span> Manage Areas</button>
             <button id="menu-users-btn" onclick="window.location.href='admin.html?tab=users'" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5"><span>👤</span> Manage Users</button>
             <button id="menu-email-btn" onclick="window.location.href='admin.html?tab=email'" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5"><span>✉️</span> Email Alert Settings</button>
             <button id="menu-qr-btn" onclick="window.location.href='admin.html?tab=qr'" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5"><span>🔗</span> Permanent QR URL Settings</button>
@@ -584,7 +583,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
             <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Plant *</label>
-            <select id="item-plant" required onchange="updatePreviewTag()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-[#5A358E]"></select>
+            <select id="item-plant" required onchange="populateCategoryDropdown(); updatePreviewTag()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-[#5A358E]"></select>
           </div>
           <div id="batch-count-wrapper">
             <label class="block text-xs font-bold text-[#5A358E] uppercase mb-1">Units to Add *</label>
@@ -608,7 +607,7 @@
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Category *</label>
-            <input type="text" id="item-category" required oninput="updatePreviewTag()" placeholder="e.g. Mechanical" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#5A358E]" />
+            <select id="item-category" required onchange="updatePreviewTag()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-[#5A358E]"></select>
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Initial Quality *</label>
@@ -771,15 +770,27 @@
             rackCode = generateDeterministicRackCode(name + Math.random(), categories.length + idx);
           }
           const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'cat';
+          const itemWithCat = items.find(i => (i.category || 'Uncategorized').trim().toLowerCase() === name.toLowerCase());
+          const pCode = itemWithCat ? itemWithCat.plantCode : 'ALL';
           categories.push({
             id: `cat-${slug}-${(1000 + categories.length)}`,
             name: name,
-            rackCode: rackCode
+            rackCode: rackCode,
+            plantCode: pCode
           });
           updated = true;
-        } else if (!found.rackCode) {
-          found.rackCode = generateDeterministicRackCode(found.name, idx);
-          updated = true;
+        } else {
+          let catUpdated = false;
+          if (!found.rackCode) {
+            found.rackCode = generateDeterministicRackCode(found.name, idx);
+            catUpdated = true;
+          }
+          if (!found.plantCode) {
+            const itemWithCat = items.find(i => (i.category || 'Uncategorized').trim().toLowerCase() === name.toLowerCase());
+            found.plantCode = itemWithCat ? itemWithCat.plantCode : 'ALL';
+            catUpdated = true;
+          }
+          if (catUpdated) updated = true;
         }
       });
 
@@ -882,7 +893,7 @@
       }
 
       const adminMenuIds = [
-        'menu-plants-btn', 'menu-areas-btn', 'menu-users-btn', 'menu-email-btn', 'menu-qr-btn', 'menu-cloud-btn', 'menu-consumed-btn', 'menu-export-btn'
+        'menu-plants-btn', 'menu-users-btn', 'menu-email-btn', 'menu-qr-btn', 'menu-cloud-btn', 'menu-consumed-btn', 'menu-export-btn'
       ];
       adminMenuIds.forEach(id => {
         const el = document.getElementById(id);
@@ -1514,6 +1525,7 @@
         titleEl.textContent = `Edit Unit — ${item.tag}`;
         document.getElementById('edit-item-id').value = item.id;
         document.getElementById('item-plant').value = item.plantCode;
+        populateCategoryDropdown();
         document.getElementById('item-batch-count').value = 1;
         batchWrapper.classList.add('hidden');
         document.getElementById('item-code').value = item.itemCode;
@@ -1531,6 +1543,7 @@
         batchWrapper.classList.remove('hidden');
         document.getElementById('item-code').value = '';
         document.getElementById('item-name').value = selectedProductName || '';
+        populateCategoryDropdown();
         document.getElementById('item-category').value = selectedCategory || '';
         document.getElementById('item-quality').value = 'Good';
         document.getElementById('item-serial').value = '';
@@ -2702,12 +2715,6 @@
           `Reported by ${userName}: ${concernDesc || note || 'Flagged upon return'}`,
           item.tag
         );
-        closeCheckInModal();
-        await saveState();
-        
-        // Auto-redirect to the support / help form pre-populated with all the entries
-        window.location.href = `support.html?tab=concern&itemId=${encodeURIComponent(itemId)}&quality=${encodeURIComponent(quality)}&user=${encodeURIComponent(userName)}&desc=${encodeURIComponent(concernDesc || note)}&impact=${encodeURIComponent(concernImpact)}`;
-        return;
       } else {
         addAppNotification(
           'CHECK_IN',
@@ -2948,6 +2955,24 @@
       modal.classList.add('flex');
     }
 
+    
+    function populateCategoryDropdown() {
+      const plantSelect = document.getElementById('item-plant');
+      const catSelect = document.getElementById('item-category');
+      if (!plantSelect || !catSelect) return;
+      const selectedPlant = plantSelect.value;
+      
+      initializeCategories();
+      const filteredCats = categories.filter(c => !c.plantCode || c.plantCode === 'ALL' || c.plantCode === selectedPlant);
+      
+      const currentVal = catSelect.value;
+      catSelect.innerHTML = filteredCats.map(c => `<option value="${escapeHtml(c.name)}">${escapeHtml(c.name)}</option>`).join('');
+      
+      if (filteredCats.some(c => c.name === currentVal)) {
+        catSelect.value = currentVal;
+      }
+    }
+    
     function closeHistoryModal() {
       document.getElementById('history-modal').classList.add('hidden');
       document.getElementById('history-modal').classList.remove('flex');
