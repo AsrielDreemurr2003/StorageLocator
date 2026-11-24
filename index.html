@@ -69,33 +69,40 @@
           <span id="barcode-selected-count" class="bg-black/25 px-1.5 py-0.2 rounded text-[11px] font-mono">0</span>
         </button>
 
-        <button onclick="openNotificationsModal()" class="relative bg-[#5A358E]/60 hover:bg-[#5A358E] text-slate-100 border border-purple-500/30 px-3 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 active:scale-95" title="View Alerts">
-          <span>Alerts</span>
+        <button onclick="openNotificationsModal()" class="relative bg-[#5A358E]/60 hover:bg-[#5A358E] text-slate-100 border border-purple-500/30 px-3.5 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 active:scale-95" title="View Alerts">
+          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a3 3 0 11-5.714 0m5.714 0a3 3 0 11-5.714 0M3.124 7.5A8.969 8.969 0 015.292 3m13.416 0a8.969 8.969 0 012.168 4.5"></path></svg>
+          <span class="hidden md:inline">Alerts</span>
           <span id="notif-unread-badge" class="hidden bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full">0</span>
         </button>
 
         <a href="deployments.html" class="bg-amber-600 hover:bg-amber-500 text-white px-3.5 py-2 rounded-lg text-xs font-bold transition-all shadow-md flex items-center gap-1.5 active:scale-95">
+          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"></path></svg>
           <span class="hidden sm:inline">Active Areas</span>
         </a>
 
         <button onclick="openAutoCheckoutModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-lg text-xs font-bold transition-all shadow-md flex items-center gap-1.5 active:scale-95">
+          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 15h.008v.008H15V15zm0 2.25h.008v.008H15v-.008zm2.25-2.25h.008v.008h-.008V15zm0 2.25h.008v.008h-.008v-.008zm2.25-2.25h.008v.008H19.5V15zm0 2.25h.008v.008H19.5v-.008z"></path></svg>
           <span class="hidden md:inline">Auto Check-Out</span>
         </button>
 
         <a href="support.html" class="bg-[#0D9488] hover:bg-[#059669] text-white px-3.5 py-2 rounded-lg text-xs font-bold transition-all shadow-md flex items-center gap-1.5 active:scale-95">
+          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
           <span class="hidden lg:inline">Help & Support</span>
         </a>
 
         <button id="header-add-item-btn" onclick="openItemModal()" class="hidden bg-[#5A358E] hover:bg-[#623a9c] text-white px-3.5 py-2 rounded-lg text-xs font-bold transition-all shadow-md flex items-center gap-1.5 active:scale-95">
+          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path></svg>
           <span class="hidden sm:inline">Add Item</span>
         </button>
 
         <a id="header-auth-btn" href="admin.html" class="bg-[#5A358E] hover:bg-[#623a9c] text-white px-3.5 py-2 rounded-lg text-xs font-bold transition-all shadow-md flex items-center gap-1.5 active:scale-95">
+          <svg id="header-auth-btn-icon" class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"></svg>
           <span id="header-auth-btn-text" class="hidden sm:inline">Admin Login</span>
         </a>
 
         <div class="relative">
           <button onclick="toggleSettingsMenu(event)" class="bg-[#3D2566] hover:bg-[#5A358E] text-slate-100 border border-purple-500/20 px-3 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-1 active:scale-95">
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"></path></svg>
             <span class="hidden sm:inline">Menu</span>
             <span class="text-[10px] text-slate-300 ml-0.5">▼</span>
           </button>
@@ -874,11 +881,18 @@
       if (addBtn) addBtn.classList.toggle('hidden', !isAdmin);
 
       const authBtnText = document.getElementById('header-auth-btn-text');
+      const authBtnIcon = document.getElementById('header-auth-btn-icon');
       if (authBtnText) {
         if (loggedInUser) {
           authBtnText.textContent = `Admin (${loggedInUser.username})`;
+          if (authBtnIcon) {
+            authBtnIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />`;
+          }
         } else {
           authBtnText.textContent = 'Admin Login';
+          if (authBtnIcon) {
+            authBtnIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" />`;
+          }
         }
       }
 
