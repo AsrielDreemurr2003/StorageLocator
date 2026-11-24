@@ -112,7 +112,6 @@
             <a href="deployments.html" class="w-full text-left px-3.5 py-2 hover:bg-amber-50 text-amber-800 font-bold flex items-center gap-2.5"><span>📍</span> Active Areas & Roster</a>
             <a href="support.html" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5"><span>🙋‍♂️</span> Help & Feedback Desk</a>
             <button id="menu-plants-btn" onclick="window.location.href='admin.html?tab=plants'" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5"><span>🏢</span> Manage Plants</button>
-            <button id="menu-areas-btn" onclick="window.location.href='admin.html?tab=areas'" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5"><span>📍</span> Manage Areas</button>
             <button id="menu-users-btn" onclick="window.location.href='admin.html?tab=users'" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5"><span>👤</span> Manage Users</button>
             <button id="menu-email-btn" onclick="window.location.href='admin.html?tab=email'" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5"><span>✉️</span> Email Alert Settings</button>
             <button id="menu-qr-btn" onclick="window.location.href='admin.html?tab=qr'" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5"><span>🔗</span> Permanent QR URL Settings</button>
@@ -341,7 +340,7 @@
           <span class="text-base leading-none">🔒</span>
           <div>
             <strong class="font-bold block">Permanent Category QR & Rack Code Protected</strong>
-            Updating the category name below will <u>never</u> break your printed Category QR posters or small desk cards. The QR code is permanently bound to the category's unique ID and Rack Code (e.g., <code class="font-mono">KEN-A-LION</code>).
+            Updating the category name below will <u>never</u> break your printed Category QR posters or small desk cards. The QR code is permanently bound to the category's unique ID and 5-digit Rack Code (e.g., <code class="font-mono">A-1500</code>).
           </div>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -350,8 +349,8 @@
             <input type="text" id="edit-cat-new-name" required placeholder="e.g. Motors & Drives" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
           </div>
           <div>
-            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Rack Code *</label>
-            <input type="text" id="edit-cat-rack-code" required maxlength="30" placeholder="KEN-A-LION" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E] font-mono font-bold uppercase" />
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">5-Char Rack Code *</label>
+            <input type="text" id="edit-cat-rack-code" required maxlength="6" placeholder="A-1500" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E] font-mono font-bold uppercase" />
           </div>
         </div>
         <div class="bg-purple-50/60 border border-purple-200 rounded-xl p-3.5 space-y-2">
@@ -395,7 +394,7 @@
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Destination Location *</label>
-          <select id="checkout-destination" required class="w-full border border-slate-300 bg-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]"></select>
+          <input type="text" id="checkout-destination" required placeholder="e.g. Assembly Line 3, Press Bay 2" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Additional Notes</label>
@@ -444,7 +443,7 @@
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Destination Location *</label>
-          <select id="auto-checkout-destination" required class="w-full border border-slate-300 bg-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]"></select>
+          <input type="text" id="auto-checkout-destination" required placeholder="e.g. Assembly Line 3, Press Bay 2" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Additional Notes</label>
@@ -737,46 +736,25 @@
     const STORAGE_KEY_HELP_LOGS = 'PLANT_QR_HELP_LOGS_V8';
     const STORAGE_KEY_CATEGORIES = 'PLANT_QR_CATEGORIES_V8';
     const STORAGE_KEY_REMOVALS = 'PLANT_QR_REMOVALS_V8';
-    const STORAGE_KEY_AREAS  = 'PLANT_QR_AREAS_V8';
     
     let categories = JSON.parse(localStorage.getItem(STORAGE_KEY_CATEGORIES)) || [];
-    let areas = JSON.parse(localStorage.getItem(STORAGE_KEY_AREAS)) || [{ name: 'Assembly Line 1', plantCode: 'KEN' }, { name: 'Assembly Line 2', plantCode: 'KEN' }, { name: 'Assembly Line 3', plantCode: 'DET' }, { name: 'Tool Crib', plantCode: 'ALL' }, { name: 'Press Bay', plantCode: 'CHI' }];
 
     function generateDeterministicRackCode(str, index) {
-      let plantCode = "KEN";
-      if (typeof items !== 'undefined' && Array.isArray(items)) {
-        const item = items.find(i => i.category && i.category.toLowerCase() === String(str).toLowerCase());
-        if (item && item.plantCode) {
-          plantCode = item.plantCode.toUpperCase();
-        } else if (typeof plants !== 'undefined' && Array.isArray(plants) && plants.length > 0) {
-          plantCode = plants[0].code.toUpperCase();
-        }
-      }
-      const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-      const letterIdx = index % letters.length;
-      const rackLetter = letters[letterIdx];
-      
-      const animals = [
-        "LION", "TIGER", "BEAR", "EAGLE", "SHARK", "WOLF", "PANTHER", "HAWK", "DEER", "FOX", 
-        "RABBIT", "OWL", "FROG", "COUGAR", "JAGUAR", "BOBCAT", "FALCON", "VIPER", "COBRA", "PYTHON", 
-        "CHEETAH", "RHINO", "ELEPHANT", "MONKEY", "GORILLA", "CHIMP", "LEOPARD", "BULL", "STALLION", "RAM"
-      ];
+      const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
       let hash = 0;
       const clean = String(str || 'CAT');
       for (let i = 0; i < clean.length; i++) {
         hash = ((hash << 5) - hash) + clean.charCodeAt(i);
         hash |= 0;
       }
-      const animalIdx = Math.abs(hash) % animals.length;
-      const animalName = animals[animalIdx];
-      
-      return `${plantCode}-${rackLetter}-${animalName}`;
+      const letterIdx = Math.abs(hash + index) % letters.length;
+      const numPart = 1000 + (Math.abs(hash * 31 + index * 100) % 9000);
+      return `${letters[letterIdx]}-${numPart}`;
     }
 
     function initializeCategories() {
       if (!Array.isArray(categories)) categories = [];
       const existingCategoryNames = [...new Set(items.map(i => String(i.category || 'Uncategorized').trim()))];
-      existingCategoryNames.sort((a, b) => a.localeCompare(b)); // Alphabetical sort so that lower racks are in alphabetical order
       let updated = false;
       
       categories = categories.filter(c => c && typeof c.name === 'string' && c.name.trim() !== '');
@@ -784,24 +762,26 @@
       existingCategoryNames.forEach((name, idx) => {
         if (!name) return;
         const found = categories.find(c => c.name.toLowerCase() === name.toLowerCase());
-        const expectedRackCode = generateDeterministicRackCode(name, idx);
         if (!found) {
+          let rackCode = generateDeterministicRackCode(name, categories.length + idx);
+          while (categories.some(c => c.rackCode === rackCode)) {
+            rackCode = generateDeterministicRackCode(name + Math.random(), categories.length + idx);
+          }
           const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'cat';
           categories.push({
             id: `cat-${slug}-${(1000 + categories.length)}`,
             name: name,
-            rackCode: expectedRackCode
+            rackCode: rackCode
           });
           updated = true;
-        } else if (found.rackCode !== expectedRackCode) {
-          found.rackCode = expectedRackCode;
+        } else if (!found.rackCode) {
+          found.rackCode = generateDeterministicRackCode(found.name, idx);
           updated = true;
         }
       });
 
       if (updated) {
         localStorage.setItem(STORAGE_KEY_CATEGORIES, JSON.stringify(categories));
-      localStorage.setItem(STORAGE_KEY_AREAS, JSON.stringify(areas));
       }
     }
 
@@ -819,7 +799,6 @@
         };
         categories.push(catObj);
         localStorage.setItem(STORAGE_KEY_CATEGORIES, JSON.stringify(categories));
-      localStorage.setItem(STORAGE_KEY_AREAS, JSON.stringify(areas));
       }
       return catObj;
     }
@@ -900,7 +879,7 @@
       }
 
       const adminMenuIds = [
-        'menu-plants-btn', 'menu-areas-btn', 'menu-users-btn', 'menu-email-btn', 'menu-qr-btn', 'menu-cloud-btn', 'menu-consumed-btn', 'menu-export-btn'
+        'menu-plants-btn', 'menu-users-btn', 'menu-email-btn', 'menu-qr-btn', 'menu-cloud-btn', 'menu-consumed-btn', 'menu-export-btn'
       ];
       adminMenuIds.forEach(id => {
         const el = document.getElementById(id);
@@ -981,7 +960,6 @@
       localStorage.setItem(STORAGE_KEY_QR_BASE, permanentQrBaseUrl);
       localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
       localStorage.setItem(STORAGE_KEY_CATEGORIES, JSON.stringify(categories));
-      localStorage.setItem(STORAGE_KEY_AREAS, JSON.stringify(areas));
       await pushToCloud(false);
     }
 
@@ -994,7 +972,7 @@
         const removals = JSON.parse(localStorage.getItem(STORAGE_KEY_REMOVALS)) || [];
         const payload = {
           plants, items, plantSequences, appNotifications, emailConfig,
-          permanentQrBaseUrl, users, helpLogs, categories, removals, areas, updatedAt: Date.now()
+          permanentQrBaseUrl, users, helpLogs, categories, removals, updatedAt: Date.now()
         };
         const res = await fetch(endpoint, {
           method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
@@ -1025,7 +1003,6 @@
           if (Array.isArray(data.categories) && data.categories.length > 0) {
             categories = data.categories;
             localStorage.setItem(STORAGE_KEY_CATEGORIES, JSON.stringify(categories));
-      localStorage.setItem(STORAGE_KEY_AREAS, JSON.stringify(areas));
           }
           if (Array.isArray(data.removals)) {
             localStorage.setItem(STORAGE_KEY_REMOVALS, JSON.stringify(data.removals));
@@ -1392,7 +1369,6 @@
         cat.name = newCategoryName;
         cat.rackCode = newRackCode;
         localStorage.setItem(STORAGE_KEY_CATEGORIES, JSON.stringify(categories));
-      localStorage.setItem(STORAGE_KEY_AREAS, JSON.stringify(areas));
       }
 
       items.forEach(item => {
@@ -2392,28 +2368,7 @@
 
       document.getElementById('auto-checkout-user-id').value = '';
       document.getElementById('auto-checkout-email').value = '';
-      const destSelectAuto = document.getElementById('auto-checkout-destination');
-      const displayAreas = areas.map(a => {
-        let obj = a;
-        if (typeof a === 'string') {
-          try {
-            if (a.trim().startsWith('{')) obj = JSON.parse(a);
-          } catch(e) {}
-        }
-        return obj;
-      }).filter(Boolean);
-      const sortedAreas = displayAreas.sort((a, b) => {
-        const pA = (typeof a === 'object' && a !== null ? a.plantCode : 'ALL') || 'ALL';
-        const pB = (typeof b === 'object' && b !== null ? b.plantCode : 'ALL') || 'ALL';
-        return pA.localeCompare(pB);
-      });
-      destSelectAuto.innerHTML = '<option value="">-- Select Destination Area --</option>' + sortedAreas.map(a => {
-        const name = (typeof a === 'object' && a !== null) ? (a.name || '') : String(a || '');
-        const pCode = (typeof a === 'object' && a !== null) ? (a.plantCode || 'ALL') : 'ALL';
-        const label = pCode === 'ALL' ? 'Global' : pCode;
-        return `<option value="${escapeHtml(name)}">[${label}] ${escapeHtml(name)}</option>`;
-      }).join('');
-      destSelectAuto.value = '';
+      document.getElementById('auto-checkout-destination').value = '';
       document.getElementById('auto-checkout-note').value = '';
       document.getElementById('auto-checkout-send-email-toggle').checked = false;
       document.getElementById('auto-checkout-for-good-toggle').checked = false;
@@ -2523,24 +2478,7 @@
       
       document.getElementById('checkout-user-id').value = '';
       document.getElementById('checkout-email').value = '';
-      const destSelect = document.getElementById('checkout-destination');
-      const displayAreas = areas.map(a => {
-        let obj = a;
-        if (typeof a === 'string') {
-          try {
-            if (a.trim().startsWith('{')) obj = JSON.parse(a);
-          } catch(e) {}
-        }
-        if (typeof obj === 'object' && obj !== null) {
-          if (obj.plantCode === 'ALL' || obj.plantCode === item.plantCode) {
-            return obj.name || '';
-          }
-          return null;
-        }
-        return String(obj || '');
-      }).filter(Boolean);
-      destSelect.innerHTML = '<option value="">-- Select Destination Area --</option>' + displayAreas.map(a => `<option value="${escapeHtml(a)}">${escapeHtml(a)}</option>`).join('');
-      destSelect.value = '';
+      document.getElementById('checkout-destination').value = '';
       document.getElementById('checkout-note').value = '';
       document.getElementById('checkout-send-email-toggle').checked = true;
       document.getElementById('checkout-for-good-toggle').checked = false;
@@ -2738,28 +2676,7 @@
 
       document.getElementById('auto-checkout-user-id').value = '';
       document.getElementById('auto-checkout-email').value = '';
-      const destSelectAuto = document.getElementById('auto-checkout-destination');
-      const displayAreas = areas.map(a => {
-        let obj = a;
-        if (typeof a === 'string') {
-          try {
-            if (a.trim().startsWith('{')) obj = JSON.parse(a);
-          } catch(e) {}
-        }
-        return obj;
-      }).filter(Boolean);
-      const sortedAreas = displayAreas.sort((a, b) => {
-        const pA = (typeof a === 'object' && a !== null ? a.plantCode : 'ALL') || 'ALL';
-        const pB = (typeof b === 'object' && b !== null ? b.plantCode : 'ALL') || 'ALL';
-        return pA.localeCompare(pB);
-      });
-      destSelectAuto.innerHTML = '<option value="">-- Select Destination Area --</option>' + sortedAreas.map(a => {
-        const name = (typeof a === 'object' && a !== null) ? (a.name || '') : String(a || '');
-        const pCode = (typeof a === 'object' && a !== null) ? (a.plantCode || 'ALL') : 'ALL';
-        const label = pCode === 'ALL' ? 'Global' : pCode;
-        return `<option value="${escapeHtml(name)}">[${label}] ${escapeHtml(name)}</option>`;
-      }).join('');
-      destSelectAuto.value = '';
+      document.getElementById('auto-checkout-destination').value = '';
       document.getElementById('auto-checkout-note').value = '';
       document.getElementById('auto-checkout-send-email-toggle').checked = true;
       document.getElementById('auto-checkout-for-good-toggle').checked = false;
