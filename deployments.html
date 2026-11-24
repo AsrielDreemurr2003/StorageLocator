@@ -710,6 +710,39 @@
           mailtoLink: '',
           timestamp: now
         });
+
+        // Automatically create a support log help ticket
+        const STORAGE_KEY_HELP_LOGS = 'PLANT_QR_HELP_LOGS_V8';
+        const helpLogs = JSON.parse(localStorage.getItem(STORAGE_KEY_HELP_LOGS)) || [];
+        const generateTicketNumber = () => {
+          let maxTk = helpLogs.reduce((max, entry) => {
+            if (entry.ticketNumber && entry.ticketNumber.startsWith('TK-')) {
+              const num = parseInt(entry.ticketNumber.split('-')[1], 10);
+              if (!isNaN(num) && num > max) return num;
+            }
+            return max;
+          }, 1000);
+          return 'TK-' + (maxTk + 1);
+        };
+
+        helpLogs.unshift({
+          id: 'hl-' + Date.now(),
+          ticketNumber: generateTicketNumber(),
+          type: 'CONCERN',
+          itemName: item.name,
+          itemTag: item.tag,
+          itemCode: item.itemCode,
+          quality: quality,
+          user: userName,
+          description: concernDesc || note || 'Flagged upon return',
+          impact: concernImpact || 'N/A',
+          timestamp: Date.now(),
+          status: 'OPEN',
+          priority: 'High',
+          assignedTo: '',
+          notes: []
+        });
+        localStorage.setItem(STORAGE_KEY_HELP_LOGS, JSON.stringify(helpLogs));
       } else {
         appNotifications.unshift({
           id: 'notif-' + now + '-' + Math.random().toString(36).substring(2, 5),
