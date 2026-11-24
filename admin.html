@@ -96,7 +96,23 @@
             <input type="text" id="category-rack-code" required placeholder="Rack Code" class="w-32 border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono uppercase focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
             <button type="submit" class="bg-[#5A358E] hover:bg-[#3D2566] text-white px-5 py-2 rounded-lg text-sm font-semibold">Add Category</button>
           </form>
-          <div class="divide-y border rounded-xl overflow-hidden mt-4" id="category-list"></div>
+          <div class="divide-y border rounded-xl overflow-hidden mt-4" id="category-list">
+          <!-- Bulk Category Migration Panel -->
+          <div class="bg-purple-50 p-4 border border-purple-200 rounded-xl mt-6 space-y-3">
+            <h3 class="text-sm font-bold text-purple-900 uppercase flex items-center gap-1.5">⚡ Bulk Category Migrator</h3>
+            <p class="text-xs text-slate-600">Reassign all items belonging to one category over to another category in bulk.</p>
+            <form onsubmit="bulkMigrateCategory(event)" class="flex flex-wrap items-end gap-3 text-xs">
+              <div class="flex-1 min-w-[150px]">
+                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Source Category</label>
+                <select id="migrate-source-select" required class="w-full border rounded-lg px-2.5 py-1.5 bg-white outline-none"></select>
+              </div>
+              <div class="flex-1 min-w-[150px]">
+                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Target Category</label>
+                <select id="migrate-target-select" required class="w-full border rounded-lg px-2.5 py-1.5 bg-white outline-none"></select>
+              </div>
+              <button type="submit" class="bg-[#0D9488] hover:bg-[#059669] text-white font-bold px-4 py-2 rounded-lg transition shadow-sm">Migrate All Items</button>
+            </form>
+          </div></div>
         </div>
 
         <div id="tab-areas" class="hidden space-y-4">
@@ -416,7 +432,7 @@
       if (tabId === 'cloud') populateCloudConfig();
       if (tabId === 'consumed') renderConsumed();
       if (tabId === 'areas') { populateAreaPlantSelect(); renderAreas(); }
-      if (tabId === 'categories') { populateCategoryPlantSelect(); renderCategories(); }
+      if (tabId === 'categories') { populateCategoryPlantSelect(); renderCategories(); populateMigrationDropdowns(); }
     }
 
     function renderPlants() {
@@ -1032,6 +1048,46 @@
       categories = categories.filter(c => c.id !== id);
       await saveState();
       renderCategories();
+    }
+    
+    
+    function populateMigrationDropdowns() {
+      const src = document.getElementById('migrate-source-select');
+      const target = document.getElementById('migrate-target-select');
+      if (!src || !target) return;
+      
+      const opts = categories.map(c => `<option value="${escapeHtml(c.name)}">${escapeHtml(c.plantCode || 'ALL')} — ${escapeHtml(c.name)}</option>`).join('');
+      src.innerHTML = opts;
+      target.innerHTML = opts;
+    }
+
+    async function bulkMigrateCategory(e) {
+      e.preventDefault();
+      const src = document.getElementById('migrate-source-select').value;
+      const target = document.getElementById('migrate-target-select').value;
+      if (!src || !target) return;
+      if (src === target) {
+        alert("Source and target categories must be different.");
+        return;
+      }
+
+      const affected = items.filter(item => item.category === src);
+      if (affected.length === 0) {
+        alert(`No items found in source category "${src}".`);
+        return;
+      }
+
+      if (!confirm(`Move all ${affected.length} item(s) from "${src}" to "${target}"?`)) return;
+
+      items.forEach(item => {
+        if (item.category === src) {
+          item.category = target;
+        }
+      });
+
+      await saveState();
+      populateMigrationDropdowns();
+      alert(`Successfully moved ${affected.length} item(s) to "${target}".`);
     }
     
     initPage();
