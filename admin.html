@@ -87,6 +87,7 @@
           <h2 class="text-lg font-bold">📍 Manage Destination Areas</h2>
           <p class="text-xs text-slate-500">Add or remove destination areas for checkouts to keep deployment records standardized and avoid duplicates.</p>
           <form onsubmit="saveArea(event)" class="flex flex-wrap gap-2">
+            <select id="area-plant-select" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#5A358E]"></select>
             <input type="text" id="area-name" required placeholder="e.g. Assembly Line 3" class="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
             <button type="submit" class="bg-[#5A358E] hover:bg-[#3D2566] text-white px-5 py-2 rounded-lg text-sm font-semibold">Add Area</button>
           </form>
@@ -279,7 +280,7 @@
     const STORAGE_KEY_HELP_LOGS = 'PLANT_QR_HELP_LOGS_V8';
     const STORAGE_KEY_AREAS  = 'PLANT_QR_AREAS_V8';
 
-    let areas = JSON.parse(localStorage.getItem(STORAGE_KEY_AREAS)) || ['Assembly Line 1', 'Assembly Line 2', 'Assembly Line 3', 'Tool Crib', 'Press Bay'];
+    let areas = JSON.parse(localStorage.getItem(STORAGE_KEY_AREAS)) || [{ name: 'Assembly Line 1', plantCode: 'KEN' }, { name: 'Assembly Line 2', plantCode: 'KEN' }, { name: 'Assembly Line 3', plantCode: 'DET' }, { name: 'Tool Crib', plantCode: 'ALL' }, { name: 'Press Bay', plantCode: 'CHI' }];
     let plants = JSON.parse(localStorage.getItem(STORAGE_KEY_PLANTS)) || [
       { code: 'KEN', name: 'Kentwood Plant' },
       { code: 'DET', name: 'Detroit Assembly' },
@@ -380,7 +381,7 @@
       if (tabId === 'qr') populateQrConfig();
       if (tabId === 'cloud') populateCloudConfig();
       if (tabId === 'consumed') renderConsumed();
-      if (tabId === 'areas') renderAreas();
+      if (tabId === 'areas') { populateAreaPlantSelect(); renderAreas(); }
     }
 
     function renderPlants() {
@@ -419,7 +420,7 @@
       container.innerHTML = '';
       document.getElementById('userbase-count').textContent = users.length;
       users.forEach(u => {
-        const adminBadge = u.isAdmin ? `<span class="bg-purple-100 text-[#5A358E] text-[10px] font-bold px-2.5 py-0.5 rounded ml-1">ADMIN</span>` : '';
+        const adminBadge = u.isAdmin ? `<span class="bg-purple-100 text-[#5A358E] text-[10px] font-bold px-2 py-0.5 rounded ml-1">ADMIN</span>` : '';
         const div = document.createElement('div');
         div.className = 'p-2.5 flex justify-between items-center text-xs border-b border-slate-100 py-2';
         div.innerHTML = `
@@ -662,17 +663,37 @@
     }
 
     
+    function populateAreaPlantSelect() {
+      const select = document.getElementById('area-plant-select');
+      if (!select) return;
+      select.innerHTML = '<option value="ALL">All Plants (Global)</option>' +
+        plants.map(p => `<option value="${p.code}">${p.code} — ${p.name}</option>`).join('');
+    }
+
     function renderAreas() {
       const container = document.getElementById('area-list');
       if (!container) return;
       container.innerHTML = '';
-      areas.forEach(a => {
+      
+      const sortedAreas = [...areas].sort((a, b) => {
+        const pA = (typeof a === 'object' ? a.plantCode : 'ALL') || 'ALL';
+        const pB = (typeof b === 'object' ? b.plantCode : 'ALL') || 'ALL';
+        if (pA !== pB) return pA.localeCompare(pB);
+        const nA = typeof a === 'object' ? a.name : a;
+        const nB = typeof b === 'object' ? b.name : b;
+        return nA.localeCompare(nB);
+      });
+
+      sortedAreas.forEach(a => {
+        const name = typeof a === 'object' ? a.name : a;
+        const pCode = (typeof a === 'object' ? a.plantCode : 'ALL') || 'ALL';
+        const plantLabel = pCode === 'ALL' ? 'All Plants' : pCode;
         const div = document.createElement('div');
         div.className = 'p-3 flex justify-between items-center text-sm bg-white';
-        div.innerHTML = `<div><span class="font-medium">${escapeHtml(a)}</span></div>
+        div.innerHTML = `<div><span class="font-mono font-bold text-[#5A358E] bg-purple-50 px-2 py-0.5 rounded border border-purple-200 mr-2">${plantLabel}</span> <span class="font-medium">${escapeHtml(name)}</span></div>
         <div class="flex items-center gap-2">
-          <button onclick="editArea('${escapeJsStr(a)}')" class="text-xs bg-purple-50 hover:bg-purple-100 text-[#5A358E] px-2.5 py-1 rounded font-semibold">Edit</button>
-          <button onclick="deleteArea('${escapeJsStr(a)}')" class="text-xs bg-rose-50 hover:bg-rose-100 text-rose-700 px-2.5 py-1 rounded font-semibold">Remove</button>
+          <button onclick="editArea('${escapeJsStr(name)}')" class="text-xs bg-purple-50 hover:bg-purple-100 text-[#5A358E] px-2.5 py-1 rounded font-semibold">Edit</button>
+          <button onclick="deleteArea('${escapeJsStr(name)}')" class="text-xs bg-rose-50 hover:bg-rose-100 text-rose-700 px-2.5 py-1 rounded font-semibold">Remove</button>
         </div>`;
         container.appendChild(div);
       });
@@ -681,9 +702,10 @@
     async function saveArea(e) {
       e.preventDefault();
       const name = document.getElementById('area-name').value.trim();
+      const plantCode = document.getElementById('area-plant-select').value;
       if (!name) return;
-      if (!areas.includes(name)) {
-        areas.push(name);
+      if (!areas.some(a => (typeof a === 'object' ? a.name.toLowerCase() : a.toLowerCase()) === name.toLowerCase() && (typeof a === 'object' ? a.plantCode : 'ALL') === plantCode)) {
+        areas.push({ name, plantCode });
       }
       document.getElementById('area-name').value = '';
       await saveState();
@@ -691,6 +713,8 @@
     }
 
     async function editArea(oldName) {
+      const found = areas.find(a => (typeof a === 'object' ? a.name : a) === oldName);
+      if (!found) return;
       const newName = prompt(`Rename destination area "${oldName}" to:`, oldName);
       if (newName === null) return; // Cancelled
       const cleanNewName = newName.trim();
@@ -700,7 +724,11 @@
       }
       if (cleanNewName === oldName) return;
       
-      areas = areas.map(a => a === oldName ? cleanNewName : a);
+      if (typeof found === 'object') {
+        found.name = cleanNewName;
+      } else {
+        areas = areas.map(a => a === oldName ? cleanNewName : a);
+      }
       
       if (typeof items !== 'undefined' && Array.isArray(items)) {
         items.forEach(item => {
@@ -723,7 +751,7 @@
 
     async function deleteArea(name) {
       if (!confirm(`Remove destination area "${name}"?`)) return;
-      areas = areas.filter(a => a !== name);
+      areas = areas.filter(a => (typeof a === 'object' ? a.name : a) !== name);
       await saveState();
       renderAreas();
     }
