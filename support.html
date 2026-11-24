@@ -97,12 +97,21 @@
                 <label for="help-concern-item-id" class="sr-only">Choose Item from list</label>
                 <select id="help-concern-item-id" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-[#5A358E] focus:outline-none"></select>
               </div>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label for="help-concern-quality" class="block text-xs font-bold text-slate-600 uppercase mb-1">Select New Quality State *</label>
                   <select id="help-concern-quality" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-[#5A358E] focus:outline-none">
                     <option value="Needs Repair">⚠️ Needs Repair</option>
                     <option value="Broken">❌ Broken / Non-Functional</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="help-concern-priority" class="block text-xs font-bold text-slate-600 uppercase mb-1">Select Priority *</label>
+                  <select id="help-concern-priority" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-[#5A358E] focus:outline-none">
+                    <option value="Low">🟢 Low</option>
+                    <option value="Medium" selected>🟡 Medium</option>
+                    <option value="High">🟠 High</option>
+                    <option value="Critical">🔴 Critical</option>
                   </select>
                 </div>
                 <div>
@@ -193,9 +202,39 @@
           <!-- Concerns & Wishlist Logs -->
           <div id="help-section-logs" class="space-y-4 hidden">
             <div class="flex justify-between items-center">
-              <h3 class="text-base font-bold">📜 Live Concerns & Requests Log</h3>
+              <h3 class="text-base font-bold">📜 Ticketing Dashboard</h3>
               <button id="clear-logs-btn" onclick="clearHelpLogs()" class="hidden text-xs bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold px-3 py-1.5 rounded-lg">🗑️ Clear All Logs</button>
             </div>
+            
+            <!-- Dynamic Ticket Filter Board -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 bg-slate-50 border rounded-xl">
+              <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Search Tickets</label>
+                <input type="text" id="ticket-search" oninput="renderHelpLogs()" placeholder="ID, user, description..." class="w-full border rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-[#5A358E] outline-none" />
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Filter Status</label>
+                <select id="ticket-filter-status" onchange="renderHelpLogs()" class="w-full border rounded-lg px-2.5 py-1.5 text-xs bg-white focus:ring-2 focus:ring-[#5A358E] outline-none">
+                  <option value="ALL">All Statuses</option>
+                  <option value="OPEN">Open</option>
+                  <option value="IN PROGRESS">In Progress</option>
+                  <option value="PENDING">Pending</option>
+                  <option value="RESOLVED">Resolved</option>
+                  <option value="CLOSED">Closed</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Filter Priority</label>
+                <select id="ticket-filter-priority" onchange="renderHelpLogs()" class="w-full border rounded-lg px-2.5 py-1.5 text-xs bg-white focus:ring-2 focus:ring-[#5A358E] outline-none">
+                  <option value="ALL">All Priorities</option>
+                  <option value="Low">Low</option>
+                  <option value="Medium">Medium</option>
+                  <option value="High">High</option>
+                  <option value="Critical">Critical</option>
+                </select>
+              </div>
+            </div>
+
             <div id="help-logs-container" class="space-y-3 max-h-[420px] overflow-y-auto"></div>
           </div>
 
@@ -312,6 +351,7 @@
       e.preventDefault();
       const itemId = document.getElementById('help-concern-item-id').value;
       const newQuality = document.getElementById('help-concern-quality').value;
+      const priority = document.getElementById('help-concern-priority').value;
       const submitter = document.getElementById('help-concern-user').value.trim();
       const desc = document.getElementById('help-concern-desc').value.trim();
       const impact = document.getElementById('help-concern-impact').value.trim();
@@ -323,7 +363,7 @@
         helpLogs.unshift({
           id: 'hl-' + now, ticketNumber: generateTicketNumber(), type: 'CONCERN',
           itemName: item.name, itemTag: item.tag, itemCode: item.itemCode,
-          quality: newQuality, user: submitter, description: desc, impact, timestamp: now, status: 'OPEN', notes: []
+          quality: newQuality, user: submitter, description: desc, impact, timestamp: now, status: 'OPEN', priority: priority, assignedTo: '', notes: []
         });
 
         // Push notification to local storage & cloud
@@ -352,13 +392,14 @@
       const name = document.getElementById('help-req-name').value.trim();
       const category = document.getElementById('help-req-category').value.trim();
       const plant = document.getElementById('help-req-plant').value;
+      const priority = document.getElementById('help-req-priority').value;
       const user = document.getElementById('help-req-user').value.trim();
       const reason = document.getElementById('help-req-reason').value.trim();
 
       const now = Date.now();
       helpLogs.unshift({
         id: 'hl-' + now, ticketNumber: generateTicketNumber(), type: 'WISHLIST_REQ',
-        itemName: name, category, plantCode: plant, user, description: reason, timestamp: now, status: 'OPEN', notes: []
+        itemName: name, category, plantCode: plant, user, description: reason, timestamp: now, status: 'OPEN', priority: priority, assignedTo: '', notes: []
       });
 
       // Push notification to local storage & cloud
@@ -451,23 +492,86 @@
       }
     }
 
+    function updateTicketProperty(ticketId, field, value) {
+      const entry = helpLogs.find(h => h.id === ticketId);
+      if (!entry) return;
+      entry[field] = value;
+      syncSupportState().then(() => renderHelpLogs());
+    }
+
     function renderHelpLogs() {
       const container = document.getElementById('help-logs-container');
       container.innerHTML = '';
-      if (helpLogs.length === 0) {
-        container.innerHTML = '<div class="p-8 text-center text-slate-400">No support logs recorded yet.</div>';
+      
+      const searchVal = document.getElementById('ticket-search') ? document.getElementById('ticket-search').value.toLowerCase().trim() : '';
+      const statusFilter = document.getElementById('ticket-filter-status') ? document.getElementById('ticket-filter-status').value : 'ALL';
+      const priorityFilter = document.getElementById('ticket-filter-priority') ? document.getElementById('ticket-filter-priority').value : 'ALL';
+
+      const filteredLogs = helpLogs.filter(entry => {
+        const matchesSearch = !searchVal || 
+          (entry.ticketNumber && entry.ticketNumber.toLowerCase().includes(searchVal)) ||
+          (entry.user && entry.user.toLowerCase().includes(searchVal)) ||
+          (entry.description && entry.description.toLowerCase().includes(searchVal)) ||
+          (entry.itemName && entry.itemName.toLowerCase().includes(searchVal));
+        
+        const matchesStatus = statusFilter === 'ALL' || (entry.status || 'OPEN') === statusFilter;
+        const matchesPriority = priorityFilter === 'ALL' || (entry.priority || 'Medium') === priorityFilter;
+
+        return matchesSearch && matchesStatus && matchesPriority;
+      });
+
+      if (filteredLogs.length === 0) {
+        container.innerHTML = '<div class="p-8 text-center text-slate-400">No matching tickets found.</div>';
         return;
       }
-      const isAdmin = loggedInUser && loggedInUser.isAdmin;
-      helpLogs.forEach(entry => {
-        const isResolved = entry.status === 'RESOLVED';
-        const statusBadge = isResolved
-          ? `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded">✅ RESOLVED</span>`
-          : `<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded">⏳ OPEN</span>`;
 
-        const resolveBtn = (!isResolved && isAdmin)
-          ? `<button onclick="resolveTicket('${entry.id}')" class="bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold px-2.5 py-1 rounded">Mark Resolved</button>`
-          : '';
+      const isAdmin = loggedInUser && loggedInUser.isAdmin;
+      
+      filteredLogs.forEach(entry => {
+        const priority = entry.priority || 'Medium';
+        let priorityColor = 'bg-amber-100 text-amber-800 border-amber-300';
+        if (priority === 'Low') priorityColor = 'bg-emerald-100 text-emerald-800 border-emerald-300';
+        if (priority === 'High') priorityColor = 'bg-orange-100 text-orange-800 border-orange-300';
+        if (priority === 'Critical') priorityColor = 'bg-rose-100 text-rose-800 border-rose-300';
+
+        const status = entry.status || 'OPEN';
+        let statusBadge = `<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded border">⏳ ${status}</span>`;
+        if (status === 'RESOLVED') statusBadge = `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded border">✅ RESOLVED</span>`;
+        if (status === 'IN PROGRESS') statusBadge = `<span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded border">⚙️ IN PROGRESS</span>`;
+        if (status === 'PENDING') statusBadge = `<span class="bg-purple-100 text-purple-800 text-[10px] font-bold px-2 py-0.5 rounded border">⏳ PENDING</span>`;
+        if (status === 'CLOSED') statusBadge = `<span class="bg-slate-100 text-slate-800 text-[10px] font-bold px-2 py-0.5 rounded border">🔒 CLOSED</span>`;
+
+        let adminActionsHtml = '';
+        if (isAdmin) {
+          adminActionsHtml = `
+            <div class="mt-3 p-2.5 bg-purple-50 rounded-lg border border-purple-100 flex flex-wrap items-center gap-3">
+              <span class="font-bold text-slate-500 uppercase text-[9px]">Admin Controls:</span>
+              <div class="flex items-center gap-1">
+                <span class="text-[10px] text-slate-600">Assign:</span>
+                <input type="text" value="${escapeHtml(entry.assignedTo || '')}" onchange="updateTicketProperty('${entry.id}', 'assignedTo', this.value)" placeholder="Unassigned" class="border rounded px-2 py-0.5 text-xs w-28 outline-none" />
+              </div>
+              <div class="flex items-center gap-1">
+                <span class="text-[10px] text-slate-600">Priority:</span>
+                <select onchange="updateTicketProperty('${entry.id}', 'priority', this.value)" class="border rounded px-2 py-0.5 text-xs bg-white outline-none">
+                  <option value="Low" ${priority === 'Low' ? 'selected' : ''}>Low</option>
+                  <option value="Medium" ${priority === 'Medium' ? 'selected' : ''}>Medium</option>
+                  <option value="High" ${priority === 'High' ? 'selected' : ''}>High</option>
+                  <option value="Critical" ${priority === 'Critical' ? 'selected' : ''}>Critical</option>
+                </select>
+              </div>
+              <div class="flex items-center gap-1">
+                <span class="text-[10px] text-slate-600">Status:</span>
+                <select onchange="updateTicketProperty('${entry.id}', 'status', this.value)" class="border rounded px-2 py-0.5 text-xs bg-white outline-none">
+                  <option value="OPEN" ${status === 'OPEN' ? 'selected' : ''}>Open</option>
+                  <option value="IN PROGRESS" ${status === 'IN PROGRESS' ? 'selected' : ''}>In Progress</option>
+                  <option value="PENDING" ${status === 'PENDING' ? 'selected' : ''}>Pending</option>
+                  <option value="RESOLVED" ${status === 'RESOLVED' ? 'selected' : ''}>Resolved</option>
+                  <option value="CLOSED" ${status === 'CLOSED' ? 'selected' : ''}>Closed</option>
+                </select>
+              </div>
+            </div>
+          `;
+        }
 
         let notesHtml = '';
         if (entry.notes && entry.notes.length > 0) {
@@ -486,14 +590,14 @@
 
         const addNoteFormHtml = `
           <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center gap-2">
-            <input type="text" id="note-input-${entry.id}" placeholder="Type a note about this issue..." class="flex-1 border border-slate-300 rounded-lg px-2.5 py-1 text-xs focus:ring-2 focus:ring-[#5A358E] outline-none" />
-            <input type="text" id="note-user-${entry.id}" placeholder="User ID" class="w-20 border border-slate-300 rounded-lg px-2.5 py-1 text-xs focus:ring-2 focus:ring-[#5A358E] outline-none" />
+            <input type="text" id="note-input-${entry.id}" placeholder="Type a note about this issue..." class="flex-1 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-[#5A358E] outline-none" />
+            <input type="text" id="note-user-${entry.id}" placeholder="User" class="w-20 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-[#5A358E] outline-none" />
             <button onclick="addTicketNote('${entry.id}')" class="bg-[#5A358E] hover:bg-[#3D2566] text-white font-bold text-[10px] px-3 py-1.5 rounded-lg transition-colors">Add Note</button>
           </div>
         `;
 
         const div = document.createElement('div');
-        div.className = 'p-4 rounded-xl border text-xs bg-slate-50 flex flex-col justify-between gap-3';
+        div.className = 'p-4 rounded-xl border text-xs bg-slate-50 flex flex-col justify-between gap-3 shadow-sm hover:shadow-md transition-shadow';
         div.innerHTML = `
           <div class="flex flex-wrap justify-between items-start gap-3">
             <div class="space-y-1 flex-1">
@@ -501,14 +605,16 @@
                 <strong class="font-mono text-[#5A358E]">#${entry.ticketNumber || 'TK'}</strong>
                 <span class="font-bold text-slate-800">[${entry.type}]</span>
                 ${statusBadge}
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold border ${priorityColor}">${priority} Priority</span>
+                ${entry.assignedTo ? `<span class="bg-blue-50 text-blue-800 border border-blue-200 px-2 py-0.5 rounded text-[10px] font-medium">👤 Assigned: ${escapeHtml(entry.assignedTo)}</span>` : '<span class="bg-slate-100 text-slate-500 border border-slate-200 px-2 py-0.5 rounded text-[10px] font-medium">Unassigned</span>'}
                 <span class="font-semibold text-slate-900">${entry.itemName || ''} ${entry.itemTag ? '(' + entry.itemTag + ')' : ''}</span>
                 <span class="text-slate-400">by <strong>${entry.user}</strong> • ${new Date(entry.timestamp).toLocaleString()}</span>
               </div>
               <p class="text-slate-700">${entry.description || ''}</p>
               ${entry.impact ? '<p class="text-rose-700 font-medium">Impact: ' + entry.impact + '</p>' : ''}
               ${notesHtml}
+              ${adminActionsHtml}
             </div>
-            <div>${resolveBtn}</div>
           </div>
           ${addNoteFormHtml}
         `;
@@ -517,55 +623,6 @@
     }
 
     populateDropdowns();
-    
-    function checkQueryParameters() {
-      const params = new URLSearchParams(window.location.search);
-      const tab = params.get('tab');
-      if (tab) {
-        switchHelpTab(tab);
-      }
-      
-      const itemId = params.get('itemId');
-      if (itemId) {
-        const concernSelect = document.getElementById('help-concern-item-id');
-        if (concernSelect) {
-          concernSelect.value = itemId;
-        }
-      }
-      
-      const quality = params.get('quality');
-      if (quality) {
-        const qualitySelect = document.getElementById('help-concern-quality');
-        if (qualitySelect) {
-          qualitySelect.value = quality;
-        }
-      }
-      
-      const user = params.get('user');
-      if (user) {
-        const userEl = document.getElementById('help-concern-user');
-        if (userEl) {
-          userEl.value = user;
-        }
-      }
-      
-      const desc = params.get('desc');
-      if (desc) {
-        const descEl = document.getElementById('help-concern-desc');
-        if (descEl) {
-          descEl.value = desc;
-        }
-      }
-      
-      const impact = params.get('impact');
-      if (impact) {
-        const impactEl = document.getElementById('help-concern-impact');
-        if (impactEl) {
-          impactEl.value = impact;
-        }
-      }
-    }
-    checkQueryParameters();
   </script>
 </body>
 </html>
