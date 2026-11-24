@@ -76,7 +76,19 @@
           <span class="text-lg" aria-hidden="true">📜</span>
           <div class="min-w-0">
             <p class="truncate">Live Concerns & Wishlist Log</p>
+          
+        <!-- Activity Tracking Sidebar Widget -->
+        <div class="bg-white border border-[#DCDDE1] rounded-2xl p-4 text-xs space-y-2.5 mt-4 shadow-sm">
+          <h4 class="font-bold text-[#251440] uppercase tracking-wider border-b pb-1.5 flex items-center gap-1.5">
+            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.109A11.386 11.386 0 0012.002 21c-2.9 0-5.495-.99-7.502-2.651M12.002 21c-1.104 0-2.095-.31-2.922-.843m0 0a3 3 0 10-5.343-2.73m5.343 2.73A11.332 11.332 0 0012.002 19c.607 0 1.2.044 1.785.129m-5.343-2.73a11.306 11.306 0 01-.115-2.079C8.329 11.417 11.416 8 15 8c1.378 0 2.646.417 3.714 1.129m-4.5 1.58A3 3 0 1011 11.25M15 8a6 6 0 11-12 0 6 6 0 0112 0z" /></svg>
+            <span>Activity Tracking</span>
+          </h4>
+          <p class="text-slate-600">Last Ticket Creator Tracked:</p>
+          <div class="flex items-center gap-2 bg-slate-50 p-2 rounded-lg border">
+            <span class="font-bold text-slate-800" id="last-opened-user">None</span>
           </div>
+        </div>
+</div>
         </button>
       </div>
 
@@ -235,7 +247,17 @@
               </div>
             </div>
 
-            <div id="help-logs-container" class="space-y-3 max-h-[420px] overflow-y-auto"></div>
+            <!-- Active Tickets -->
+            <div>
+              <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Active Tickets</h4>
+              <div id="active-tickets-container" class="space-y-3 max-h-[300px] overflow-y-auto mb-6"></div>
+            </div>
+            
+            <!-- Resolved & Closed Tickets -->
+            <div class="border-t pt-4">
+              <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Resolved & Closed Tickets</h4>
+              <div id="resolved-tickets-container" class="space-y-3 max-h-[300px] overflow-y-auto"></div>
+            </div>
           </div>
 
         </div>
@@ -265,6 +287,7 @@
     ];
     let items = JSON.parse(localStorage.getItem(STORAGE_KEY_ITEMS)) || [];
     let helpLogs = JSON.parse(localStorage.getItem(STORAGE_KEY_HELP_LOGS)) || [];
+    let users = JSON.parse(localStorage.getItem(STORAGE_KEY_USERS)) || [];
 
     function switchHelpTab(tabId) {
       const tabs = ['concern', 'request', 'instructions', 'logs'];
@@ -499,9 +522,19 @@
       syncSupportState().then(() => renderHelpLogs());
     }
 
+    function reopenTicket(ticketId) {
+      const entry = helpLogs.find(h => h.id === ticketId);
+      if (!entry) return;
+      entry.status = 'OPEN';
+      syncSupportState().then(() => renderHelpLogs());
+    }
+
     function renderHelpLogs() {
-      const container = document.getElementById('help-logs-container');
-      container.innerHTML = '';
+      const activeContainer = document.getElementById('active-tickets-container');
+      const resolvedContainer = document.getElementById('resolved-tickets-container');
+      
+      activeContainer.innerHTML = '';
+      resolvedContainer.innerHTML = '';
       
       const searchVal = document.getElementById('ticket-search') ? document.getElementById('ticket-search').value.toLowerCase().trim() : '';
       const statusFilter = document.getElementById('ticket-filter-status') ? document.getElementById('ticket-filter-status').value : 'ALL';
@@ -520,14 +553,24 @@
         return matchesSearch && matchesStatus && matchesPriority;
       });
 
-      if (filteredLogs.length === 0) {
-        container.innerHTML = '<div class="p-8 text-center text-slate-400">No matching tickets found.</div>';
-        return;
+      // Render Last Opened User tracking
+      const lastUser = localStorage.getItem('LAST_OPENED_TICKET_USER') || 'None';
+      const lastUserEl = document.getElementById('last-opened-user');
+      if (lastUserEl) lastUserEl.textContent = lastUser;
+
+      const activeTickets = filteredLogs.filter(t => (t.status || 'OPEN') !== 'RESOLVED' && (t.status || 'OPEN') !== 'CLOSED');
+      const resolvedTickets = filteredLogs.filter(t => (t.status || 'OPEN') === 'RESOLVED' || (t.status || 'OPEN') === 'CLOSED');
+
+      if (activeTickets.length === 0) {
+        activeContainer.innerHTML = '<div class="p-4 text-center text-slate-400 text-xs">No active tickets found.</div>';
+      }
+      if (resolvedTickets.length === 0) {
+        resolvedContainer.innerHTML = '<div class="p-4 text-center text-slate-400 text-xs">No resolved or closed tickets found.</div>';
       }
 
       const isAdmin = loggedInUser && loggedInUser.isAdmin;
       
-      filteredLogs.forEach(entry => {
+      const renderCard = (entry, container, isResolvedCard) => {
         const priority = entry.priority || 'Medium';
         let priorityColor = 'bg-amber-100 text-amber-800 border-amber-300';
         if (priority === 'Low') priorityColor = 'bg-emerald-100 text-emerald-800 border-emerald-300';
@@ -541,60 +584,23 @@
         if (status === 'PENDING') statusBadge = `<span class="bg-purple-100 text-purple-800 text-[10px] font-bold px-2 py-0.5 rounded border">⏳ PENDING</span>`;
         if (status === 'CLOSED') statusBadge = `<span class="bg-slate-100 text-slate-800 text-[10px] font-bold px-2 py-0.5 rounded border">🔒 CLOSED</span>`;
 
-        let adminActionsHtml = '';
+        let actionBtnHtml = '';
         if (isAdmin) {
-          adminActionsHtml = `
-            <div class="mt-3 p-2.5 bg-purple-50 rounded-lg border border-purple-100 flex flex-wrap items-center gap-3">
-              <span class="font-bold text-slate-500 uppercase text-[9px]">Admin Controls:</span>
-              <div class="flex items-center gap-1">
-                <span class="text-[10px] text-slate-600">Assign:</span>
-                <input type="text" value="${escapeHtml(entry.assignedTo || '')}" onchange="updateTicketProperty('${entry.id}', 'assignedTo', this.value)" placeholder="Unassigned" class="border rounded px-2 py-0.5 text-xs w-28 outline-none" />
-              </div>
-              <div class="flex items-center gap-1">
-                <span class="text-[10px] text-slate-600">Priority:</span>
-                <select onchange="updateTicketProperty('${entry.id}', 'priority', this.value)" class="border rounded px-2 py-0.5 text-xs bg-white outline-none">
-                  <option value="Low" ${priority === 'Low' ? 'selected' : ''}>Low</option>
-                  <option value="Medium" ${priority === 'Medium' ? 'selected' : ''}>Medium</option>
-                  <option value="High" ${priority === 'High' ? 'selected' : ''}>High</option>
-                  <option value="Critical" ${priority === 'Critical' ? 'selected' : ''}>Critical</option>
-                </select>
-              </div>
-              <div class="flex items-center gap-1">
-                <span class="text-[10px] text-slate-600">Status:</span>
-                <select onchange="updateTicketProperty('${entry.id}', 'status', this.value)" class="border rounded px-2 py-0.5 text-xs bg-white outline-none">
-                  <option value="OPEN" ${status === 'OPEN' ? 'selected' : ''}>Open</option>
-                  <option value="IN PROGRESS" ${status === 'IN PROGRESS' ? 'selected' : ''}>In Progress</option>
-                  <option value="PENDING" ${status === 'PENDING' ? 'selected' : ''}>Pending</option>
-                  <option value="RESOLVED" ${status === 'RESOLVED' ? 'selected' : ''}>Resolved</option>
-                  <option value="CLOSED" ${status === 'CLOSED' ? 'selected' : ''}>Closed</option>
-                </select>
-              </div>
-            </div>
-          `;
+          if (isResolvedCard) {
+            actionBtnHtml = `
+              <button onclick="reopenTicket('${entry.id}')" class="bg-amber-600 hover:bg-amber-500 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg shadow transition flex items-center gap-1">
+                <span>Reopen Ticket</span>
+              </button>
+            `;
+          } else {
+            actionBtnHtml = `
+              <button onclick="openDevopsEditor('${entry.id}')" class="bg-[#0078D4] hover:bg-[#005A9E] text-white text-[11px] font-bold px-3 py-1.5 rounded-lg shadow transition flex items-center gap-1">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125"></path></svg>
+                <span>Edit DevOps Work Item</span>
+              </button>
+            `;
+          }
         }
-
-        let notesHtml = '';
-        if (entry.notes && entry.notes.length > 0) {
-          notesHtml = `
-            <div class="mt-3 pl-3 border-l-2 border-purple-400 space-y-1.5 bg-white p-2.5 rounded-lg shadow-inner">
-              <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Ticket Notes:</span>
-              ${entry.notes.map(note => `
-                <div class="text-[11px] text-slate-700">
-                  <span class="font-bold text-slate-900">${escapeHtml(note.user || 'User')}:</span> ${escapeHtml(note.text)} 
-                  <span class="text-slate-400 text-[9px]">• ${new Date(note.timestamp).toLocaleString()}</span>
-                </div>
-              `).join('')}
-            </div>
-          `;
-        }
-
-        const addNoteFormHtml = `
-          <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center gap-2">
-            <input type="text" id="note-input-${entry.id}" placeholder="Type a note about this issue..." class="flex-1 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-[#5A358E] outline-none" />
-            <input type="text" id="note-user-${entry.id}" placeholder="User" class="w-20 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-[#5A358E] outline-none" />
-            <button onclick="addTicketNote('${entry.id}')" class="bg-[#5A358E] hover:bg-[#3D2566] text-white font-bold text-[10px] px-3 py-1.5 rounded-lg transition-colors">Add Note</button>
-          </div>
-        `;
 
         const div = document.createElement('div');
         div.className = 'p-4 rounded-xl border text-xs bg-slate-50 flex flex-col justify-between gap-3 shadow-sm hover:shadow-md transition-shadow';
@@ -602,7 +608,7 @@
           <div class="flex flex-wrap justify-between items-start gap-3">
             <div class="space-y-1 flex-1">
               <div class="flex items-center gap-2 flex-wrap">
-                <strong class="font-mono text-[#5A358E]">#${entry.ticketNumber || 'TK'}</strong>
+                <strong onclick="openDevopsEditor('${entry.id}')" class="font-mono text-[#5A358E] hover:underline cursor-pointer">#${entry.ticketNumber || 'TK'}</strong>
                 <span class="font-bold text-slate-800">[${entry.type}]</span>
                 ${statusBadge}
                 <span class="px-2 py-0.5 rounded text-[10px] font-bold border ${priorityColor}">${priority} Priority</span>
@@ -610,19 +616,234 @@
                 <span class="font-semibold text-slate-900">${entry.itemName || ''} ${entry.itemTag ? '(' + entry.itemTag + ')' : ''}</span>
                 <span class="text-slate-400">by <strong>${entry.user}</strong> • ${new Date(entry.timestamp).toLocaleString()}</span>
               </div>
-              <p class="text-slate-700">${entry.description || ''}</p>
+              <p class="text-slate-700 mt-1.5">${entry.description || ''}</p>
               ${entry.impact ? '<p class="text-rose-700 font-medium">Impact: ' + entry.impact + '</p>' : ''}
-              ${notesHtml}
-              ${adminActionsHtml}
             </div>
+            <div class="flex items-center gap-1.5">${actionBtnHtml}</div>
           </div>
-          ${addNoteFormHtml}
         `;
         container.appendChild(div);
+      };
+
+      activeTickets.forEach(t => renderCard(t, activeContainer, false));
+      resolvedTickets.forEach(t => renderCard(t, resolvedContainer, true));
+    }
+
+    
+    let activeEditorTicketId = null;
+
+    function openDevopsEditor(ticketId) {
+      const entry = helpLogs.find(h => h.id === ticketId);
+      if (!entry) return;
+      activeEditorTicketId = ticketId;
+
+      // Track last opened ticket user on sidebar
+      localStorage.setItem('LAST_OPENED_TICKET_USER', entry.user);
+      const lastUserEl = document.getElementById('last-opened-user');
+      if (lastUserEl) lastUserEl.textContent = entry.user;
+
+      document.getElementById('editor-ticket-type').textContent = entry.type === 'CONCERN' ? 'Issue' : (entry.type === 'WISHLIST_REQ' ? 'Wishlist' : 'Work Instruction');
+      document.getElementById('editor-ticket-number').textContent = entry.ticketNumber || '#TK-XXXX';
+      document.getElementById('editor-ticket-title').textContent = entry.itemName || 'Work Item Details';
+      document.getElementById('editor-ticket-creator').textContent = entry.user || 'Unknown';
+      document.getElementById('editor-ticket-date').textContent = new Date(entry.timestamp).toLocaleString();
+      
+      document.getElementById('editor-desc').value = entry.description || '';
+      
+      const impactSection = document.getElementById('editor-impact-section');
+      const impactInput = document.getElementById('editor-impact');
+      if (entry.type === 'CONCERN') {
+        impactSection.classList.remove('hidden');
+        impactInput.value = entry.impact || '';
+      } else {
+        impactSection.classList.add('hidden');
+      }
+
+      document.getElementById('editor-state').value = entry.status || 'OPEN';
+      document.getElementById('editor-priority').value = entry.priority || 'Medium';
+
+      // Populate assigned dropdown with valid directory users
+      const assignSelect = document.getElementById('editor-assigned');
+      let assignOptions = '<option value="">Unassigned</option>';
+      users.forEach(u => {
+        assignOptions += `<option value="${escapeHtml(u.username)}">${escapeHtml(u.name)} (${escapeHtml(u.username)})</option>`;
+      });
+      assignSelect.innerHTML = assignOptions;
+      assignSelect.value = entry.assignedTo || '';
+
+      const assetTagDiv = document.getElementById('editor-asset-tag');
+      const infoBox = document.getElementById('editor-item-info');
+      if (entry.itemTag) {
+        infoBox.classList.remove('hidden');
+        assetTagDiv.textContent = entry.itemTag;
+      } else {
+        infoBox.classList.add('hidden');
+      }
+
+      renderEditorComments(entry);
+
+      document.getElementById('editor-new-comment').value = '';
+
+      const modal = document.getElementById('devops-editor-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeDevopsEditor() {
+      document.getElementById('devops-editor-modal').classList.add('hidden');
+      document.getElementById('devops-editor-modal').classList.remove('flex');
+      activeEditorTicketId = null;
+    }
+
+    function renderEditorComments(entry) {
+      const list = document.getElementById('editor-comments-list');
+      if (!list) return;
+      list.innerHTML = '';
+      if (!entry.notes || entry.notes.length === 0) {
+        list.innerHTML = '<div class="text-xs text-slate-400 italic">No comments yet. Start the discussion below.</div>';
+        return;
+      }
+      entry.notes.forEach(note => {
+        const div = document.createElement('div');
+        div.className = 'text-xs text-slate-700 bg-white p-2 rounded border border-slate-200 shadow-sm';
+        div.innerHTML = `<span class="font-bold text-[#0078D4]">${escapeHtml(note.user)}:</span> ${escapeHtml(note.text)} <span class="text-[10px] text-slate-400 font-mono block mt-0.5">${new Date(note.timestamp).toLocaleString()}</span>`;
+        list.appendChild(div);
       });
     }
 
+    async function saveDevopsComment() {
+      if (!activeEditorTicketId) return;
+      const commentInput = document.getElementById('editor-new-comment');
+      const text = commentInput.value.trim();
+      if (!text) return;
+
+      const entry = helpLogs.find(h => h.id === activeEditorTicketId);
+      if (entry) {
+        if (!Array.isArray(entry.notes)) entry.notes = [];
+        const author = loggedInUser ? loggedInUser.name : 'Anonymous Admin';
+        entry.notes.push({
+          user: author,
+          text: text,
+          timestamp: Date.now()
+        });
+        commentInput.value = '';
+        renderEditorComments(entry);
+        await syncSupportState();
+        renderHelpLogs();
+      }
+    }
+
+    async function saveDevopsEditor() {
+      if (!activeEditorTicketId) return;
+      const entry = helpLogs.find(h => h.id === activeEditorTicketId);
+      if (entry) {
+        entry.description = document.getElementById('editor-desc').value.trim();
+        if (entry.type === 'CONCERN') {
+          entry.impact = document.getElementById('editor-impact').value.trim();
+        }
+        entry.status = document.getElementById('editor-state').value;
+        entry.priority = document.getElementById('editor-priority').value;
+        entry.assignedTo = document.getElementById('editor-assigned').value;
+
+        await syncSupportState();
+        closeDevopsEditor();
+        renderHelpLogs();
+        alert('Work item updated successfully.');
+      }
+    }
+    
     populateDropdowns();
   </script>
+  <!-- MODAL: Azure DevOps Style Work Item Editor -->
+  <div id="devops-editor-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print backdrop-blur-sm">
+    <div class="bg-white rounded-xl max-w-4xl w-full p-6 shadow-2xl flex flex-col max-h-[90vh]">
+      <!-- Header -->
+      <div class="flex justify-between items-start border-b pb-3 mb-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="bg-[#0078D4] text-white text-[10px] font-bold px-2 py-0.5 rounded font-mono uppercase" id="editor-ticket-type">Work Item</span>
+            <span class="text-xs text-slate-500 font-mono font-bold" id="editor-ticket-number">#TK-1000</span>
+          </div>
+          <h2 class="text-lg font-bold text-slate-900 mt-1" id="editor-ticket-title"></h2>
+          <p class="text-[11px] text-slate-500 mt-0.5">Created by <span id="editor-ticket-creator" class="font-semibold text-slate-700"></span> • <span id="editor-ticket-date"></span></p>
+        </div>
+        <button onclick="closeDevopsEditor()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
+      </div>
+
+      <!-- Main Columns Grid (Scrollable) -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-y-auto flex-1 pr-1 pb-4">
+        
+        <!-- Left Side: Main content (2 cols) -->
+        <div class="lg:col-span-2 space-y-4">
+          <!-- Description -->
+          <div>
+            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Description / Reason</label>
+            <textarea id="editor-desc" rows="3" class="w-full border rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-[#0078D4] outline-none" placeholder="Provide detailed instructions or issue description..."></textarea>
+          </div>
+
+          <!-- Severity / Impact -->
+          <div id="editor-impact-section">
+            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Severity / Job Impact</label>
+            <textarea id="editor-impact" rows="2" class="w-full border rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-[#0078D4] outline-none" placeholder="e.g. Delays, safety hazards..."></textarea>
+          </div>
+
+          <!-- Discussion (History & notes) -->
+          <div class="border-t pt-4">
+            <h3 class="text-xs font-bold text-slate-600 uppercase mb-2">Discussion / Comments</h3>
+            <div id="editor-comments-list" class="space-y-2.5 max-h-48 overflow-y-auto mb-3 bg-slate-50 p-2.5 rounded-lg border shadow-inner"></div>
+            
+            <div class="flex gap-2">
+              <textarea id="editor-new-comment" rows="2" placeholder="Add a comment to this work item..." class="flex-1 border rounded-lg p-2 text-xs focus:ring-2 focus:ring-[#0078D4] outline-none"></textarea>
+              <button onclick="saveDevopsComment()" class="bg-[#0078D4] hover:bg-[#005A9E] text-white px-4 py-2 rounded-lg text-xs font-bold transition shadow">Post</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Side: Classification & Status (1 col) -->
+        <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 space-y-4">
+          <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider border-b pb-1.5">Details</h3>
+          
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500 mb-1">State</label>
+            <select id="editor-state" class="w-full border rounded px-2.5 py-1.5 text-xs bg-white outline-none focus:ring-2 focus:ring-[#0078D4]">
+              <option value="OPEN">Open</option>
+              <option value="IN PROGRESS">In Progress</option>
+              <option value="PENDING">Pending</option>
+              <option value="RESOLVED">Resolved</option>
+              <option value="CLOSED">Closed</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Assigned To</label>
+            <select id="editor-assigned" class="w-full border rounded px-2.5 py-1.5 text-xs bg-white outline-none focus:ring-2 focus:ring-[#0078D4]"></select>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Priority</label>
+            <select id="editor-priority" class="w-full border rounded px-2.5 py-1.5 text-xs bg-white outline-none focus:ring-2 focus:ring-[#0078D4]">
+              <option value="Low">Low</option>
+              <option value="Medium">Medium</option>
+              <option value="High">High</option>
+              <option value="Critical">Critical</option>
+            </select>
+          </div>
+
+          <div id="editor-item-info">
+            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Related Asset Tag</label>
+            <div id="editor-asset-tag" class="font-mono text-xs text-[#5A358E] font-bold bg-purple-50 p-2 rounded border border-purple-100"></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer Actions -->
+      <div class="flex justify-end space-x-2 pt-3 border-t mt-4">
+        <button onclick="closeDevopsEditor()" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-medium">Cancel</button>
+        <button onclick="saveDevopsEditor()" class="px-5 py-2 rounded-lg bg-[#0078D4] hover:bg-[#005A9E] text-white text-xs font-bold shadow">Save & Close</button>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>
