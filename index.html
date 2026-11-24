@@ -654,7 +654,7 @@
     <div class="bg-white rounded-2xl max-w-4xl w-full p-6 shadow-2xl max-h-[90vh] flex flex-col">
       <div class="flex justify-between items-start border-b pb-3 mb-4">
         <div>
-          <span id="history-tag" class="font-mono text-xs font-bold bg-purple-100 text-[#5A358E] px-2.5 py-0.5 rounded"></span>
+          <span id="history-tag" class="font-mono text-xs font-bold bg-purple-100 text-[#5A358E] px-2 py-0.5 rounded"></span>
           <h3 id="history-title" class="text-base font-bold text-slate-900 mt-1">Unit Check-Out & Check-In History</h3>
         </div>
         <button onclick="closeHistoryModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
@@ -740,7 +740,7 @@
     const STORAGE_KEY_AREAS  = 'PLANT_QR_AREAS_V8';
     
     let categories = JSON.parse(localStorage.getItem(STORAGE_KEY_CATEGORIES)) || [];
-    let areas = JSON.parse(localStorage.getItem(STORAGE_KEY_AREAS)) || ['Assembly Line 1', 'Assembly Line 2', 'Assembly Line 3', 'Tool Crib', 'Press Bay'];
+    let areas = JSON.parse(localStorage.getItem(STORAGE_KEY_AREAS)) || [{ name: 'Assembly Line 1', plantCode: 'KEN' }, { name: 'Assembly Line 2', plantCode: 'KEN' }, { name: 'Assembly Line 3', plantCode: 'DET' }, { name: 'Tool Crib', plantCode: 'ALL' }, { name: 'Press Bay', plantCode: 'CHI' }];
 
     function generateDeterministicRackCode(str, index) {
       let plantCode = "KEN";
@@ -2393,7 +2393,17 @@
       document.getElementById('auto-checkout-user-id').value = '';
       document.getElementById('auto-checkout-email').value = '';
       const destSelectAuto = document.getElementById('auto-checkout-destination');
-      destSelectAuto.innerHTML = '<option value="">-- Select Destination Area --</option>' + areas.map(a => `<option value="${escapeHtml(a)}">${escapeHtml(a)}</option>`).join('');
+      const sortedAreas = [...areas].sort((a, b) => {
+        const pA = (typeof a === 'object' ? a.plantCode : 'ALL') || 'ALL';
+        const pB = (typeof b === 'object' ? b.plantCode : 'ALL') || 'ALL';
+        return pA.localeCompare(pB);
+      });
+      destSelectAuto.innerHTML = '<option value="">-- Select Destination Area --</option>' + sortedAreas.map(a => {
+        const name = typeof a === 'object' ? a.name : a;
+        const pCode = typeof a === 'object' ? a.plantCode : 'ALL';
+        const label = pCode === 'ALL' ? 'Global' : pCode;
+        return `<option value="${escapeHtml(name)}">[${label}] ${escapeHtml(name)}</option>`;
+      }).join('');
       destSelectAuto.value = '';
       document.getElementById('auto-checkout-note').value = '';
       document.getElementById('auto-checkout-send-email-toggle').checked = false;
@@ -2407,7 +2417,7 @@
 
     function openCategoryDetailModal(categoryName) {
       const catObj = getCategoryObjectByName(categoryName);
-      const matchingItems = items.filter(i => (i.category || 'Uncategorized').toLowerCase() === categoryName.toLowerCase());
+      const matchingItems = items.filter(i => (i.category || 'Uncategorized') === categoryName);
       const total = matchingItems.length;
       const available = matchingItems.filter(i => !i.activeCheckouts || i.activeCheckouts.length === 0).length;
 
@@ -2505,7 +2515,10 @@
       document.getElementById('checkout-user-id').value = '';
       document.getElementById('checkout-email').value = '';
       const destSelect = document.getElementById('checkout-destination');
-      destSelect.innerHTML = '<option value="">-- Select Destination Area --</option>' + areas.map(a => `<option value="${escapeHtml(a)}">${escapeHtml(a)}</option>`).join('');
+      const filteredAreas = areas.filter(a => typeof a === 'object' && (a.plantCode === 'ALL' || a.plantCode === item.plantCode));
+      const rawAreas = areas.map(a => typeof a === 'object' ? a.name : a);
+      const displayAreas = filteredAreas.length > 0 ? filteredAreas.map(a => a.name) : rawAreas;
+      destSelect.innerHTML = '<option value="">-- Select Destination Area --</option>' + displayAreas.map(a => `<option value="${escapeHtml(a)}">${escapeHtml(a)}</option>`).join('');
       destSelect.value = '';
       document.getElementById('checkout-note').value = '';
       document.getElementById('checkout-send-email-toggle').checked = true;
@@ -2705,7 +2718,17 @@
       document.getElementById('auto-checkout-user-id').value = '';
       document.getElementById('auto-checkout-email').value = '';
       const destSelectAuto = document.getElementById('auto-checkout-destination');
-      destSelectAuto.innerHTML = '<option value="">-- Select Destination Area --</option>' + areas.map(a => `<option value="${escapeHtml(a)}">${escapeHtml(a)}</option>`).join('');
+      const sortedAreas = [...areas].sort((a, b) => {
+        const pA = (typeof a === 'object' ? a.plantCode : 'ALL') || 'ALL';
+        const pB = (typeof b === 'object' ? b.plantCode : 'ALL') || 'ALL';
+        return pA.localeCompare(pB);
+      });
+      destSelectAuto.innerHTML = '<option value="">-- Select Destination Area --</option>' + sortedAreas.map(a => {
+        const name = typeof a === 'object' ? a.name : a;
+        const pCode = typeof a === 'object' ? a.plantCode : 'ALL';
+        const label = pCode === 'ALL' ? 'Global' : pCode;
+        return `<option value="${escapeHtml(name)}">[${label}] ${escapeHtml(name)}</option>`;
+      }).join('');
       destSelectAuto.value = '';
       document.getElementById('auto-checkout-note').value = '';
       document.getElementById('auto-checkout-send-email-toggle').checked = true;
