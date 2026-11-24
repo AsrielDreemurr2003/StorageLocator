@@ -112,7 +112,6 @@
             <a href="deployments.html" class="w-full text-left px-3.5 py-2 hover:bg-amber-50 text-amber-800 font-bold flex items-center gap-2.5"><span>📍</span> Active Areas & Roster</a>
             <a href="support.html" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5"><span>🙋‍♂️</span> Help & Feedback Desk</a>
             <button id="menu-plants-btn" onclick="window.location.href='admin.html?tab=plants'" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5"><span>🏢</span> Manage Plants</button>
-            <button id="menu-areas-btn" onclick="window.location.href='admin.html?tab=areas'" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5"><span>📍</span> Manage Areas</button>
             <button id="menu-users-btn" onclick="window.location.href='admin.html?tab=users'" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5"><span>👤</span> Manage Users</button>
             <button id="menu-email-btn" onclick="window.location.href='admin.html?tab=email'" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5"><span>✉️</span> Email Alert Settings</button>
             <button id="menu-qr-btn" onclick="window.location.href='admin.html?tab=qr'" class="hidden w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5"><span>🔗</span> Permanent QR URL Settings</button>
@@ -395,7 +394,7 @@
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Destination Location *</label>
-          <select id="checkout-destination" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#5A358E]"></select>
+          <input type="text" id="checkout-destination" required placeholder="e.g. Assembly Line 3, Press Bay 2" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Additional Notes</label>
@@ -444,7 +443,7 @@
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Destination Location *</label>
-          <select id="auto-checkout-destination" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#5A358E]"></select>
+          <input type="text" id="auto-checkout-destination" required placeholder="e.g. Assembly Line 3, Press Bay 2" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Additional Notes</label>
@@ -737,10 +736,8 @@
     const STORAGE_KEY_HELP_LOGS = 'PLANT_QR_HELP_LOGS_V8';
     const STORAGE_KEY_CATEGORIES = 'PLANT_QR_CATEGORIES_V8';
     const STORAGE_KEY_REMOVALS = 'PLANT_QR_REMOVALS_V8';
-    const STORAGE_KEY_AREAS  = 'PLANT_QR_AREAS_V8';
     
     let categories = JSON.parse(localStorage.getItem(STORAGE_KEY_CATEGORIES)) || [];
-    let areas = JSON.parse(localStorage.getItem(STORAGE_KEY_AREAS)) || [{ name: 'Assembly Line 1', plantCode: 'KEN' }, { name: 'Assembly Line 2', plantCode: 'KEN' }, { name: 'Assembly Line 3', plantCode: 'DET' }, { name: 'Tool Crib', plantCode: 'ALL' }, { name: 'Press Bay', plantCode: 'CHI' }];
 
     function generateDeterministicRackCode(str, index) {
       const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
@@ -882,7 +879,7 @@
       }
 
       const adminMenuIds = [
-        'menu-plants-btn', 'menu-areas-btn', 'menu-users-btn', 'menu-email-btn', 'menu-qr-btn', 'menu-cloud-btn', 'menu-consumed-btn', 'menu-export-btn'
+        'menu-plants-btn', 'menu-users-btn', 'menu-email-btn', 'menu-qr-btn', 'menu-cloud-btn', 'menu-consumed-btn', 'menu-export-btn'
       ];
       adminMenuIds.forEach(id => {
         const el = document.getElementById(id);
@@ -907,63 +904,6 @@
       document.getElementById('settings-dropdown').classList.add('hidden');
     }
     document.addEventListener('click', closeSettingsMenu);
-
-    
-    function populateDestinationDropdown(selectId, itemPlantCode = null) {
-      const select = document.getElementById(selectId);
-      if (!select) return;
-      
-      const storedAreas = JSON.parse(localStorage.getItem(STORAGE_KEY_AREAS)) || areas;
-      
-      const groups = {};
-      storedAreas.forEach(a => {
-        const pCode = (typeof a === 'object' ? a.plantCode : 'ALL') || 'ALL';
-        const name = typeof a === 'object' ? a.name : a;
-        if (!groups[pCode]) groups[pCode] = [];
-        groups[pCode].push(name);
-      });
-      
-      let html = '';
-      if (itemPlantCode) {
-        const matchingAreas = groups[itemPlantCode] || [];
-        const globalAreas = groups['ALL'] || [];
-        
-        if (matchingAreas.length > 0) {
-          html += `<optgroup label="Matching Plant Areas (${itemPlantCode})">`;
-          matchingAreas.forEach(name => {
-            html += `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`;
-          });
-          html += `</optgroup>`;
-        }
-        if (globalAreas.length > 0) {
-          html += `<optgroup label="Global Areas (All Plants)">`;
-          globalAreas.forEach(name => {
-            html += `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`;
-          });
-          html += `</optgroup>`;
-        }
-        
-        Object.keys(groups).forEach(pCode => {
-          if (pCode !== itemPlantCode && pCode !== 'ALL') {
-            html += `<optgroup label="Other Plant Areas (${pCode})">`;
-            groups[pCode].forEach(name => {
-              html += `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`;
-            });
-            html += `</optgroup>`;
-          }
-        });
-      } else {
-        Object.keys(groups).forEach(pCode => {
-          const label = pCode === 'ALL' ? 'Global Areas (All Plants)' : `Plant ${pCode} Areas`;
-          html += `<optgroup label="${label}">`;
-          groups[pCode].forEach(name => {
-            html += `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`;
-          });
-          html += `</optgroup>`;
-        });
-      }
-      select.innerHTML = html;
-    }
 
     function normalizeItems() {
       items.forEach((item) => {
@@ -1032,7 +972,7 @@
         const removals = JSON.parse(localStorage.getItem(STORAGE_KEY_REMOVALS)) || [];
         const payload = {
           plants, items, plantSequences, appNotifications, emailConfig,
-          permanentQrBaseUrl, users, helpLogs, categories, removals, areas, updatedAt: Date.now()
+          permanentQrBaseUrl, users, helpLogs, categories, removals, updatedAt: Date.now()
         };
         const res = await fetch(endpoint, {
           method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
@@ -1066,10 +1006,6 @@
           }
           if (Array.isArray(data.removals)) {
             localStorage.setItem(STORAGE_KEY_REMOVALS, JSON.stringify(data.removals));
-          }
-          if (Array.isArray(data.areas)) {
-            areas = data.areas;
-            localStorage.setItem(STORAGE_KEY_AREAS, JSON.stringify(areas));
           }
           if (Array.isArray(data.helpLogs)) {
             localStorage.setItem(STORAGE_KEY_HELP_LOGS, JSON.stringify(data.helpLogs));
@@ -2437,8 +2373,7 @@
       document.getElementById('auto-checkout-send-email-toggle').checked = false;
       document.getElementById('auto-checkout-for-good-toggle').checked = false;
       validateAutoCheckoutUser();
-      const firstAvail = availableItems[0];
-      populateDestinationDropdown('auto-checkout-destination', firstAvail ? firstAvail.plantCode : null);
+
       const modal = document.getElementById('auto-checkout-modal');
       modal.classList.remove('hidden');
       modal.classList.add('flex');
@@ -2540,7 +2475,7 @@
       if (!item) return;
       document.getElementById('checkout-item-id').value = item.id;
       document.getElementById('checkout-modal-subtitle').textContent = `${item.tag} — ${item.name}`;
-      populateDestinationDropdown('checkout-destination', item.plantCode);
+      
       document.getElementById('checkout-user-id').value = '';
       document.getElementById('checkout-email').value = '';
       document.getElementById('checkout-destination').value = '';
@@ -2738,7 +2673,7 @@
       if (infoDiv) infoDiv.classList.add('hidden');
 
       autoCheckoutCategory = null;
-      populateDestinationDropdown('auto-checkout-destination');
+
       document.getElementById('auto-checkout-user-id').value = '';
       document.getElementById('auto-checkout-email').value = '';
       document.getElementById('auto-checkout-destination').value = '';
@@ -2747,8 +2682,7 @@
       document.getElementById('auto-checkout-for-good-toggle').checked = false;
       
       validateAutoCheckoutUser();
-      const firstAvail = availableItems[0];
-      populateDestinationDropdown('auto-checkout-destination', firstAvail ? firstAvail.plantCode : null);
+
       const modal = document.getElementById('auto-checkout-modal');
       modal.classList.remove('hidden');
       modal.classList.add('flex');
