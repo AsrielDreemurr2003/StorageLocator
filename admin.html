@@ -69,6 +69,7 @@
       <!-- Left sidebar: Tab switches -->
       <div class="lg:col-span-1 space-y-2">
         <button onclick="switchTab('plants')" id="tab-btn-plants" class="w-full text-left p-3 rounded-xl border font-bold text-sm transition bg-white border-slate-200 hover:bg-slate-50">🏢 Manage Plants</button>
+        <button onclick="switchTab('areas')" id="tab-btn-areas" class="w-full text-left p-3 rounded-xl border font-bold text-sm transition bg-white border-slate-200 hover:bg-slate-50">📍 Manage Areas</button>
         <button onclick="switchTab('users')" id="tab-btn-users" class="w-full text-left p-3 rounded-xl border font-bold text-sm transition bg-white border-slate-200 hover:bg-slate-50">👤 Manage Users & Import</button>
         <button onclick="switchTab('email')" id="tab-btn-email" class="w-full text-left p-3 rounded-xl border font-bold text-sm transition bg-white border-slate-200 hover:bg-slate-50">✉️ Email Alert Settings</button>
         <button onclick="switchTab('qr')" id="tab-btn-qr" class="w-full text-left p-3 rounded-xl border font-bold text-sm transition bg-white border-slate-200 hover:bg-slate-50">🔗 Permanent QR URL Config</button>
@@ -81,6 +82,29 @@
       <!-- Right main area: Tab contents -->
       <div class="lg:col-span-3 bg-white border border-[#DCDDE1] rounded-2xl p-6 shadow-sm min-h-[450px]">
         
+        <!-- Tab: Areas -->
+        <div id="tab-areas" class="hidden space-y-4">
+          <h2 class="text-lg font-bold">📍 Manage Destination Areas</h2>
+          <p class="text-xs text-slate-500">Add or remove destination areas for checkouts to keep deployment records standardized and avoid duplicates.</p>
+          <form onsubmit="saveArea(event)" class="flex flex-wrap gap-2">
+            <select id="area-plant-select" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#5A358E]"></select>
+            <input type="text" id="area-name" required placeholder="e.g. Assembly Line 3" class="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
+            <button type="submit" class="bg-[#5A358E] hover:bg-[#3D2566] text-white px-5 py-2 rounded-lg text-sm font-semibold">Add Area</button>
+          </form>
+          <div class="divide-y border rounded-xl overflow-hidden mt-4" id="area-list"></div>
+          
+          <!-- Shortcut Tool for Standardizing Duplicates -->
+          <div class="bg-purple-50 p-4 border border-purple-200 rounded-xl mt-6 space-y-3">
+            <h3 class="text-sm font-bold text-purple-900 uppercase flex items-center gap-1.5">⚡ Duplication Cleanup Shortcut</h3>
+            <p class="text-xs text-slate-600">Scan active checkouts and historical logs for any custom typed destinations that do not match your official list, and easily standardize or add them in bulk.</p>
+            <button type="button" onclick="scanForNonStandardDestinations()" class="bg-[#0D9488] hover:bg-[#059669] text-white text-xs font-bold px-4 py-2 rounded-lg transition">🔍 Scan for Duplicate / Non-Standard Locations</button>
+            <div id="non-standard-destinations-results" class="hidden space-y-3 mt-3">
+              <div class="text-xs text-slate-700 font-semibold" id="non-standard-count-text">Found 0 non-standard destinations.</div>
+              <div id="non-standard-list" class="divide-y border bg-white rounded-lg max-h-60 overflow-y-auto"></div>
+            </div>
+          </div>
+        </div>
+
         <!-- Tab: Plants -->
         <div id="tab-plants" class="hidden space-y-4">
           <h2 class="text-lg font-bold">🏢 Manage Plant Locations (3-Digit Codes)</h2>
@@ -265,7 +289,9 @@
     const STORAGE_KEY_QR_BASE = 'PLANT_QR_BASE_URL_V8';
     const STORAGE_KEY_USERS  = 'PLANT_QR_USERS_V8';
     const STORAGE_KEY_HELP_LOGS = 'PLANT_QR_HELP_LOGS_V8';
+    const STORAGE_KEY_AREAS  = 'PLANT_QR_AREAS_V8';
 
+    let areas = JSON.parse(localStorage.getItem(STORAGE_KEY_AREAS)) || [{ name: 'Assembly Line 1', plantCode: 'KEN' }, { name: 'Assembly Line 2', plantCode: 'KEN' }, { name: 'Assembly Line 3', plantCode: 'DET' }, { name: 'Tool Crib', plantCode: 'ALL' }, { name: 'Press Bay', plantCode: 'CHI' }];
     let plants = JSON.parse(localStorage.getItem(STORAGE_KEY_PLANTS)) || [
       { code: 'KEN', name: 'Kentwood Plant' },
       { code: 'DET', name: 'Detroit Assembly' },
@@ -290,6 +316,7 @@
         };
         users.push(master);
         localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
+      localStorage.setItem(STORAGE_KEY_AREAS, JSON.stringify(areas));
       }
     }
 
@@ -345,7 +372,7 @@
     }
 
     function switchTab(tabId) {
-      const tabs = ['plants', 'users', 'email', 'qr', 'cloud', 'consumed', 'backup'];
+      const tabs = ['plants', 'users', 'email', 'qr', 'cloud', 'consumed', 'backup', 'areas'];
       tabs.forEach(t => {
         const btn = document.getElementById(`tab-btn-${t}`);
         const sect = document.getElementById(`tab-${t}`);
@@ -365,6 +392,7 @@
       if (tabId === 'qr') populateQrConfig();
       if (tabId === 'cloud') populateCloudConfig();
       if (tabId === 'consumed') renderConsumed();
+      if (tabId === 'areas') { populateAreaPlantSelect(); renderAreas(); }
     }
 
     function renderPlants() {
@@ -558,7 +586,7 @@
       if (!endpoint) return;
       try {
         const helpLogs = JSON.parse(localStorage.getItem(STORAGE_KEY_HELP_LOGS)) || [];
-        const payload = { plants, items, plantSequences, appNotifications, users, emailConfig, permanentQrBaseUrl, helpLogs, updatedAt: Date.now() };
+        const payload = { plants, items, plantSequences, appNotifications, users, emailConfig, permanentQrBaseUrl, helpLogs, areas, updatedAt: Date.now() };
         const res = await fetch(endpoint, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         if (res.ok) alert('Forced sync upload completed successfully!');
       } catch (err) {
@@ -612,6 +640,7 @@
             if (imported.plantSequences) plantSequences = imported.plantSequences;
             if (imported.users) users = imported.users;
             if (imported.helpLogs) localStorage.setItem(STORAGE_KEY_HELP_LOGS, JSON.stringify(imported.helpLogs));
+            if (imported.areas) areas = imported.areas;
             await saveState();
             initPage();
             alert('Backup restored successfully!');
@@ -628,6 +657,7 @@
       localStorage.setItem(STORAGE_KEY_ITEMS, JSON.stringify(items));
       localStorage.setItem(STORAGE_KEY_SEQ, JSON.stringify(plantSequences));
       localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
+      localStorage.setItem(STORAGE_KEY_AREAS, JSON.stringify(areas));
       localStorage.setItem(STORAGE_KEY_EMAIL, JSON.stringify(emailConfig));
       localStorage.setItem(STORAGE_KEY_QR_BASE, permanentQrBaseUrl);
       await forcePushToCloudSilent();
@@ -638,10 +668,235 @@
       if (!endpoint) return;
       try {
         const helpLogs = JSON.parse(localStorage.getItem(STORAGE_KEY_HELP_LOGS)) || [];
-        const payload = { plants, items, plantSequences, appNotifications, users, emailConfig, permanentQrBaseUrl, helpLogs, updatedAt: Date.now() };
+        const payload = { plants, items, plantSequences, appNotifications, users, emailConfig, permanentQrBaseUrl, helpLogs, areas, updatedAt: Date.now() };
         await fetch(endpoint, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       } catch (e) {}
     }
+
+    
+    function populateAreaPlantSelect() {
+      const select = document.getElementById('area-plant-select');
+      if (!select) return;
+      select.innerHTML = '<option value="ALL">All Plants (Global)</option>' +
+        plants.map(p => `<option value="${p.code}">${p.code} — ${p.name}</option>`).join('');
+    }
+
+    function renderAreas() {
+      const container = document.getElementById('area-list');
+      if (!container) return;
+      container.innerHTML = '';
+      
+      const sortedAreas = [...areas].sort((a, b) => {
+        const pA = (typeof a === 'object' ? a.plantCode : 'ALL') || 'ALL';
+        const pB = (typeof b === 'object' ? b.plantCode : 'ALL') || 'ALL';
+        if (pA !== pB) return pA.localeCompare(pB);
+        const nA = typeof a === 'object' ? a.name : a;
+        const nB = typeof b === 'object' ? b.name : b;
+        return nA.localeCompare(nB);
+      });
+
+      sortedAreas.forEach(a => {
+        const name = typeof a === 'object' ? a.name : a;
+        const pCode = (typeof a === 'object' ? a.plantCode : 'ALL') || 'ALL';
+        const plantLabel = pCode === 'ALL' ? 'All Plants' : pCode;
+        const div = document.createElement('div');
+        div.className = 'p-3 flex justify-between items-center text-sm bg-white';
+        div.innerHTML = `<div><span class="font-mono font-bold text-[#5A358E] bg-purple-50 px-2 py-0.5 rounded border border-purple-200 mr-2">${plantLabel}</span> <span class="font-medium">${escapeHtml(name)}</span></div>
+        <div class="flex items-center gap-2">
+          <button onclick="editArea('${escapeJsStr(name)}')" class="text-xs bg-purple-50 hover:bg-purple-100 text-[#5A358E] px-2.5 py-1 rounded font-semibold">Edit</button>
+          <button onclick="deleteArea('${escapeJsStr(name)}')" class="text-xs bg-rose-50 hover:bg-rose-100 text-rose-700 px-2.5 py-1 rounded font-semibold">Remove</button>
+        </div>`;
+        container.appendChild(div);
+      });
+    }
+
+    async function saveArea(e) {
+      e.preventDefault();
+      const name = document.getElementById('area-name').value.trim();
+      const plantCode = document.getElementById('area-plant-select').value;
+      if (!name) return;
+      if (!areas.some(a => (typeof a === 'object' ? a.name.toLowerCase() : a.toLowerCase()) === name.toLowerCase() && (typeof a === 'object' ? a.plantCode : 'ALL') === plantCode)) {
+        areas.push({ name, plantCode });
+      }
+      document.getElementById('area-name').value = '';
+      await saveState();
+      renderAreas();
+    }
+
+    async function editArea(oldName) {
+      const found = areas.find(a => (typeof a === 'object' ? a.name : a) === oldName);
+      if (!found) return;
+      const newName = prompt(`Rename destination area "${oldName}" to:`, oldName);
+      if (newName === null) return; // Cancelled
+      const cleanNewName = newName.trim();
+      if (!cleanNewName) {
+        alert("Area name cannot be empty.");
+        return;
+      }
+      if (cleanNewName === oldName) return;
+      
+      if (typeof found === 'object') {
+        found.name = cleanNewName;
+      } else {
+        areas = areas.map(a => a === oldName ? cleanNewName : a);
+      }
+      
+      if (typeof items !== 'undefined' && Array.isArray(items)) {
+        items.forEach(item => {
+          if (item.activeCheckouts && Array.isArray(item.activeCheckouts)) {
+            item.activeCheckouts.forEach(checkout => {
+              if (checkout.destination === oldName) checkout.destination = cleanNewName;
+            });
+          }
+          if (item.checkoutHistory && Array.isArray(item.checkoutHistory)) {
+            item.checkoutHistory.forEach(rec => {
+              if (rec.destination === oldName) rec.destination = cleanNewName;
+            });
+          }
+        });
+      }
+      
+      await saveState();
+      renderAreas();
+    }
+
+    async function deleteArea(name) {
+      if (!confirm(`Remove destination area "${name}"?`)) return;
+      areas = areas.filter(a => (typeof a === 'object' ? a.name : a) !== name);
+      await saveState();
+      renderAreas();
+    }
+
+    function scanForNonStandardDestinations() {
+      const resultsDiv = document.getElementById('non-standard-destinations-results');
+      const listDiv = document.getElementById('non-standard-list');
+      const countText = document.getElementById('non-standard-count-text');
+      
+      resultsDiv.classList.remove('hidden');
+      listDiv.innerHTML = '';
+      
+      // Get all official area names
+      const officialNames = new Set(areas.map(a => (typeof a === 'object' ? a.name : a).toLowerCase().trim()));
+      
+      // Collect all destinations currently in use
+      const usedDestinations = {}; // name -> { activeCount, historyCount, rawName, plants: [] }
+      
+      if (typeof items !== 'undefined' && Array.isArray(items)) {
+        items.forEach(item => {
+          if (item.activeCheckouts && Array.isArray(item.activeCheckouts)) {
+            item.activeCheckouts.forEach(checkout => {
+              const dest = (checkout.destination || '').trim();
+              if (dest && !officialNames.has(dest.toLowerCase())) {
+                const key = dest.toLowerCase();
+                if (!usedDestinations[key]) {
+                  usedDestinations[key] = { activeCount: 0, historyCount: 0, rawName: dest, plants: new Set() };
+                }
+                usedDestinations[key].activeCount++;
+                usedDestinations[key].plants.add(item.plantCode || 'Unknown');
+              }
+            });
+          }
+          if (item.checkoutHistory && Array.isArray(item.checkoutHistory)) {
+            item.checkoutHistory.forEach(rec => {
+              const dest = (rec.destination || '').trim();
+              if (dest && !officialNames.has(dest.toLowerCase())) {
+                const key = dest.toLowerCase();
+                if (!usedDestinations[key]) {
+                  usedDestinations[key] = { activeCount: 0, historyCount: 0, rawName: dest, plants: new Set() };
+                }
+                usedDestinations[key].historyCount++;
+                usedDestinations[key].plants.add(item.plantCode || 'Unknown');
+              }
+            });
+          }
+        });
+      }
+      
+      const nonStandardList = Object.values(usedDestinations);
+      countText.textContent = `Found ${nonStandardList.length} non-standard/duplicate destination(s) currently in use.`;
+      
+      if (nonStandardList.length === 0) {
+        listDiv.innerHTML = '<div class="p-4 text-xs text-slate-400 text-center">All checkout destinations match your official list! No duplicates found.</div>';
+        return;
+      }
+      
+      // Create dropdown options of official areas
+      const officialOptions = areas.map(a => {
+        const name = typeof a === 'object' ? a.name : a;
+        const pCode = (typeof a === 'object' ? a.plantCode : 'ALL') || 'ALL';
+        return `<option value="${escapeHtml(name)}">${escapeHtml(pCode)} — ${escapeHtml(name)}</option>`;
+      }).join('');
+      
+      nonStandardList.forEach(item => {
+        const plantLabel = Array.from(item.plants).join(', ') || 'Unknown';
+        const rawNameSlug = item.rawName.replace(/[^a-zA-Z0-9]/g, '-');
+        const div = document.createElement('div');
+        div.className = 'p-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 text-xs bg-white border-b';
+        div.innerHTML = `
+          <div class="space-y-1">
+            <div><strong class="text-rose-700 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200">"${escapeHtml(item.rawName)}"</strong> <span class="text-slate-400">(In plant: ${escapeHtml(plantLabel)})</span></div>
+            <div class="text-slate-500">Currently in: <span class="font-bold text-slate-700">${item.activeCount} active checkouts</span> and <span class="font-bold text-slate-700">${item.historyCount} historical records</span></div>
+          </div>
+          <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            <button type="button" onclick="approveAsOfficialArea('${escapeJsStr(item.rawName)}', '${escapeJsStr(Array.from(item.plants)[0] || 'ALL')}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-1.5 rounded font-semibold text-[11px]" title="Add this directly to your official places list">Add to Official</button>
+            <span class="text-slate-300">or</span>
+            <select id="map-to-select-${rawNameSlug}" class="border border-slate-300 rounded px-2 py-1 text-xs bg-white w-40">
+              ${officialOptions}
+            </select>
+            <button type="button" onclick="mergeDuplicateDestination('${escapeJsStr(item.rawName)}')" class="bg-[#5A358E] hover:bg-[#3D2566] text-white px-2 py-1.5 rounded font-semibold text-[11px]" title="Map all checkouts to the selected official destination">Bulk Fix</button>
+          </div>
+        `;
+        listDiv.appendChild(div);
+      });
+    }
+
+    async function approveAsOfficialArea(name, plantCode) {
+      if (!areas.some(a => (typeof a === 'object' ? a.name.toLowerCase() : a.toLowerCase()) === name.toLowerCase())) {
+        areas.push({ name, plantCode });
+        await saveState();
+        renderAreas();
+        scanForNonStandardDestinations();
+        alert(`"${name}" has been added to your official destination areas list!`);
+      }
+    }
+
+    async function mergeDuplicateDestination(oldName) {
+      const rawNameSlug = oldName.replace(/[^a-zA-Z0-9]/g, '-');
+      const selectId = `map-to-select-${rawNameSlug}`;
+      const select = document.getElementById(selectId);
+      if (!select) return;
+      const newName = select.value;
+      if (!newName) return;
+      
+      if (!confirm(`Map all active and historical checkouts pointing to "${oldName}" over to official destination "${newName}"?`)) return;
+      
+      let fixedCount = 0;
+      if (typeof items !== 'undefined' && Array.isArray(items)) {
+        items.forEach(item => {
+          if (item.activeCheckouts && Array.isArray(item.activeCheckouts)) {
+            item.activeCheckouts.forEach(checkout => {
+              if ((checkout.destination || '').trim().toLowerCase() === oldName.trim().toLowerCase()) {
+                checkout.destination = newName;
+                fixedCount++;
+              }
+            });
+          }
+          if (item.checkoutHistory && Array.isArray(item.checkoutHistory)) {
+            item.checkoutHistory.forEach(rec => {
+              if ((rec.destination || '').trim().toLowerCase() === oldName.trim().toLowerCase()) {
+                rec.destination = newName;
+                fixedCount++;
+              }
+            });
+          }
+        });
+      }
+      
+      await saveState();
+      scanForNonStandardDestinations();
+      alert(`Successfully mapped ${fixedCount} record(s) from "${oldName}" to "${newName}"!`);
+    }
+
 
     initPage();
   </script>
