@@ -2393,14 +2393,23 @@
       document.getElementById('auto-checkout-user-id').value = '';
       document.getElementById('auto-checkout-email').value = '';
       const destSelectAuto = document.getElementById('auto-checkout-destination');
-      const sortedAreas = [...areas].sort((a, b) => {
-        const pA = (typeof a === 'object' ? a.plantCode : 'ALL') || 'ALL';
-        const pB = (typeof b === 'object' ? b.plantCode : 'ALL') || 'ALL';
+      const displayAreas = areas.map(a => {
+        let obj = a;
+        if (typeof a === 'string') {
+          try {
+            if (a.trim().startsWith('{')) obj = JSON.parse(a);
+          } catch(e) {}
+        }
+        return obj;
+      }).filter(Boolean);
+      const sortedAreas = displayAreas.sort((a, b) => {
+        const pA = (typeof a === 'object' && a !== null ? a.plantCode : 'ALL') || 'ALL';
+        const pB = (typeof b === 'object' && b !== null ? b.plantCode : 'ALL') || 'ALL';
         return pA.localeCompare(pB);
       });
       destSelectAuto.innerHTML = '<option value="">-- Select Destination Area --</option>' + sortedAreas.map(a => {
-        const name = typeof a === 'object' ? a.name : a;
-        const pCode = typeof a === 'object' ? a.plantCode : 'ALL';
+        const name = (typeof a === 'object' && a !== null) ? (a.name || '') : String(a || '');
+        const pCode = (typeof a === 'object' && a !== null) ? (a.plantCode || 'ALL') : 'ALL';
         const label = pCode === 'ALL' ? 'Global' : pCode;
         return `<option value="${escapeHtml(name)}">[${label}] ${escapeHtml(name)}</option>`;
       }).join('');
@@ -2515,9 +2524,21 @@
       document.getElementById('checkout-user-id').value = '';
       document.getElementById('checkout-email').value = '';
       const destSelect = document.getElementById('checkout-destination');
-      const filteredAreas = areas.filter(a => typeof a === 'object' && (a.plantCode === 'ALL' || a.plantCode === item.plantCode));
-      const rawAreas = areas.map(a => typeof a === 'object' ? a.name : a);
-      const displayAreas = filteredAreas.length > 0 ? filteredAreas.map(a => a.name) : rawAreas;
+      const displayAreas = areas.map(a => {
+        let obj = a;
+        if (typeof a === 'string') {
+          try {
+            if (a.trim().startsWith('{')) obj = JSON.parse(a);
+          } catch(e) {}
+        }
+        if (typeof obj === 'object' && obj !== null) {
+          if (obj.plantCode === 'ALL' || obj.plantCode === item.plantCode) {
+            return obj.name || '';
+          }
+          return null;
+        }
+        return String(obj || '');
+      }).filter(Boolean);
       destSelect.innerHTML = '<option value="">-- Select Destination Area --</option>' + displayAreas.map(a => `<option value="${escapeHtml(a)}">${escapeHtml(a)}</option>`).join('');
       destSelect.value = '';
       document.getElementById('checkout-note').value = '';
@@ -2718,14 +2739,23 @@
       document.getElementById('auto-checkout-user-id').value = '';
       document.getElementById('auto-checkout-email').value = '';
       const destSelectAuto = document.getElementById('auto-checkout-destination');
-      const sortedAreas = [...areas].sort((a, b) => {
-        const pA = (typeof a === 'object' ? a.plantCode : 'ALL') || 'ALL';
-        const pB = (typeof b === 'object' ? b.plantCode : 'ALL') || 'ALL';
+      const displayAreas = areas.map(a => {
+        let obj = a;
+        if (typeof a === 'string') {
+          try {
+            if (a.trim().startsWith('{')) obj = JSON.parse(a);
+          } catch(e) {}
+        }
+        return obj;
+      }).filter(Boolean);
+      const sortedAreas = displayAreas.sort((a, b) => {
+        const pA = (typeof a === 'object' && a !== null ? a.plantCode : 'ALL') || 'ALL';
+        const pB = (typeof b === 'object' && b !== null ? b.plantCode : 'ALL') || 'ALL';
         return pA.localeCompare(pB);
       });
       destSelectAuto.innerHTML = '<option value="">-- Select Destination Area --</option>' + sortedAreas.map(a => {
-        const name = typeof a === 'object' ? a.name : a;
-        const pCode = typeof a === 'object' ? a.plantCode : 'ALL';
+        const name = (typeof a === 'object' && a !== null) ? (a.name || '') : String(a || '');
+        const pCode = (typeof a === 'object' && a !== null) ? (a.plantCode || 'ALL') : 'ALL';
         const label = pCode === 'ALL' ? 'Global' : pCode;
         return `<option value="${escapeHtml(name)}">[${label}] ${escapeHtml(name)}</option>`;
       }).join('');
