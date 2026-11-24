@@ -135,7 +135,53 @@
       </div>
     </div>
 
-  </main>
+    <!-- MODAL: Check In Individual Unit & Rate Quality -->
+  <div id="checkin-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print backdrop-blur-sm">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
+      <div class="flex justify-between items-center border-b pb-3 mb-3">
+        <h3 class="text-base font-bold text-slate-900">📥 Check In Unit & Rate Quality</h3>
+        <button onclick="closeCheckInModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
+      </div>
+      <p id="checkin-modal-subtitle" class="text-xs font-mono font-bold text-emerald-800 mb-4 bg-emerald-50 p-2.5 rounded-lg border border-emerald-200"></p>
+      <form onsubmit="confirmCheckIn(event)" class="space-y-3.5">
+        <input type="hidden" id="checkin-item-id" />
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Checked In By (Name) *</label>
+          <input type="text" id="checkin-user" required placeholder="e.g. John Smith" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Unit Quality Upon Return *</label>
+          <select id="checkin-quality" required onchange="toggleCheckInRepairFields()" class="w-full border-2 border-emerald-500 rounded-lg px-3 py-2 text-sm font-bold focus:outline-none">
+            <option value="New">🌟 New</option>
+            <option value="Good" selected>✅ Good</option>
+            <option value="Used">🛠️ Used</option>
+            <option value="Needs Repair">⚠️ Needs Repair</option>
+            <option value="Broken">Broken</option>
+          </select>
+        </div>
+        <div id="checkin-repair-fields" class="hidden space-y-3 bg-rose-50/50 p-3 rounded-xl border border-rose-200">
+          <div>
+            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Describe the Concern / Issue *</label>
+            <textarea id="checkin-concern-desc" rows="2" placeholder="What specific issue exists with this unit?..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]"></textarea>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">How does this affect the Job at hand? *</label>
+            <textarea id="checkin-concern-impact" rows="2" placeholder="e.g. Assembly line delayed, safety concern..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]"></textarea>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Return Notes / Condition Details</label>
+          <textarea id="checkin-note" rows="2" placeholder="Any wear, damage, or restocking notes..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]"></textarea>
+        </div>
+        <div class="flex justify-end space-x-2 pt-3 border-t">
+          <button type="button" onclick="closeCheckInModal()" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium">Cancel</button>
+          <button type="submit" class="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold shadow">Complete Check-In</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</main>
 
   <script>
     const DEFAULT_CLOUD_DB_URL = 'https://storagelocator-405e5-default-rtdb.firebaseio.com/';
@@ -558,46 +604,165 @@
       });
     }
 
-    async function returnUnitDirectly(itemId) {
+    function returnUnitDirectly(itemId) {
+      openCheckInModal(itemId);
+    }
+
+    function openCheckInModal(itemId) {
+      const item = items.find(i => i.id === itemId);
+      if (!item) return;
+      document.getElementById('checkin-item-id').value = item.id;
+      document.getElementById('checkin-modal-subtitle').textContent = `${item.tag} — ${item.name}`;
+      
+      let lastUser = '';
+      if (item.activeCheckouts && item.activeCheckouts.length > 0) {
+        lastUser = item.activeCheckouts[0].userName;
+      }
+      document.getElementById('checkin-user').value = lastUser;
+      document.getElementById('checkin-quality').value = item.quality || 'Good';
+      document.getElementById('checkin-note').value = '';
+      document.getElementById('checkin-concern-desc').value = '';
+      document.getElementById('checkin-concern-impact').value = '';
+      
+      toggleCheckInRepairFields();
+
+      const modal = document.getElementById('checkin-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeCheckInModal() {
+      document.getElementById('checkin-modal').classList.add('hidden');
+      document.getElementById('checkin-modal').classList.remove('flex');
+    }
+
+    function toggleCheckInRepairFields() {
+      const q = document.getElementById('checkin-quality').value;
+      const repairFields = document.getElementById('checkin-repair-fields');
+      const descInput = document.getElementById('checkin-concern-desc');
+      const impactInput = document.getElementById('checkin-concern-impact');
+      
+      if (q === 'Needs Repair' || q === 'Broken') {
+        repairFields.classList.remove('hidden');
+        if (descInput) descInput.required = true;
+        if (impactInput) impactInput.required = true;
+      } else {
+        repairFields.classList.add('hidden');
+        if (descInput) { descInput.required = false; descInput.value = ''; }
+        if (impactInput) { impactInput.required = false; impactInput.value = ''; }
+      }
+    }
+
+    async function confirmCheckIn(e) {
+      e.preventDefault();
+      const itemId = document.getElementById('checkin-item-id').value;
+      const userName = document.getElementById('checkin-user').value.trim();
+      const quality = document.getElementById('checkin-quality').value;
+      const note = document.getElementById('checkin-note').value.trim();
+      const concernDesc = document.getElementById('checkin-concern-desc').value.trim();
+      const concernImpact = document.getElementById('checkin-concern-impact').value.trim();
+
       const item = items.find(i => i.id === itemId);
       if (!item) return;
 
-      const techName = (item.activeCheckouts && item.activeCheckouts[0]) ? item.activeCheckouts[0].userName : 'Technician';
-      if (!confirm(`Confirm check-in of "${item.name}" (${item.tag}) back to ${item.location}?`)) return;
-
+      const activeList = item.activeCheckouts || [];
+      const activeRecord = activeList[0] || {};
       const now = Date.now();
-      const prev = item.activeCheckouts[0];
-      const durationMs = prev ? (now - prev.checkedOutAt) : 0;
+      const durationMs = activeRecord.checkedOutAt ? (now - activeRecord.checkedOutAt) : 0;
 
-      item.quantity = 1;
-      item.activeCheckouts = [];
-      if (!Array.isArray(item.checkoutHistory)) item.checkoutHistory = [];
+      if (!item.checkoutHistory) item.checkoutHistory = [];
       item.checkoutHistory.unshift({
         id: 'hist-' + now,
         type: 'CHECK_IN',
-        userName: techName,
-        destination: prev ? prev.destination : item.location,
-        qualityAtEvent: item.quality || 'Good',
+        userName,
+        destination: activeRecord.destination || item.location,
+        qualityAtEvent: quality,
         durationMs,
         timestamp: now,
         checkedInAt: now,
-        checkedOutAt: prev ? prev.checkedOutAt : now,
-        status: 'COMPLETED'
+        checkedOutAt: activeRecord.checkedOutAt || now,
+        status: 'COMPLETED',
+        returnQuality: quality,
+        returnNote: note,
+        concernDesc,
+        concernImpact
       });
 
+      item.activeCheckouts = [];
+      item.quality = quality;
+      item.quantity = 1;
+
+      // Save to localStorage
       localStorage.setItem(STORAGE_KEY_ITEMS, JSON.stringify(items));
+      
+      // Push notification
+      const STORAGE_KEY_NOTIFS = 'PLANT_QR_NOTIFS_V8';
+      const appNotifications = JSON.parse(localStorage.getItem(STORAGE_KEY_NOTIFS)) || [];
+      
+      if (quality === 'Needs Repair' || quality === 'Broken') {
+        appNotifications.unshift({
+          id: 'notif-' + now + '-' + Math.random().toString(36).substring(2, 5),
+          type: 'REPAIR_ALERT',
+          title: `⚠️ ${quality}: ${item.tag} (${item.name})`,
+          message: `Reported by ${userName}: ${concernDesc || note || 'Flagged upon return'}`,
+          itemTag: item.tag,
+          userEmail: '',
+          mailtoLink: '',
+          timestamp: now
+        });
+      } else {
+        appNotifications.unshift({
+          id: 'notif-' + now + '-' + Math.random().toString(36).substring(2, 5),
+          type: 'CHECK_IN',
+          title: `Unit Checked In: ${item.tag}`,
+          message: `${userName} checked in ${item.name} (Quality: ${quality}).`,
+          itemTag: item.tag,
+          userEmail: '',
+          mailtoLink: '',
+          timestamp: now
+        });
+      }
+      localStorage.setItem(STORAGE_KEY_NOTIFS, JSON.stringify(appNotifications));
+
+      closeCheckInModal();
       renderDeployments();
 
       if (cloudDbUrl) {
         try {
           const clean = cloudDbUrl.trim();
           const endpoint = clean.endsWith('/') ? `${clean}storagelocater_state.json` : `${clean}/storagelocater_state.json`;
+          
+          const STORAGE_KEY_PLANTS = 'PLANT_QR_PLANTS_V8';
+          const STORAGE_KEY_SEQ = 'PLANT_QR_SEQ_V8';
+          const STORAGE_KEY_USERS = 'PLANT_QR_USERS_V8';
+          const STORAGE_KEY_EMAIL = 'PLANT_QR_EMAIL_CFG_V8';
+          const STORAGE_KEY_QR_BASE = 'PLANT_QR_BASE_URL_V8';
+          const STORAGE_KEY_HELP_LOGS = 'PLANT_QR_HELP_LOGS_V8';
+          const STORAGE_KEY_CATEGORIES = 'PLANT_QR_CATEGORIES_V8';
+          const STORAGE_KEY_REMOVALS = 'PLANT_QR_REMOVALS_V8';
+          const STORAGE_KEY_AREAS = 'PLANT_QR_AREAS_V8';
+
+          const plants = JSON.parse(localStorage.getItem(STORAGE_KEY_PLANTS)) || [];
+          const plantSequences = JSON.parse(localStorage.getItem(STORAGE_KEY_SEQ)) || {};
+          const users = JSON.parse(localStorage.getItem(STORAGE_KEY_USERS)) || [];
+          const emailConfig = JSON.parse(localStorage.getItem(STORAGE_KEY_EMAIL)) || {};
+          const permanentQrBaseUrl = localStorage.getItem(STORAGE_KEY_QR_BASE) || '';
+          const helpLogs = JSON.parse(localStorage.getItem(STORAGE_KEY_HELP_LOGS)) || [];
+          const categories = JSON.parse(localStorage.getItem(STORAGE_KEY_CATEGORIES)) || [];
+          const removals = JSON.parse(localStorage.getItem(STORAGE_KEY_REMOVALS)) || [];
+          const areas = JSON.parse(localStorage.getItem(STORAGE_KEY_AREAS)) || [];
+
           await fetch(endpoint, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ items, updatedAt: now })
+            body: JSON.stringify({
+              plants, items, plantSequences, appNotifications, emailConfig,
+              permanentQrBaseUrl, users, helpLogs, categories, removals, areas, updatedAt: now
+            })
           });
-        } catch (e) {}
+        } catch (e) {
+          console.error(e);
+        }
       }
     }
 
