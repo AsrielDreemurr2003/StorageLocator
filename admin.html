@@ -70,6 +70,7 @@
       <div class="lg:col-span-1 space-y-2">
         <button onclick="switchTab('plants')" id="tab-btn-plants" class="w-full text-left p-3 rounded-xl border font-bold text-sm transition bg-white border-slate-200 hover:bg-slate-50">🏢 Manage Plants</button>
         <button onclick="switchTab('areas')" id="tab-btn-areas" class="w-full text-left p-3 rounded-xl border font-bold text-sm transition bg-white border-slate-200 hover:bg-slate-50">📍 Manage Areas</button>
+        <button onclick="switchTab('categories')" id="tab-btn-categories" class="w-full text-left p-3 rounded-xl border font-bold text-sm transition bg-white border-slate-200 hover:bg-slate-50">📁 Manage Categories</button>
         <button onclick="switchTab('users')" id="tab-btn-users" class="w-full text-left p-3 rounded-xl border font-bold text-sm transition bg-white border-slate-200 hover:bg-slate-50">👤 Manage Users & Import</button>
         <button onclick="switchTab('email')" id="tab-btn-email" class="w-full text-left p-3 rounded-xl border font-bold text-sm transition bg-white border-slate-200 hover:bg-slate-50">✉️ Email Alert Settings</button>
         <button onclick="switchTab('qr')" id="tab-btn-qr" class="w-full text-left p-3 rounded-xl border font-bold text-sm transition bg-white border-slate-200 hover:bg-slate-50">🔗 Permanent QR URL Config</button>
@@ -83,6 +84,19 @@
       <div class="lg:col-span-3 bg-white border border-[#DCDDE1] rounded-2xl p-6 shadow-sm min-h-[450px]">
         
         <!-- Tab: Areas -->
+        <!-- Tab: Categories -->
+        <div id="tab-categories" class="hidden space-y-4">
+          <h2 class="text-lg font-bold">📁 Manage Categories</h2>
+          <p class="text-xs text-slate-500">Add, edit, or remove categories. Categories are specific to plants to avoid overlap.</p>
+          <form onsubmit="saveCategory(event)" class="flex flex-wrap gap-2">
+            <select id="category-plant-select" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#5A358E]"></select>
+            <input type="text" id="category-name" required placeholder="e.g. Motors & Drives" class="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
+            <input type="text" id="category-rack-code" required placeholder="Rack Code" class="w-32 border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono uppercase focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
+            <button type="submit" class="bg-[#5A358E] hover:bg-[#3D2566] text-white px-5 py-2 rounded-lg text-sm font-semibold">Add Category</button>
+          </form>
+          <div class="divide-y border rounded-xl overflow-hidden mt-4" id="category-list"></div>
+        </div>
+
         <div id="tab-areas" class="hidden space-y-4">
           <h2 class="text-lg font-bold">📍 Manage Destination Areas</h2>
           <p class="text-xs text-slate-500">Add or remove destination areas for checkouts to keep deployment records standardized and avoid duplicates.</p>
@@ -290,8 +304,10 @@
     const STORAGE_KEY_USERS  = 'PLANT_QR_USERS_V8';
     const STORAGE_KEY_HELP_LOGS = 'PLANT_QR_HELP_LOGS_V8';
     const STORAGE_KEY_AREAS  = 'PLANT_QR_AREAS_V8';
+    const STORAGE_KEY_CATEGORIES = 'PLANT_QR_CATEGORIES_V8';
 
     let areas = JSON.parse(localStorage.getItem(STORAGE_KEY_AREAS)) || [{ name: 'Assembly Line 1', plantCode: 'KEN' }, { name: 'Assembly Line 2', plantCode: 'KEN' }, { name: 'Assembly Line 3', plantCode: 'DET' }, { name: 'Tool Crib', plantCode: 'ALL' }, { name: 'Press Bay', plantCode: 'CHI' }];
+    let categories = JSON.parse(localStorage.getItem(STORAGE_KEY_CATEGORIES)) || [];
     let plants = JSON.parse(localStorage.getItem(STORAGE_KEY_PLANTS)) || [
       { code: 'KEN', name: 'Kentwood Plant' },
       { code: 'DET', name: 'Detroit Assembly' },
@@ -372,7 +388,7 @@
     }
 
     function switchTab(tabId) {
-      const tabs = ['plants', 'users', 'email', 'qr', 'cloud', 'consumed', 'backup', 'areas'];
+      const tabs = ['plants', 'users', 'email', 'qr', 'cloud', 'consumed', 'backup', 'areas', 'categories'];
       tabs.forEach(t => {
         const btn = document.getElementById(`tab-btn-${t}`);
         const sect = document.getElementById(`tab-${t}`);
@@ -393,6 +409,7 @@
       if (tabId === 'cloud') populateCloudConfig();
       if (tabId === 'consumed') renderConsumed();
       if (tabId === 'areas') { populateAreaPlantSelect(); renderAreas(); }
+      if (tabId === 'categories') { populateCategoryPlantSelect(); renderCategories(); }
     }
 
     function renderPlants() {
@@ -586,7 +603,7 @@
       if (!endpoint) return;
       try {
         const helpLogs = JSON.parse(localStorage.getItem(STORAGE_KEY_HELP_LOGS)) || [];
-        const payload = { plants, items, plantSequences, appNotifications, users, emailConfig, permanentQrBaseUrl, helpLogs, areas, updatedAt: Date.now() };
+        const payload = { plants, items, plantSequences, appNotifications, users, emailConfig, permanentQrBaseUrl, helpLogs, areas, categories, updatedAt: Date.now() };
         const res = await fetch(endpoint, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         if (res.ok) alert('Forced sync upload completed successfully!');
       } catch (err) {
@@ -641,6 +658,7 @@
             if (imported.users) users = imported.users;
             if (imported.helpLogs) localStorage.setItem(STORAGE_KEY_HELP_LOGS, JSON.stringify(imported.helpLogs));
             if (imported.areas) areas = imported.areas;
+            if (imported.categories) categories = imported.categories;
             await saveState();
             initPage();
             alert('Backup restored successfully!');
@@ -668,7 +686,7 @@
       if (!endpoint) return;
       try {
         const helpLogs = JSON.parse(localStorage.getItem(STORAGE_KEY_HELP_LOGS)) || [];
-        const payload = { plants, items, plantSequences, appNotifications, users, emailConfig, permanentQrBaseUrl, helpLogs, areas, updatedAt: Date.now() };
+        const payload = { plants, items, plantSequences, appNotifications, users, emailConfig, permanentQrBaseUrl, helpLogs, areas, categories, updatedAt: Date.now() };
         await fetch(endpoint, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       } catch (e) {}
     }
@@ -898,6 +916,100 @@
     }
 
 
+    
+    function populateCategoryPlantSelect() {
+      const select = document.getElementById('category-plant-select');
+      if (!select) return;
+      select.innerHTML = '<option value="ALL">All Plants (Global)</option>' +
+        plants.map(p => `<option value="${p.code}">${p.code} — ${p.name}</option>`).join('');
+    }
+
+    function renderCategories() {
+      const container = document.getElementById('category-list');
+      if (!container) return;
+      container.innerHTML = '';
+      
+      const sortedCategories = [...categories].sort((a, b) => {
+        const pA = a.plantCode || 'ALL';
+        const pB = b.plantCode || 'ALL';
+        if (pA !== pB) return pA.localeCompare(pB);
+        const nA = a.name || '';
+        const nB = b.name || '';
+        return nA.localeCompare(nB);
+      });
+
+      sortedCategories.forEach(c => {
+        const pCode = c.plantCode || 'ALL';
+        const plantLabel = pCode === 'ALL' ? 'All Plants' : pCode;
+        const div = document.createElement('div');
+        div.className = 'p-3 flex justify-between items-center text-sm bg-white';
+        div.innerHTML = `<div><span class="font-mono font-bold text-[#5A358E] bg-purple-50 px-2 py-0.5 rounded border border-purple-200 mr-2">${plantLabel}</span> <span class="font-medium">${escapeHtml(c.name)}</span> <span class="font-mono text-xs text-slate-500 ml-2">(${escapeHtml(c.rackCode || '')})</span></div>
+        <div class="flex items-center gap-2">
+          <button onclick="editCategory('${escapeJsStr(c.id)}')" class="text-xs bg-purple-50 hover:bg-purple-100 text-[#5A358E] px-2.5 py-1 rounded font-semibold">Edit</button>
+          <button onclick="deleteCategory('${escapeJsStr(c.id)}')" class="text-xs bg-rose-50 hover:bg-rose-100 text-rose-700 px-2.5 py-1 rounded font-semibold">Remove</button>
+        </div>`;
+        container.appendChild(div);
+      });
+    }
+
+    async function saveCategory(e) {
+      e.preventDefault();
+      const name = document.getElementById('category-name').value.trim();
+      const rackCode = document.getElementById('category-rack-code').value.trim().toUpperCase();
+      const plantCode = document.getElementById('category-plant-select').value;
+      if (!name || !rackCode) return;
+      
+      const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'cat';
+      const id = `cat-${slug}-${(1000 + categories.length)}`;
+      
+      categories.push({ id, name, rackCode, plantCode });
+      
+      document.getElementById('category-name').value = '';
+      document.getElementById('category-rack-code').value = '';
+      await saveState();
+      renderCategories();
+    }
+
+    async function editCategory(id) {
+      const cat = categories.find(c => c.id === id);
+      if (!cat) return;
+      const newName = prompt(`Rename category "${cat.name}" to:`, cat.name);
+      if (newName === null) return;
+      const cleanNewName = newName.trim();
+      if (!cleanNewName) {
+        alert("Category name cannot be empty.");
+        return;
+      }
+      const newRack = prompt(`Change rack code "${cat.rackCode || ''}" to:`, cat.rackCode || '');
+      if (newRack === null) return;
+      const cleanNewRack = newRack.trim().toUpperCase();
+
+      const oldName = cat.name;
+      cat.name = cleanNewName;
+      cat.rackCode = cleanNewRack;
+
+      // Update any items using this category name
+      if (typeof items !== 'undefined' && Array.isArray(items)) {
+        items.forEach(item => {
+          if (item.category === oldName && item.plantCode === cat.plantCode) {
+            item.category = cleanNewName;
+          }
+        });
+      }
+
+      await saveState();
+      renderCategories();
+    }
+
+    async function deleteCategory(id) {
+      const cat = categories.find(c => c.id === id);
+      if (!cat) return;
+      if (!confirm(`Remove category "${cat.name}"?`)) return;
+      categories = categories.filter(c => c.id !== id);
+      await saveState();
+      renderCategories();
+    }
+    
     initPage();
   </script>
 </body>
