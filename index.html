@@ -2584,6 +2584,10 @@
       viewMode = 'OVERVIEW';
       selectedCategory = null;
       selectedProductName = null;
+      const searchInput = document.getElementById('search-input');
+      if (searchInput) {
+        searchInput.value = '';
+      }
       renderInventory();
     }
 
