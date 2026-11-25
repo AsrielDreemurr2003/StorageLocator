@@ -3364,5 +3364,32 @@
     }
     
   </script>
+
+  <!-- MODAL: Mass Check-In Selected Units -->
+  <div id="mass-checkin-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print backdrop-blur-sm">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl flex flex-col max-h-[90vh]">
+      <div class="flex justify-between items-center border-b pb-3 mb-3">
+        <h3 class="text-base font-bold text-slate-900">📥 Mass Check-In Selected Units</h3>
+        <button onclick="closeMassCheckInModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
+      </div>
+      <p class="text-xs text-slate-500 mb-4">Set the quality and condition details for each item being returned to storage.</p>
+      
+      <form onsubmit="confirmMassCheckIn(event)" class="space-y-4 flex flex-col overflow-hidden">
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Checked In By (Name) *</label>
+          <input type="text" id="mass-checkin-user" required placeholder="e.g. John Smith" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
+        </div>
+        
+        <div id="mass-checkin-units-list" class="overflow-y-auto flex-1 space-y-4 pr-1 max-h-[45vh] p-2 bg-slate-50 rounded-xl border">
+          <!-- Populated dynamically -->
+        </div>
+
+        <div class="flex justify-end space-x-2 pt-3 border-t">
+          <button type="button" onclick="closeMassCheckInModal()" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium">Cancel</button>
+          <button type="submit" class="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold shadow">Complete Mass Check-In</button>
+        </div>
+      </form>
+    </div>
+  </div>
 </body>
 </html>
