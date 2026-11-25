@@ -2595,10 +2595,42 @@
       viewMode = 'OVERVIEW';
       selectedCategory = null;
       selectedProductName = null;
+      
+      // Reset all search and dropdown filters to default settings
       const searchInput = document.getElementById('search-input');
-      if (searchInput) {
-        searchInput.value = '';
+      if (searchInput) searchInput.value = '';
+
+      const filterPlant = document.getElementById('filter-plant');
+      if (filterPlant) filterPlant.value = 'ALL';
+
+      const filterQuality = document.getElementById('filter-quality');
+      if (filterQuality) filterQuality.value = 'ALL';
+
+      const filterStatus = document.getElementById('filter-status');
+      if (filterStatus) filterStatus.value = 'ALL';
+
+      const filterSort = document.getElementById('filter-sort');
+      if (filterSort) filterSort.value = 'AZ';
+
+      // Close any open banners, dropdowns, or modals to return to a clean home screen state
+      if (typeof closeScanBanner === 'function') closeScanBanner();
+      if (typeof closeSettingsMenu === 'function') closeSettingsMenu();
+      if (typeof closeNotificationsModal === 'function') closeNotificationsModal();
+      if (typeof closeEditCategoryModal === 'function') closeEditCategoryModal();
+      if (typeof closeItemModal === 'function') closeItemModal();
+      if (typeof closeDetailModal === 'function') closeDetailModal();
+      if (typeof closeCheckOutModal === 'function') closeCheckOutModal();
+      if (typeof closeCheckInModal === 'function') closeCheckInModal();
+      if (typeof closeAutoCheckoutModal === 'function') closeAutoCheckoutModal();
+      if (typeof closeReceiptModal === 'function') closeReceiptModal();
+      if (typeof closeHistoryModal === 'function') closeHistoryModal();
+      if (typeof closeMassCheckInModal === 'function') closeMassCheckInModal();
+      
+      // Unselect any selected QR codes to reset selection state
+      if (typeof selectedItemIds !== 'undefined' && selectedItemIds.clear) {
+        selectedItemIds.clear();
       }
+
       renderInventory();
     }
 
