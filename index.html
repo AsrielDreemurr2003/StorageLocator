@@ -2678,9 +2678,35 @@
         userId, userName, userEmail: email, destination, note, checkedOutAt: Date.now(), forGood
       };
 
-      if (!item.activeCheckouts) item.activeCheckouts = [];
-      item.activeCheckouts.push(checkoutRecord);
-      item.quantity = 0;
+      if (forGood) {
+        const consumedList = JSON.parse(localStorage.getItem('PLANT_QR_CONSUMED_H_V8')) || [];
+        consumedList.unshift({
+          id: item.id,
+          tag: item.tag,
+          name: item.name,
+          itemCode: item.itemCode,
+          serialNumber: item.serialNumber || '',
+          plantCode: item.plantCode,
+          category: item.category,
+          quality: item.quality,
+          location: item.location,
+          notes: item.notes || '',
+          instructions: item.instructions || '',
+          consumedAt: Date.now(),
+          consumedBy: userName,
+          destination: destination,
+          checkoutHistory: item.checkoutHistory || [],
+          activeCheckouts: []
+        });
+        localStorage.setItem('PLANT_QR_CONSUMED_H_V8', JSON.stringify(consumedList));
+
+        items = items.filter(i => i.id !== itemId);
+        selectedItemIds.delete(itemId);
+      } else {
+        if (!item.activeCheckouts) item.activeCheckouts = [];
+        item.activeCheckouts.push(checkoutRecord);
+        item.quantity = 0;
+      }
 
       addAppNotification(
         'CHECK_OUT',
@@ -2693,7 +2719,11 @@
       closeCheckOutModal();
       renderInventory();
       if (activeScannedTag === item.tag) {
-        refreshScannedBanner(item.tag, false);
+        if (forGood) {
+          closeScanBanner();
+        } else {
+          refreshScannedBanner(item.tag, false);
+        }
       }
       await saveState();
     }
@@ -2931,9 +2961,35 @@
         userId, userName, userEmail: email, destination, note, checkedOutAt: Date.now(), forGood
       };
 
-      if (!candidateUnit.activeCheckouts) candidateUnit.activeCheckouts = [];
-      candidateUnit.activeCheckouts.push(checkoutRecord);
-      candidateUnit.quantity = 0;
+      if (forGood) {
+        const consumedList = JSON.parse(localStorage.getItem('PLANT_QR_CONSUMED_H_V8')) || [];
+        consumedList.unshift({
+          id: candidateUnit.id,
+          tag: candidateUnit.tag,
+          name: candidateUnit.name,
+          itemCode: candidateUnit.itemCode,
+          serialNumber: candidateUnit.serialNumber || '',
+          plantCode: candidateUnit.plantCode,
+          category: candidateUnit.category,
+          quality: candidateUnit.quality,
+          location: candidateUnit.location,
+          notes: candidateUnit.notes || '',
+          instructions: candidateUnit.instructions || '',
+          consumedAt: Date.now(),
+          consumedBy: userName,
+          destination: destination,
+          checkoutHistory: candidateUnit.checkoutHistory || [],
+          activeCheckouts: []
+        });
+        localStorage.setItem('PLANT_QR_CONSUMED_H_V8', JSON.stringify(consumedList));
+
+        items = items.filter(i => i.id !== candidateUnit.id);
+        selectedItemIds.delete(candidateUnit.id);
+      } else {
+        if (!candidateUnit.activeCheckouts) candidateUnit.activeCheckouts = [];
+        candidateUnit.activeCheckouts.push(checkoutRecord);
+        candidateUnit.quantity = 0;
+      }
 
       addAppNotification(
         'CHECK_OUT',
@@ -2972,7 +3028,11 @@
 
       renderInventory();
       if (activeScannedTag === candidateUnit.tag) {
-        refreshScannedBanner(candidateUnit.tag, false);
+        if (forGood) {
+          closeScanBanner();
+        } else {
+          refreshScannedBanner(candidateUnit.tag, false);
+        }
       }
       await saveState();
     }
