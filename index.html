@@ -436,6 +436,10 @@
           <select id="auto-checkout-item-name" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#5A358E]"></select>
         </div>
         <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Quantity to Check Out *</label>
+          <input type="number" id="auto-checkout-qty" required min="1" value="1" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
+        </div>
+        <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">User ID *</label>
           <div class="relative">
             <input type="text" id="auto-checkout-user-id" required placeholder="e.g. u123456" oninput="validateAutoCheckoutUser()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5A358E]" />
@@ -485,6 +489,7 @@
           <span class="text-[10px] uppercase font-bold text-slate-400">Assigned Unit</span>
           <h3 id="receipt-item-name" class="text-lg font-bold text-[#5A358E]"></h3>
         </div>
+        <div id="receipt-units-list" class="space-y-2 mt-2 max-h-60 overflow-y-auto pr-1"></div>
         <div class="grid grid-cols-2 gap-3 text-xs">
           <div><span class="font-bold text-slate-400 block text-[10px]">PLANT TAG</span><span id="receipt-item-tag" class="font-mono font-bold text-slate-800"></span></div>
           <div><span class="font-bold text-slate-400 block text-[10px]">ITEM CODE</span><span id="receipt-item-code" class="font-mono font-bold text-slate-800"></span></div>
@@ -2933,6 +2938,7 @@
       const destination = document.getElementById('auto-checkout-destination').value.trim();
       const note = document.getElementById('auto-checkout-note').value.trim();
       const forGood = document.getElementById('auto-checkout-for-good-toggle').checked;
+      const qty = parseInt(document.getElementById('auto-checkout-qty').value, 10) || 1;
 
       const itemName = document.getElementById('auto-checkout-item-name').value;
       if (!itemName) {
@@ -2940,85 +2946,100 @@
         return;
       }
 
-      let candidateUnit = null;
-
+      let availableUnits = [];
       if (autoCheckoutCategory) {
-        candidateUnit = items.find(i => (i.category || 'Uncategorized').toLowerCase() === autoCheckoutCategory.toLowerCase() && i.name === itemName && (!i.activeCheckouts || i.activeCheckouts.length === 0));
+        availableUnits = items.filter(i => (i.category || 'Uncategorized').toLowerCase() === autoCheckoutCategory.toLowerCase() && i.name === itemName && (!i.activeCheckouts || i.activeCheckouts.length === 0));
       } else {
-        candidateUnit = items.find(i => i.name === itemName && (!i.activeCheckouts || i.activeCheckouts.length === 0));
+        availableUnits = items.filter(i => i.name === itemName && (!i.activeCheckouts || i.activeCheckouts.length === 0));
       }
 
-      if (!candidateUnit) {
-        alert('Sorry, no available units left for checkout.');
+      if (availableUnits.length < qty) {
+        alert(`Cannot check out. Only ${availableUnits.length} available units of "${itemName}" exist.`);
         return;
       }
 
       const foundUser = users.find(u => u.username.toLowerCase() === userId.toLowerCase());
       const userName = foundUser ? foundUser.name : userId;
 
-      const checkoutRecord = {
-        checkoutId: 'co-' + Date.now(),
-        userId, userName, userEmail: email, destination, note, checkedOutAt: Date.now(), forGood
-      };
+      const unitsCheckedOut = availableUnits.slice(0, qty);
 
-      if (forGood) {
-        const consumedList = JSON.parse(localStorage.getItem('PLANT_QR_CONSUMED_H_V8')) || [];
-        consumedList.unshift({
-          id: candidateUnit.id,
-          tag: candidateUnit.tag,
-          name: candidateUnit.name,
-          itemCode: candidateUnit.itemCode,
-          serialNumber: candidateUnit.serialNumber || '',
-          plantCode: candidateUnit.plantCode,
-          category: candidateUnit.category,
-          quality: candidateUnit.quality,
-          location: candidateUnit.location,
-          notes: candidateUnit.notes || '',
-          instructions: candidateUnit.instructions || '',
-          consumedAt: Date.now(),
-          consumedBy: userName,
-          destination: destination,
-          checkoutHistory: candidateUnit.checkoutHistory || [],
-          activeCheckouts: []
-        });
-        localStorage.setItem('PLANT_QR_CONSUMED_H_V8', JSON.stringify(consumedList));
+      unitsCheckedOut.forEach(candidateUnit => {
+        const checkoutRecord = {
+          checkoutId: 'co-' + Date.now() + '-' + Math.random().toString(36).substring(2, 5),
+          userId, userName, userEmail: email, destination, note, checkedOutAt: Date.now(), forGood
+        };
 
-        items = items.filter(i => i.id !== candidateUnit.id);
-        selectedItemIds.delete(candidateUnit.id);
-      } else {
-        if (!candidateUnit.activeCheckouts) candidateUnit.activeCheckouts = [];
-        candidateUnit.activeCheckouts.push(checkoutRecord);
-        candidateUnit.quantity = 0;
-      }
+        if (forGood) {
+          const consumedList = JSON.parse(localStorage.getItem('PLANT_QR_CONSUMED_H_V8')) || [];
+          consumedList.unshift({
+            id: candidateUnit.id,
+            tag: candidateUnit.tag,
+            name: candidateUnit.name,
+            itemCode: candidateUnit.itemCode,
+            serialNumber: candidateUnit.serialNumber || '',
+            plantCode: candidateUnit.plantCode,
+            category: candidateUnit.category,
+            quality: candidateUnit.quality,
+            location: candidateUnit.location,
+            notes: candidateUnit.notes || '',
+            instructions: candidateUnit.instructions || '',
+            consumedAt: Date.now(),
+            consumedBy: userName,
+            destination: destination,
+            checkoutHistory: candidateUnit.checkoutHistory || [],
+            activeCheckouts: []
+          });
+          localStorage.setItem('PLANT_QR_CONSUMED_H_V8', JSON.stringify(consumedList));
 
-      addAppNotification(
-        'CHECK_OUT',
-        `Auto Checkout: ${candidateUnit.tag}`,
-        `${userName} checked out ${candidateUnit.name} to ${destination}.`,
-        candidateUnit.tag,
-        email
-      );
+          items = items.filter(i => i.id !== candidateUnit.id);
+          selectedItemIds.delete(candidateUnit.id);
+        } else {
+          if (!candidateUnit.activeCheckouts) candidateUnit.activeCheckouts = [];
+          candidateUnit.activeCheckouts.push(checkoutRecord);
+          candidateUnit.quantity = 0;
+        }
+
+        addAppNotification(
+          'CHECK_OUT',
+          `${forGood ? 'Permanent ' : ''}Auto Checkout: ${candidateUnit.tag}`,
+          `${userName} checked out ${candidateUnit.name} to ${destination}${forGood ? ' (Permanent)' : ''}.`,
+          candidateUnit.tag,
+          email
+        );
+      });
 
       closeAutoCheckoutModal();
 
-      document.getElementById('receipt-item-name').textContent = candidateUnit.name;
-      document.getElementById('receipt-item-tag').textContent = candidateUnit.tag;
-      document.getElementById('receipt-item-code').textContent = candidateUnit.itemCode;
-      document.getElementById('receipt-item-serial').textContent = candidateUnit.serialNumber || '—';
-      document.getElementById('receipt-item-location').textContent = candidateUnit.location;
+      document.getElementById('receipt-item-name').textContent = `${itemName} (${qty} Unit${qty > 1 ? 's' : ''})`;
+      
+      document.getElementById('receipt-units-list').innerHTML = unitsCheckedOut.map(u => `
+        <div class="p-3 bg-white rounded-xl border border-slate-200 flex flex-col gap-1 text-xs">
+          <div class="flex justify-between font-bold">
+            <span class="text-[#5A358E]">${u.tag}</span>
+            <span class="text-slate-500">${u.itemCode}</span>
+          </div>
+          <div class="flex justify-between text-[11px] text-slate-500">
+            <span>S/N: ${u.serialNumber || '—'}</span>
+            <span>Home Loc: ${u.location}</span>
+          </div>
+        </div>
+      `).join('');
+
       document.getElementById('receipt-user-name').textContent = userName;
       document.getElementById('receipt-destination').textContent = destination;
 
-      if (candidateUnit.notes) {
+      // Use notes/instructions from first unit
+      const sampleUnit = unitsCheckedOut[0];
+      if (sampleUnit.notes) {
         document.getElementById('receipt-item-notes-box').classList.remove('hidden');
-        document.getElementById('receipt-item-notes').textContent = candidateUnit.notes;
+        document.getElementById('receipt-item-notes').textContent = sampleUnit.notes;
       } else {
         document.getElementById('receipt-item-notes-box').classList.add('hidden');
       }
 
-      if (candidateUnit.instructions) {
+      if (sampleUnit.instructions) {
         document.getElementById('receipt-item-instructions-box').classList.remove('hidden');
-        document.getElementById('receipt-item-instructions').textContent = candidateUnit.instructions;
+        document.getElementById('receipt-item-instructions').textContent = sampleUnit.instructions;
       } else {
         document.getElementById('receipt-item-instructions-box').classList.add('hidden');
       }
@@ -3027,13 +3048,22 @@
       document.getElementById('auto-checkout-success-modal').classList.add('flex');
 
       renderInventory();
-      if (activeScannedTag === candidateUnit.tag) {
-        if (forGood) {
-          closeScanBanner();
-        } else {
-          refreshScannedBanner(candidateUnit.tag, false);
-        }
+      
+      // Close scan banner if checked-out unit was scanned and checked out for good
+      if (forGood) {
+        unitsCheckedOut.forEach(u => {
+          if (activeScannedTag === u.tag) {
+            closeScanBanner();
+          }
+        });
+      } else {
+        unitsCheckedOut.forEach(u => {
+          if (activeScannedTag === u.tag) {
+            refreshScannedBanner(u.tag, false);
+          }
+        });
       }
+
       await saveState();
     }
 
@@ -3133,6 +3163,191 @@
       document.getElementById('history-modal').classList.add('hidden');
       document.getElementById('history-modal').classList.remove('flex');
     }
+
+    function openMassCheckInModal() {
+      const selectedItems = items.filter(i => selectedItemIds.has(i.id) && i.activeCheckouts && i.activeCheckouts.length > 0);
+      if (selectedItems.length === 0) {
+        alert("Please select at least one checked-out item to check in.");
+        return;
+      }
+
+      const listContainer = document.getElementById('mass-checkin-units-list');
+      listContainer.innerHTML = selectedItems.map(item => {
+        const lastUser = item.activeCheckouts[0] ? item.activeCheckouts[0].userName : '';
+        return `
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3" data-item-id="${item.id}">
+            <div class="flex justify-between items-center">
+              <span class="font-mono font-bold text-[#5A358E]">${item.tag}</span>
+              <span class="font-bold text-slate-800">${escapeHtml(item.name)}</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Return Quality *</label>
+                <select class="mass-item-quality w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs font-bold bg-white outline-none" onchange="toggleMassItemRepairFields('${item.id}', this.value)">
+                  <option value="New" ${item.quality === 'New' ? 'selected' : ''}>🌟 New</option>
+                  <option value="Good" ${item.quality === 'Good' || !item.quality ? 'selected' : ''}>✅ Good</option>
+                  <option value="Used" ${item.quality === 'Used' ? 'selected' : ''}>🛠️ Used</option>
+                  <option value="Needs Repair" ${item.quality === 'Needs Repair' ? 'selected' : ''}>⚠️ Needs Repair</option>
+                  <option value="Broken" ${item.quality === 'Broken' ? 'selected' : ''}>Broken</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Return Notes</label>
+                <input type="text" class="mass-item-note w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs outline-none" placeholder="e.g. normal wear" />
+              </div>
+            </div>
+            
+            <div id="mass-repair-fields-${item.id}" class="hidden space-y-2 bg-rose-50/50 p-2.5 rounded-lg border border-rose-200 text-xs">
+              <div>
+                <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Describe the Issue *</label>
+                <textarea class="mass-item-repair-desc w-full border border-slate-300 rounded-lg px-2 py-1.5 text-xs outline-none" placeholder="Explain the damage..."></textarea>
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Job Impact *</label>
+                <textarea class="mass-item-repair-impact w-full border border-slate-300 rounded-lg px-2 py-1.5 text-xs outline-none" placeholder="Impact on line / safety..."></textarea>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Auto fill Checked In By name from the first item
+      const defaultUser = selectedItems[0].activeCheckouts[0] ? selectedItems[0].activeCheckouts[0].userName : '';
+      document.getElementById('mass-checkin-user').value = defaultUser;
+
+      // Make sure repair fields display correctly initially based on default quality values
+      selectedItems.forEach(item => {
+        toggleMassItemRepairFields(item.id, item.quality || 'Good');
+      });
+
+      const modal = document.getElementById('mass-checkin-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeMassCheckInModal() {
+      document.getElementById('mass-checkin-modal').classList.add('hidden');
+      document.getElementById('mass-checkin-modal').classList.remove('flex');
+    }
+
+    function toggleMassItemRepairFields(itemId, quality) {
+      const repairFields = document.getElementById(`mass-repair-fields-${itemId}`);
+      if (!repairFields) return;
+      const descInput = repairFields.querySelector('.mass-item-repair-desc');
+      const impactInput = repairFields.querySelector('.mass-item-repair-impact');
+      
+      if (quality === 'Needs Repair' || quality === 'Broken') {
+        repairFields.classList.remove('hidden');
+        if (descInput) descInput.required = true;
+        if (impactInput) impactInput.required = true;
+      } else {
+        repairFields.classList.add('hidden');
+        if (descInput) { descInput.required = false; descInput.value = ''; }
+        if (impactInput) { impactInput.required = false; impactInput.value = ''; }
+      }
+    }
+
+    async function confirmMassCheckIn(e) {
+      e.preventDefault();
+      const userName = document.getElementById('mass-checkin-user').value.trim();
+      const listContainer = document.getElementById('mass-checkin-units-list');
+      const itemContainers = listContainer.querySelectorAll('[data-item-id]');
+      const now = Date.now();
+
+      itemContainers.forEach(container => {
+        const itemId = container.getAttribute('data-item-id');
+        const quality = container.querySelector('.mass-item-quality').value;
+        const note = container.querySelector('.mass-item-note').value.trim();
+        
+        let repairDesc = "";
+        let repairImpact = "";
+        const repairDescEl = container.querySelector('.mass-item-repair-desc');
+        const repairImpactEl = container.querySelector('.mass-item-repair-impact');
+        if (repairDescEl) repairDesc = repairDescEl.value.trim();
+        if (repairImpactEl) repairImpact = repairImpactEl.value.trim();
+
+        const item = items.find(i => i.id === itemId);
+        if (item) {
+          const activeList = item.activeCheckouts || [];
+          const activeRecord = activeList[0] || {};
+
+          if (!item.checkoutHistory) item.checkoutHistory = [];
+          item.checkoutHistory.push({
+            ...activeRecord,
+            checkedInAt: now,
+            returnQuality: quality,
+            returnNote: note,
+            concernDesc: repairDesc,
+            concernImpact: repairImpact
+          });
+
+          item.activeCheckouts = [];
+          item.quality = quality;
+          item.quantity = 1;
+
+          if (quality === 'Needs Repair' || quality === 'Broken') {
+            addAppNotification(
+              'REPAIR_ALERT',
+              `⚠️ ${quality}: ${item.tag} (${item.name})`,
+              `Reported by ${userName}: ${repairDesc || note || 'Flagged upon return'}`,
+              item.tag
+            );
+
+            // Automatically create a support log help ticket
+            const helpLogs = JSON.parse(localStorage.getItem(STORAGE_KEY_HELP_LOGS)) || [];
+            const generateTicketNumber = () => {
+              let maxTk = helpLogs.reduce((max, entry) => {
+                if (entry.ticketNumber && entry.ticketNumber.startsWith('TK-')) {
+                  const num = parseInt(entry.ticketNumber.split('-')[1], 10);
+                  if (!isNaN(num) && num > max) return num;
+                }
+                return max;
+              }, 1000);
+              return 'TK-' + (maxTk + 1);
+            };
+
+            helpLogs.unshift({
+              id: 'hl-' + Date.now() + '-' + Math.random().toString(36).substring(2, 5),
+              ticketNumber: generateTicketNumber(),
+              type: 'CONCERN',
+              itemName: item.name,
+              itemTag: item.tag,
+              itemCode: item.itemCode,
+              quality: quality,
+              user: userName,
+              description: repairDesc || note || 'Flagged upon return',
+              impact: repairImpact || 'N/A',
+              timestamp: Date.now(),
+              status: 'OPEN',
+              priority: 'High',
+              assignedTo: '',
+              notes: []
+            });
+            localStorage.setItem(STORAGE_KEY_HELP_LOGS, JSON.stringify(helpLogs));
+          } else {
+            addAppNotification(
+              'CHECK_IN',
+              `Unit Checked In: ${item.tag}`,
+              `${userName} checked in ${item.name} (Quality: ${quality}).`,
+              item.tag
+            );
+          }
+        }
+      });
+
+      closeMassCheckInModal();
+      selectedItemIds.clear();
+      renderInventory();
+      
+      // Update scan banner if any checked-in item was active
+      if (activeScannedTag) {
+        refreshScannedBanner(activeScannedTag, false);
+      }
+
+      await saveState();
+      alert('Mass check-in completed successfully!');
+    }
+    
   </script>
 </body>
 </html>
