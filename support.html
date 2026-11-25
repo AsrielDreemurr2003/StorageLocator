@@ -150,7 +150,7 @@
                   <input type="text" id="help-req-category" required placeholder="e.g. Electronics" class="w-full border rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-600 focus:outline-none" />
                 </div>
               </div>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label for="help-req-plant" class="block text-xs font-bold text-slate-600 uppercase mb-1">Target Plant *</label>
                   <select id="help-req-plant" required class="w-full border rounded px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-emerald-600 focus:outline-none"></select>
@@ -158,6 +158,10 @@
                 <div>
                   <label for="help-req-user" class="block text-xs font-bold text-slate-600 uppercase mb-1">Your User ID *</label>
                   <input type="text" id="help-req-user" required placeholder="Your User ID" class="w-full border rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-600 focus:outline-none" />
+                </div>
+                <div>
+                  <label for="help-req-amount" class="block text-xs font-bold text-slate-600 uppercase mb-1">Estimated Amount Needed *</label>
+                  <input type="number" id="help-req-amount" required min="1" value="1" class="w-full border rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-600 focus:outline-none" />
                 </div>
               </div>
               <div>
@@ -405,14 +409,17 @@
       const name = document.getElementById('help-req-name').value.trim();
       const category = document.getElementById('help-req-category').value.trim();
       const plant = document.getElementById('help-req-plant').value;
-      const priority = document.getElementById('help-req-priority').value;
+      const priorityEl = document.getElementById('help-req-priority');
+      const priority = priorityEl ? priorityEl.value : 'Medium';
       const user = document.getElementById('help-req-user').value.trim();
       const reason = document.getElementById('help-req-reason').value.trim();
+      const amount = parseInt(document.getElementById('help-req-amount').value, 10) || 1;
 
       const now = Date.now();
       helpLogs.unshift({
         id: 'hl-' + now, ticketNumber: generateTicketNumber(), type: 'WISHLIST_REQ',
-        itemName: name, category, plantCode: plant, user, description: reason, timestamp: now, status: 'OPEN', priority: priority, assignedTo: '', notes: []
+        itemName: name, category, plantCode: plant, user, description: reason + " (Estimated Amount: " + amount + ")",
+        amount: amount, timestamp: now, status: 'OPEN', priority: priority, assignedTo: '', notes: []
       });
 
       // Push notification to local storage & cloud
@@ -603,7 +610,7 @@
                 <span class="px-2 py-0.5 rounded text-[10px] font-bold border ${priorityColor}">${priority} Priority</span>
                 ${entry.assignedTo ? `<span class="bg-blue-50 text-blue-800 border border-blue-200 px-2 py-0.5 rounded text-[10px] font-medium">👤 Assigned: ${escapeHtml(entry.assignedTo)}</span>` : '<span class="bg-slate-100 text-slate-500 border border-slate-200 px-2 py-0.5 rounded text-[10px] font-medium">Unassigned</span>'}
                 ${lastAccessHtml}
-                <span class="font-semibold text-slate-900">${entry.itemName || ''} ${entry.itemTag ? '(' + entry.itemTag + ')' : ''}</span>
+                <span class="font-semibold text-slate-900">${entry.itemName || ''} ${entry.itemTag ? '(' + entry.itemTag + ')' : ''} ${entry.category ? `[Category: ${escapeHtml(entry.category)}]` : ''} ${entry.amount ? `[Qty Needed: ${entry.amount}]` : ''}</span>
                 <span class="text-slate-400">by <strong>${entry.user}</strong> • ${new Date(entry.timestamp).toLocaleString()}</span>
               </div>
               <p class="text-slate-700 mt-1.5">${entry.description || ''}</p>
