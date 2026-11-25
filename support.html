@@ -768,6 +768,22 @@
     }
     
     populateDropdowns();
+
+    // Parse URL query parameters to pre-fill the wishlist request form
+    function checkQueryParamsForRequest() {
+      const params = new URLSearchParams(window.location.search);
+      const tab = params.get('tab');
+      if (tab === 'request') {
+        switchHelpTab('request');
+        const name = params.get('name');
+        const category = params.get('category');
+        const amount = params.get('amount');
+        if (name) document.getElementById('help-req-name').value = name;
+        if (category) document.getElementById('help-req-category').value = category;
+        if (amount) document.getElementById('help-req-amount').value = amount;
+      }
+    }
+    checkQueryParamsForRequest();
   </script>
   <!-- MODAL: Azure DevOps Style Work Item Editor -->
   <div id="devops-editor-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 no-print backdrop-blur-sm">
