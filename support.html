@@ -377,10 +377,12 @@
       if (item) {
         item.quality = newQuality;
         const now = Date.now();
+        const foundUser = users.find(u => u.username.toLowerCase() === submitter.toLowerCase());
+        const displayName = foundUser ? `${foundUser.name} (${submitter})` : submitter;
         helpLogs.unshift({
           id: 'hl-' + now, ticketNumber: generateTicketNumber(), type: 'CONCERN',
           itemName: item.name, itemTag: item.tag, itemCode: item.itemCode,
-          quality: newQuality, user: submitter, description: desc, impact, timestamp: now, status: 'OPEN', priority: priority, assignedTo: '', notes: []
+          quality: newQuality, user: displayName, description: desc, impact, timestamp: now, status: 'OPEN', priority: priority, assignedTo: '', notes: []
         });
 
         // Push notification to local storage & cloud
@@ -416,9 +418,11 @@
       const amount = parseInt(document.getElementById('help-req-amount').value, 10) || 1;
 
       const now = Date.now();
+      const foundUser = users.find(u => u.username.toLowerCase() === user.toLowerCase());
+      const displayName = foundUser ? `${foundUser.name} (${user})` : user;
       helpLogs.unshift({
         id: 'hl-' + now, ticketNumber: generateTicketNumber(), type: 'WISHLIST_REQ',
-        itemName: name, category, plantCode: plant, user, description: reason + " (Estimated Amount: " + amount + ")",
+        itemName: name, category, plantCode: plant, user: displayName, description: reason + " (Estimated Amount: " + amount + ")",
         amount: amount, timestamp: now, status: 'OPEN', priority: priority, assignedTo: '', notes: []
       });
 
@@ -453,9 +457,11 @@
       if (item) {
         item.instructions = newText;
         const now = Date.now();
+        const foundUser = users.find(u => u.username.toLowerCase() === user.toLowerCase());
+        const displayName = foundUser ? `${foundUser.name} (${user})` : user;
         helpLogs.unshift({
           id: 'hl-' + now, ticketNumber: generateTicketNumber(), type: 'WORK_INSTRUCTIONS_UPDATE',
-          itemName: item.name, itemTag: item.tag, user, description: `Updated because: ${reason}`,
+          itemName: item.name, itemTag: item.tag, user: displayName, description: `Updated because: ${reason}`,
           newInstructions: newText, timestamp: now, status: 'OPEN'
         });
         e.target.reset();
