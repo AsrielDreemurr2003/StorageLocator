@@ -2962,7 +2962,13 @@
       }
 
       if (availableUnits.length < qty) {
-        alert(`Cannot check out. Only ${availableUnits.length} available units of "${itemName}" exist.`);
+        const sampleItem = items.find(it => it.name === itemName);
+        const itemCat = sampleItem ? sampleItem.category : 'Uncategorized';
+        const neededQty = qty - availableUnits.length;
+        const createWishlist = confirm(`Cannot check out. Only ${availableUnits.length} available units of "${itemName}" exist.\n\nWould you like to submit a wishlist/new inventory request for "${itemName}"?`);
+        if (createWishlist) {
+          window.location.href = `support.html?tab=request&name=${encodeURIComponent(itemName)}&category=${encodeURIComponent(itemCat)}&amount=${neededQty}`;
+        }
         return;
       }
 
