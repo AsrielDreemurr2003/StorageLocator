@@ -2486,7 +2486,10 @@
       if (uniqueNames.length === 0) {
         select.innerHTML = '<option value="">No available items inside this category</option>';
       } else {
-        select.innerHTML = uniqueNames.map(name => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('');
+        select.innerHTML = uniqueNames.map(name => {
+          const count = availableItems.filter(i => i.name === name).length;
+          return `<option value="${escapeHtml(name)}">${escapeHtml(name)} (${count} available)</option>`;
+        }).join('');
       }
 
       selectDiv.classList.remove('hidden');
@@ -2873,7 +2876,10 @@
       if (uniqueNames.length === 0) {
         select.innerHTML = '<option value="">No items available for checkout</option>';
       } else {
-        select.innerHTML = uniqueNames.map(name => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('');
+        select.innerHTML = uniqueNames.map(name => {
+          const count = availableItems.filter(i => i.name === name).length;
+          return `<option value="${escapeHtml(name)}">${escapeHtml(name)} (${count} available)</option>`;
+        }).join('');
       }
 
       const selectDiv = select.closest('div');
